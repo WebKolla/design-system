@@ -1,0 +1,317 @@
+/* ==========================================================================
+   TimeSubmit Design System · tokens
+   Tailwind CSS v4, CSS-first config. Drop in at src/app/globals.css.
+   Every value here is consumed as a semantic utility. No raw hex in JSX.
+   ========================================================================== */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* --------------------------------------------------------------------------
+   1 · Primitive ramps
+   Neutrals are cool-tinted (hue 275, chroma <= 0.012). Accent is ink-teal.
+   -------------------------------------------------------------------------- */
+:root {
+  /* neutral, light */
+  --ts-white:        #FFFFFF;
+  --ts-neutral-25:   #FBFBFC;
+  --ts-neutral-50:   #F7F7F9;
+  --ts-neutral-100:  #F1F1F4;
+  --ts-neutral-150:  #EFEFF2;
+  --ts-neutral-200:  #E4E4E9;
+  --ts-neutral-250:  #DEDEE4;
+  --ts-neutral-300:  #D3D3DB;
+  --ts-neutral-400:  #A6A6B0;
+  --ts-neutral-500:  #74747F;
+  --ts-neutral-700:  #45454F;
+  --ts-neutral-900:  #16161C;
+
+  /* neutral, dark (teal-tinted so the accent sits in the same family) */
+  --ts-ink-950:      #0E1719;
+  --ts-ink-900:      #131E20;
+  --ts-ink-800:      #1A272A;
+  --ts-ink-700:      #1E2C2E;
+  --ts-ink-600:      #2B3B3D;
+  --ts-ink-500:      #5E7274;
+  --ts-ink-400:      #8B9A9C;
+  --ts-ink-300:      #A8B4B6;
+  --ts-ink-200:      #C6D0D2;
+
+  /* accent */
+  --ts-accent-700:   #0F4A53;
+  --ts-accent-600:   #16606B;   /* the brand accent */
+  --ts-accent-400:   #35A5B2;   /* lifted for AA on dark surfaces */
+  --ts-accent-100:   #7FB0B6;
+
+  /* semantic */
+  --ts-success-700:  #0E6E4C;
+  --ts-success-600:  #1D6F4F;   /* solid fill, e.g. Approve */
+  --ts-success-500:  #3E9A73;   /* chart / dot */
+  --ts-success-100:  #E6F2EC;
+  --ts-success-200:  #CFE7DC;
+
+  --ts-info-700:     #1F4FA8;
+  --ts-info-500:     #4E7FC4;
+  --ts-info-100:     #E8EEFA;
+  --ts-info-200:     #D2E0F4;
+
+  --ts-warn-700:     #8A5A00;
+  --ts-warn-500:     #C89A3C;
+  --ts-warn-100:     #FBF2E0;
+  --ts-warn-200:     #F0E1C2;
+
+  --ts-danger-700:   #A81F26;
+  --ts-danger-500:   #C0555B;
+  --ts-danger-100:   #FBEAEA;
+  --ts-danger-200:   #F3D4D5;
+
+  --ts-muted-700:    #5A5A65;
+  --ts-muted-500:    #C4C4CC;
+}
+
+/* --------------------------------------------------------------------------
+   2 · Semantic surface + ink (light is the default theme)
+   -------------------------------------------------------------------------- */
+:root {
+  --background:          var(--ts-neutral-50);
+  --surface:             var(--ts-white);
+  --surface-raised:      var(--ts-neutral-25);
+  --control:             var(--ts-neutral-100);
+
+  --border:              var(--ts-neutral-200);
+  --border-strong:       var(--ts-neutral-300);
+  --border-input:        var(--ts-neutral-250);
+  --hairline:            var(--ts-neutral-150);
+
+  --foreground:          var(--ts-neutral-900);
+  --foreground-muted:    var(--ts-neutral-700);
+  --foreground-subtle:   var(--ts-neutral-500);
+  --foreground-faint:    var(--ts-neutral-400);
+
+  --primary:             var(--ts-accent-600);
+  --primary-hover:       var(--ts-accent-700);
+  --primary-foreground:  var(--ts-white);
+  --primary-soft:        color-mix(in oklab, var(--primary) 8%, var(--surface));
+  --primary-border:      color-mix(in oklab, var(--primary) 25%, var(--surface));
+  --ring:                color-mix(in oklab, var(--primary) 14%, var(--surface));
+
+  --radius: 0.625rem;    /* 10px, the card radius */
+}
+
+.dark {
+  --background:          var(--ts-ink-950);
+  --surface:             var(--ts-ink-900);
+  --surface-raised:      var(--ts-ink-800);
+  --control:             var(--ts-ink-800);
+
+  --border:              var(--ts-ink-700);
+  --border-strong:       var(--ts-ink-600);
+  --border-input:        var(--ts-ink-600);
+  --hairline:            var(--ts-ink-800);
+
+  --foreground:          var(--ts-white);
+  --foreground-muted:    var(--ts-ink-200);
+  --foreground-subtle:   var(--ts-ink-400);
+  --foreground-faint:    var(--ts-ink-500);
+
+  --primary:             var(--ts-accent-400);
+  --primary-hover:       var(--ts-accent-100);
+  --primary-foreground:  var(--ts-ink-950);
+  --primary-soft:        color-mix(in oklab, var(--primary) 14%, var(--surface));
+  --primary-border:      color-mix(in oklab, var(--primary) 32%, var(--surface));
+  --ring:                color-mix(in oklab, var(--primary) 26%, var(--surface));
+}
+
+/* --------------------------------------------------------------------------
+   3 · Status tokens
+   One vocabulary, used identically on every screen. A pill always pairs
+   colour with a dot, so state survives a monochrome print and colour
+   vision deficiency alike.
+   -------------------------------------------------------------------------- */
+:root {
+  --status-success-fg: var(--ts-success-700); --status-success-bg: var(--ts-success-100); --status-success-bd: var(--ts-success-200);
+  --status-info-fg:    var(--ts-info-700);    --status-info-bg:    var(--ts-info-100);    --status-info-bd:    var(--ts-info-200);
+  --status-warn-fg:    var(--ts-warn-700);    --status-warn-bg:    var(--ts-warn-100);    --status-warn-bd:    var(--ts-warn-200);
+  --status-danger-fg:  var(--ts-danger-700);  --status-danger-bg:  var(--ts-danger-100);  --status-danger-bd:  var(--ts-danger-200);
+  --status-neutral-fg: var(--ts-muted-700);   --status-neutral-bg: var(--ts-neutral-100); --status-neutral-bd: var(--ts-neutral-200);
+}
+.dark {
+  --status-success-bg: color-mix(in oklab, var(--ts-success-500) 18%, var(--surface));
+  --status-success-fg: var(--ts-success-500);
+  --status-success-bd: color-mix(in oklab, var(--ts-success-500) 32%, var(--surface));
+  --status-info-bg:    color-mix(in oklab, var(--ts-info-500) 18%, var(--surface));
+  --status-info-fg:    var(--ts-info-500);
+  --status-info-bd:    color-mix(in oklab, var(--ts-info-500) 32%, var(--surface));
+  --status-warn-bg:    color-mix(in oklab, var(--ts-warn-500) 18%, var(--surface));
+  --status-warn-fg:    var(--ts-warn-500);
+  --status-warn-bd:    color-mix(in oklab, var(--ts-warn-500) 32%, var(--surface));
+  --status-danger-bg:  color-mix(in oklab, var(--ts-danger-500) 18%, var(--surface));
+  --status-danger-fg:  var(--ts-danger-500);
+  --status-danger-bd:  color-mix(in oklab, var(--ts-danger-500) 32%, var(--surface));
+  --status-neutral-bg: var(--ts-ink-800);
+  --status-neutral-fg: var(--ts-ink-300);
+  --status-neutral-bd: var(--ts-ink-700);
+}
+
+/* --------------------------------------------------------------------------
+   4 · One chart ramp, for every chart in the product
+   Chart 1 is the accent so the primary series always reads as "ours".
+   -------------------------------------------------------------------------- */
+:root {
+  --chart-1: var(--ts-accent-600);
+  --chart-2: var(--ts-info-500);
+  --chart-3: var(--ts-warn-500);
+  --chart-4: var(--ts-danger-500);
+  --chart-5: var(--ts-success-500);
+  --chart-6: var(--ts-muted-500);
+  --chart-grid: var(--hairline);
+  --chart-axis: var(--foreground-faint);
+}
+.dark { --chart-1: var(--ts-accent-400); }
+
+/* --------------------------------------------------------------------------
+   5 · @theme — this is what turns tokens into utilities
+   -------------------------------------------------------------------------- */
+@theme inline {
+  --color-background:        var(--background);
+  --color-surface:           var(--surface);
+  --color-surface-raised:    var(--surface-raised);
+  --color-control:           var(--control);
+
+  --color-border:            var(--border);
+  --color-border-strong:     var(--border-strong);
+  --color-input:             var(--border-input);
+  --color-hairline:          var(--hairline);
+
+  --color-foreground:        var(--foreground);
+  --color-muted-foreground:  var(--foreground-muted);
+  --color-subtle-foreground: var(--foreground-subtle);
+  --color-faint-foreground:  var(--foreground-faint);
+
+  --color-primary:            var(--primary);
+  --color-primary-hover:      var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft:       var(--primary-soft);
+  --color-primary-border:     var(--primary-border);
+  --color-ring:               var(--ring);
+
+  --color-success:        var(--status-success-fg);
+  --color-success-bg:     var(--status-success-bg);
+  --color-success-border: var(--status-success-bd);
+  --color-info:           var(--status-info-fg);
+  --color-info-bg:        var(--status-info-bg);
+  --color-info-border:    var(--status-info-bd);
+  --color-warn:           var(--status-warn-fg);
+  --color-warn-bg:        var(--status-warn-bg);
+  --color-warn-border:    var(--status-warn-bd);
+  --color-danger:         var(--status-danger-fg);
+  --color-danger-bg:      var(--status-danger-bg);
+  --color-danger-border:  var(--status-danger-bd);
+  --color-neutral:        var(--status-neutral-fg);
+  --color-neutral-bg:     var(--status-neutral-bg);
+  --color-neutral-border: var(--status-neutral-bd);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+
+  /* shadcn compatibility aliases, so the primitives keep working */
+  --color-card:              var(--surface);
+  --color-card-foreground:   var(--foreground);
+  --color-popover:           var(--surface);
+  --color-secondary:         var(--control);
+  --color-muted:             var(--control);
+  --color-accent:            var(--primary-soft);
+  --color-accent-foreground: var(--primary);
+  --color-destructive:       var(--status-danger-fg);
+  --color-sidebar:           var(--surface-raised);
+  --color-sidebar-border:    var(--border);
+  --color-sidebar-primary:   var(--primary);
+
+  /* type */
+  --font-sans: var(--font-geist), -apple-system, "Helvetica Neue", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --text-display:    3.375rem;  --text-display--line-height: 1.07;  --text-display--letter-spacing: -0.035em;
+  --text-hero:       2.75rem;   --text-hero--line-height: 1.08;     --text-hero--letter-spacing: -0.032em;
+  --text-section:    2rem;      --text-section--line-height: 1.15;  --text-section--letter-spacing: -0.028em;
+  --text-page:       1.5rem;    --text-page--line-height: 1.2;      --text-page--letter-spacing: -0.02em;
+  --text-card:       1.125rem;  --text-card--line-height: 1.3;      --text-card--letter-spacing: -0.015em;
+  --text-block:      0.9375rem; --text-block--line-height: 1.3;
+  --text-body-lg:    1rem;      --text-body-lg--line-height: 1.62;
+  --text-body:       0.875rem;  --text-body--line-height: 1.55;
+  --text-cell:       0.8125rem; --text-cell--line-height: 1.6;
+  --text-caption:    0.78125rem;--text-caption--line-height: 1.5;
+  --text-label:      0.75rem;   --text-label--line-height: 1.4;
+  --text-overline:   0.6875rem; --text-overline--line-height: 1;    --text-overline--letter-spacing: 0.07em;
+
+  /* radius */
+  --radius-pip:      5px;
+  --radius-control:  7px;
+  --radius-button:   8px;
+  --radius-button-lg:9px;
+  --radius-card:     10px;
+  --radius-panel:    12px;
+
+  /* elevation. One hairline family. No glows, ever. */
+  --shadow-e1: 0 1px 2px rgba(20,20,30,.05);
+  --shadow-e2: 0 1px 2px rgba(20,20,30,.05), 0 8px 24px -12px rgba(20,20,30,.12);
+  --shadow-e3: 0 1px 2px rgba(20,20,30,.05), 0 18px 44px -20px rgba(20,20,30,.18);
+  --shadow-e4: 0 24px 60px -30px rgba(20,20,30,.30);
+
+  /* motion */
+  --ease-out-quiet: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* --------------------------------------------------------------------------
+   6 · Base
+   -------------------------------------------------------------------------- */
+@layer base {
+  * { border-color: var(--border); }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Every number, rate, hour, amount and identifier. Non-negotiable:
+     a column of figures that does not align cannot be scanned. */
+  .tabular, td.numeric, th.numeric { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  :focus-visible {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { color: var(--primary-hover); }
+
+  /* Motion is opt-out by default. No infinite loops anywhere in the product. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7 · Density
+   Set data-density="compact" on a table wrapper to drop row height from
+   42px to 30px. Admins living in a list all day get to choose.
+   -------------------------------------------------------------------------- */
+@layer utilities {
+  [data-density="comfortable"] { --row-pad-y: 0.8125rem; }
+  [data-density="compact"]     { --row-pad-y: 0.4375rem; }
+  .row-pad { padding-top: var(--row-pad-y, 0.8125rem); padding-bottom: var(--row-pad-y, 0.8125rem); }
+}
