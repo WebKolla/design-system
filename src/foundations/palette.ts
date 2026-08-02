@@ -128,12 +128,12 @@ export const PALETTE: TokenGroup[] = [
     entries: [
       t('chart-1', 'surface', 'graphic'),
       t('chart-2', 'surface', 'graphic'),
-      t('chart-3', 'surface', 'graphic'),
+      t('chart-3', 'surface', 'graphic', 'warn/600 — the 500 measured 2.58 on surface'),
       t('chart-4', 'surface', 'graphic'),
       t('chart-5', 'surface', 'graphic'),
-      t('chart-6', 'surface', 'graphic'),
+      t('chart-6', 'surface', 'graphic', 'muted/600 — the 500 measured 1.73 on surface'),
       t('chart-grid', 'surface', 'line', 'Alias of color/hairline'),
-      t('chart-axis', 'surface', 'line', 'Alias of color/faint-foreground'),
+      t('chart-axis', 'surface', 'line', 'Alias of color/subtle-foreground'),
     ],
   },
   {

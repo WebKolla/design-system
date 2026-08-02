@@ -74,6 +74,7 @@
   --p-ink-950: #0e1719;
 
   --p-muted-500: #c4c4cc;
+  --p-muted-600: #878798;
   --p-muted-700: #5a5a65;
 
   --p-success-100: #e6f2ec;
@@ -86,6 +87,7 @@
   --p-warn-100: #fbf2e0;
   --p-warn-200: #f0e1c2;
   --p-warn-500: #c89a3c;
+  --p-warn-600: #aa8230;
   --p-warn-700: #8a5a00;
 
   --p-danger-100: #fbeaea;
@@ -181,10 +183,14 @@
      resolved per-element and still flips with the mode. */
   --color-chart-1: var(--p-accent-600);
   --color-chart-2: var(--p-info-500);
-  --color-chart-3: var(--p-warn-500);
+  /* warn/600 and muted/600, not the 500s: those measured 2.58 and 1.73
+     against surface in Light, below the 3:1 for graphical objects. The new
+     steps reach 3.53 Light and 5.00 Dark, so the series stay mode-invariant.
+     warn/500 is untouched because dark-mode warn text depends on it. */
+  --color-chart-3: var(--p-warn-600);
   --color-chart-4: var(--p-danger-500);
   --color-chart-5: var(--p-success-500);
-  --color-chart-6: var(--p-muted-500);
+  --color-chart-6: var(--p-muted-600);
 
   /* ------------------------------------------------------------------------
      INK — mode-invariant.
@@ -418,6 +424,15 @@
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
+  /* CHART LINES
+
+     [figma] color/chart-grid → color/hairline, color/chart-axis →
+     color/subtle-foreground. Second-order aliases, so they are declared per
+     mode here for the same reason as the focus ring: @theme static freezes
+     them at Light, and @theme inline emits no variable for var() to read. */
+  --color-chart-grid: var(--color-hairline);
+  --color-chart-axis: var(--color-subtle-foreground);
+
   /* z-index scale */
   --z-sticky: 100;
   --z-dropdown: 200;
@@ -435,9 +450,11 @@
 .dark {
   color-scheme: dark;
 
-  /* Re-declared so it re-resolves against the dark primary — see the note on
-     the :root declaration. */
+  /* Re-declared so they re-resolve against the dark values — see the notes on
+     the :root declarations. */
   --color-focus-ring: var(--color-primary);
+  --color-chart-grid: var(--color-hairline);
+  --color-chart-axis: var(--color-subtle-foreground);
 
   /* surfaces */
   --color-background: var(--p-ink-950);
@@ -520,11 +537,13 @@
   mode correctly. Verified in both modes before this file was committed.
 */
 @theme inline {
-  /* Second-order Color tokens from Figma. */
-  --color-chart-grid: var(--color-hairline);
-  --color-chart-axis: var(--color-faint-foreground);
+  /* shadcn/ui names.
 
-  /* shadcn/ui names. */
+     These stay `inline` because they are only ever consumed through generated
+     utilities (bg-card, bg-secondary …). `inline` keeps the var() inside the
+     utility so it resolves per element. It emits no variable of its own, which
+     is why chart-grid and chart-axis are NOT here — those are read through
+     var() and are declared per mode below instead. */
   --color-card: var(--color-surface);
   --color-card-foreground: var(--color-foreground);
 
