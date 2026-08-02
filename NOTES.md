@@ -353,6 +353,107 @@ The stock shadcn Button lives at `src/components/ui/button.tsx`. The
 `button.tsx` and `Button.tsx` are the same path on a case-insensitive
 filesystem, which would have silently overwritten the Phase 2 Button.
 
+---
+
+## Phase 2 — Atoms
+
+### a11y is now a real gate
+
+`@storybook/addon-vitest` (not `@storybook/test-runner` — the
+`parameters.a11y.test: 'error'` flag is specifically the addon-vitest
+integration, and test-runner would have left it inert). Every story mounts in
+headless Chromium and axe runs against it.
+
+Proven, not assumed: a probe story with a nameless `<button>` and an `<img>`
+with no `alt` **failed** the run on `button-name` and `image-alt` while the
+real stories passed. Probe then removed. `npm test` → 16 tests, 5 files.
+
+Two Vite issues had to be solved to get there, both recorded in
+`vitest.config.ts`: CJS deps in the axe pipeline (`aria-query`, `lz-string`,
+`radix-ui` and friends) need explicit `optimizeDeps.include` or their named
+exports are missing, and `resolve.dedupe: ['react','react-dom']` is required or
+`radix-ui` pre-bundles its own React and every hook inside `Slot` reads null.
+
+### `cn()` had to be taught the type ramp — systemic bug
+
+Our 24 type tokens live in Tailwind's `text-*` namespace, which is also text
+colour. tailwind-merge only knows Tailwind's built-in sizes, so it classified
+`text-ui-lg` as a *colour* and dropped `text-primary-foreground` from the same
+group.
+
+Symptom: every Button variant rendered its label in the inherited foreground —
+primary was `#16161c` instead of white, destructive was not red. Caught by
+reading computed styles; it is invisible in a quick glance at the matrix.
+
+Fixed in `src/lib/cn.ts` by registering the ramp under the `font-size` group.
+**Any new text token must be added to that list**, or the same silent failure
+returns for whichever component uses it.
+
+### Button (node 15:53) — built
+
+Geometry verified against the component set, exactly: Large 42 / px20 / gap8 /
+`radius/button-lg` / `ui/lg`, Medium 34 / px14 / gap8 / `radius/button` /
+`ui/md`, Small 30 / px11 / **gap7** / `radius/control` / `ui/sm`.
+
+Two constraints came from the Figma component **description**, and would have
+been got wrong from the pixels alone:
+
+> "Approve is reserved for the approver queue sign-off action and nowhere else.
+> Destructive is a secondary shell with danger text, never a filled red
+> button — a filled red button reads as the primary action on the screen, which
+> it never is."
+
+Both are encoded in the variant table and repeated in the story docs.
+
+### §13.1 icon side — built trailing, Figma still leading
+
+`iconPosition` defaults to `'trailing'`, per the brief's own recommendation:
+it matches the component sheet and all seven marketing pages. The Figma
+variant set places the icon leading — `childOrder` is `["INSTANCE:Icon",
+"TEXT:Label"]` and the description says "Icon (instance swap, leading)".
+
+**Figma needs bringing in line**, or the next person reading the file will
+reintroduce leading. `'leading'` remains available as a prop.
+
+### Figma defect — Primary and Secondary render black at Medium and Small
+
+`get_screenshot` on node 15:53 renders the Large row correctly (teal primary,
+white secondary) but **Primary and Secondary at Medium and Small render solid
+black**. Approve, Ghost and Destructive are fine at every size.
+
+The bound variables on those same nodes are correct — `fills → color/primary`
+and `fills → color/surface, strokes → color/input`. So this is a rendering or
+binding-resolution fault in the file, not a design intent.
+
+Built from the **variables**, per the §2 precedence (Figma variables > SPEC >
+HTML), so the code shows teal and white at all three sizes. Not fixed in Figma —
+read-only. Needs fixing there before anyone treats that frame as reference.
+
+### Interaction states are code-defined
+
+Figma has no hover, focus or loading variants for Button, so these are code
+decisions using existing tokens:
+
+| State | Treatment |
+|---|---|
+| primary hover | `primary-hover` (the token exists for this) |
+| secondary / ghost hover | `control` |
+| approve hover | `success` (darker than `success-solid` in Light) |
+| destructive hover | `danger-bg` fill + `danger-border` |
+| disabled | `opacity-50` + `pointer-events-none` |
+| loading | `LoaderCircle` spinner, `aria-busy`, control disabled |
+
+`success` as the approve hover is a *lighten* in Dark mode rather than a
+darken, because no `success-hover` token exists. Worth a Figma token if the
+approve button ever gets a designed hover.
+
+### Touch target — Large is 42px, spec floor is 44px
+
+§8.4 sets a 44px minimum touch target for mobile; the Large button is 42.
+Not silently changed — the height is explicit in both Figma and SPEC. If the
+44 floor is meant to bind on mobile, either Large grows to 44 there or the rule
+needs an exception recorded.
+
 ### Still open
 
 - [ ] a11y addon is configured with `test: 'error'` but has not been asserted
