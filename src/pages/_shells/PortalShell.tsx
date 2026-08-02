@@ -1,0 +1,100 @@
+import * as React from 'react'
+import { Avatar } from '@/components/atoms/Avatar/Avatar'
+import { TabBarItemMobile } from '@/components/atoms/TabBarItemMobile/TabBarItemMobile'
+import type { SidebarExpandedProps } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
+import { cn } from '@/lib/cn'
+
+export interface PortalShellProps
+  extends React.ComponentPropsWithoutRef<'div'> {
+  links: Array<{ label: string; href: string; current?: boolean }>
+  user: { name: string; initials: string }
+  /** Bottom tab bar below 834 — these portals otherwise have no mobile nav. */
+  mobileTabs: Array<{
+    label: string
+    icon: SidebarExpandedProps['overview']['icon']
+    href: string
+    current?: boolean
+  }>
+  children: React.ReactNode
+}
+
+/**
+ * Chrome for the consultant and approver portals.
+ *
+ * **Not the admin shell.** These two roles get a top nav rather than a
+ * sidebar: they have four or five destinations, not thirteen, and a 236px
+ * sidebar spends a seventh of the viewport saying almost nothing. The week
+ * grid and the approver queue both want the full width.
+ *
+ * Below 834 the links move into a bottom tab bar, because these portals
+ * otherwise have no navigation at all on a phone.
+ */
+export function PortalShell({
+  links,
+  user,
+  mobileTabs,
+  children,
+  className,
+  ...rest
+}: PortalShellProps) {
+  return (
+    <div
+      {...rest}
+      className={cn('bg-background flex min-h-screen flex-col', className)}
+    >
+      <header className="border-hairline bg-surface flex h-13 shrink-0 items-center justify-between gap-6 border-b px-7">
+        <div className="flex min-w-0 items-center gap-8">
+          <a href="/" className="flex shrink-0 items-center gap-2.5">
+            <span
+              aria-hidden
+              className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-control font-mono text-mono-count"
+            >
+              TS
+            </span>
+            <span className="text-heading-block text-foreground">TimeSubmit</span>
+          </a>
+
+          <nav aria-label="Main" className="hidden md:block">
+            <ul className="flex items-center gap-6">
+              {links.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    aria-current={l.current ? 'page' : undefined}
+                    className={cn(
+                      'text-ui-md transition-colors',
+                      l.current
+                        ? 'text-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+
+        <Avatar initials={user.initials} size={26} tone="primary" label={user.name} />
+      </header>
+
+      <main className="flex-1 pb-16 md:pb-0">{children}</main>
+
+      <nav
+        aria-label="Primary"
+        className="border-border bg-surface fixed inset-x-0 bottom-0 flex items-stretch border-t md:hidden"
+      >
+        {mobileTabs.map((tab) => (
+          <TabBarItemMobile
+            key={tab.href}
+            label={tab.label}
+            icon={tab.icon}
+            href={tab.href}
+            {...(tab.current ? { active: true } : {})}
+          />
+        ))}
+      </nav>
+    </div>
+  )
+}

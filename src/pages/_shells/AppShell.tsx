@@ -17,6 +17,12 @@ export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
   notifications?: number | undefined
   /** Five plus More. Populated from the sidebar's daily destinations. */
   mobileTabs: Array<{ label: string; icon: SidebarExpandedProps['overview']['icon']; href: string; current?: boolean }>
+  /**
+   * Force the 52px rail at every width. The invoices list is designed this way
+   * at 1440 — a wide table wants the horizontal space more than the sidebar
+   * wants to be legible.
+   */
+  collapsed?: boolean
   children: React.ReactNode
 }
 
@@ -38,6 +44,7 @@ export function AppShell({
   period,
   notifications,
   mobileTabs,
+  collapsed = false,
   children,
   className,
   ...rest
@@ -49,15 +56,20 @@ export function AppShell({
       {...rest}
       className={cn('bg-background flex min-h-screen w-full', className)}
     >
-      {/* ≥1280 */}
-      <div className="hidden xl:block">
-        <SidebarExpanded {...sidebar} />
-      </div>
+      {/* ≥1280, unless the page asks for the rail throughout */}
+      {collapsed ? null : (
+        <div className="hidden xl:block">
+          <SidebarExpanded {...sidebar} />
+        </div>
+      )}
 
       {/* 834–1279 */}
       <nav
         aria-label="Main"
-        className="border-border bg-surface-raised hidden w-[52px] shrink-0 flex-col items-center gap-1 border-r py-3 md:flex xl:hidden"
+        className={cn(
+          'border-border bg-surface-raised hidden w-[52px] shrink-0 flex-col items-center gap-1 border-r py-3 md:flex',
+          collapsed ? '' : 'xl:hidden',
+        )}
       >
         {railItems.map((item) => (
           <NavRailItem
