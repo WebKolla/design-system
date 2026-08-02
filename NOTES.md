@@ -454,6 +454,54 @@ Not silently changed — the height is explicit in both Figma and SPEC. If the
 44 floor is meant to bind on mobile, either Large grows to 44 there or the rule
 needs an exception recorded.
 
+### All 17 atoms built
+
+`npm test` → **74 tests, 20 files, all passing**, every story axe-clean in both
+modes. Icon · Button · ButtonInk · Chip · StatusPill · Avatar · Input ·
+Checkbox · Toggle · Tab · NavItem · NavRailItem · SubNavItem · TabChipMobile ·
+TabBarItemMobile · DayPickerItemMobile · WeekGridCell.
+
+Radix underpins Checkbox (`Checkbox`) and Toggle (`Switch`); Button, ButtonInk,
+NavItem, NavRailItem, SubNavItem and TabBarItemMobile use `Slot` for `asChild`.
+The rest are presentational and correctly have no primitive underneath.
+
+### The a11y gate caught a real ARIA bug
+
+`Tab` and `TabChipMobile` set `role="tab"`, which is invalid without a
+`role="tablist"` parent — axe failed 5 stories on `aria-required-parent`.
+
+Fixed at the story level rather than by dropping the role: the atom genuinely
+is only valid inside a tablist, so every story now supplies one via a meta
+decorator. The constraint is documented in the story rather than worked around.
+This is exactly the class of defect the gate was added for.
+
+### Type-ramp gaps — eight sizes used by atoms are not in the ramp
+
+Several atoms specify font sizes that have no matching Figma text style, so
+they are written as arbitrary values and are **not** token-backed:
+
+| Size | Used by |
+|---|---|
+| 8.5 | Avatar 20 |
+| 10 | Avatar 26, DayPicker total |
+| 10.5 | TabBarItemMobile label, DayPicker day |
+| 11 | Chip, SubNavItem badge |
+| 12 | Tab count, TabChipMobile count |
+| 16 | Avatar 44 |
+
+Not invented — every one is read from Figma. But they sit outside the 24-style
+ramp, so a ramp change will not reach them. Either the ramp gains these steps
+or the components move onto the nearest existing step; that is a design call,
+not one I should make silently.
+
+Note `mono/count` (10.5) exists but is Geist Mono, so it cannot serve the
+TabBarItemMobile label, which is Geist.
+
+### Small drift corrected during the build
+
+Button Small gap was written as `gap-1.5` (6px); Figma specifies **7px**. Now
+`gap-[7px]`. Caught by reading computed styles rather than by eye.
+
 ### Still open
 
 - [ ] a11y addon is configured with `test: 'error'` but has not been asserted
