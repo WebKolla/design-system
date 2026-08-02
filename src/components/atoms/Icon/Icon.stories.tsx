@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { ArrowRight, Check, Clock, FileText, TriangleAlert } from 'lucide-react'
-import { Icon, ICON_SIZES } from './Icon'
+import { Icon } from './Icon'
+import { ICON_SIZES, ICON_SIZE_PX } from './Icon.constants'
 
 const meta = {
   title: 'Atoms/Icon',
@@ -26,11 +27,11 @@ export const Default: Story = {}
 export const Sizes: Story = {
   render: (args) => (
     <div className="flex items-end gap-6">
-      {(Object.keys(ICON_SIZES) as Array<keyof typeof ICON_SIZES>).map((size) => (
+      {ICON_SIZES.map((size) => (
         <div key={size} className="flex flex-col items-center gap-2">
           <Icon {...args} size={size} />
           <span className="text-xs">
-            {size} · {ICON_SIZES[size]}px
+            {size} · {ICON_SIZE_PX[size]}px
           </span>
         </div>
       ))}

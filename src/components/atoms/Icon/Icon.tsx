@@ -1,16 +1,7 @@
 import * as React from 'react'
 import type { LucideIcon, LucideProps } from 'lucide-react'
 import { cn } from '@/lib/cn'
-
-/**
- * Default stroke width across the system is 1.75, not lucide's 2 (§4).
- */
-export const ICON_STROKE_WIDTH = 1.75
-
-/** Sizes in px. `sm` pairs with 13px text, `md` is the default, `lg` with headings. */
-export const ICON_SIZES = { sm: 14, md: 16, lg: 20 } as const
-
-export type IconSize = keyof typeof ICON_SIZES
+import { ICON_SIZE_PX, ICON_STROKE_WIDTH, type IconSize } from './Icon.constants'
 
 export interface IconProps extends Omit<LucideProps, 'ref' | 'size' | 'color'> {
   /** Any icon from `lucide-react`, passed as the component itself. */
@@ -36,10 +27,13 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
   { icon: LucideGlyph, size = 'md', label, className, strokeWidth, ...rest },
   ref,
 ) {
-  const px = ICON_SIZES[size]
+  const px = ICON_SIZE_PX[size]
 
   return (
+    // `rest` is spread first so the component's own computed size and stroke
+    // always win over caller-supplied width/height.
     <LucideGlyph
+      {...rest}
       ref={ref}
       width={px}
       height={px}
@@ -49,7 +43,6 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
       aria-label={label}
       role={label ? 'img' : undefined}
       focusable="false"
-      {...rest}
     />
   )
 })
