@@ -304,12 +304,26 @@ The focus ring is now expressed in Figma as `color/focus-ring`. The code's
 `--color-focus-ring` should be re-pointed at that token rather than at
 `color/primary` directly, next time the token file is regenerated.
 
-### Still needs a decision — `ink/850` and `ink/900`
+### RESOLVED — `ink/900` set to `#111a1c`
 
-**Not fixed.** Both hold `#131e20`, so `color/ink-raised` and dark-mode
-`color/surface` are indistinguishable. Nothing in the file says which of the
-two is wrong or what it should be, and guessing a value would be inventing
-design. Needs a human answer before it can be pushed.
+Both `ink/850` and `ink/900` held `#131e20`, making `color/ink-raised` and
+dark-mode `color/surface` indistinguishable. Value supplied by the user and
+pushed on 2026-08-02; the variable carries a dated description explaining it.
+
+Only one token depends on it: `color/surface` in Dark. The dark elevation stack
+is now three distinct, correctly-ordered levels:
+
+| Token | Before | After |
+|---|---|---|
+| `background` | `#0e1719` | `#0e1719` |
+| `surface` | `#131e20` | **`#111a1c`** |
+| `surface-raised` | `#1a272a` | `#1a272a` |
+| `ink-raised` | `#131e20` | `#131e20` |
+
+Dark `surface` still measures 17.67:1 against foreground, and it is no longer
+the same colour as `ink-raised`. `globals.css` updated to match.
+
+**All four Figma defects are now closed.**
 
 ---
 

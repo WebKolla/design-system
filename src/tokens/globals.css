@@ -68,7 +68,9 @@
   --p-ink-700: #1e2c2e;
   --p-ink-800: #1a272a;
   --p-ink-850: #131e20;
-  --p-ink-900: #131e20;
+  /* Was #131e20, identical to ink/850, which made ink-raised and dark-mode
+     surface indistinguishable. Corrected in Figma 2026-08-02. */
+  --p-ink-900: #111a1c;
   --p-ink-950: #0e1719;
 
   --p-muted-500: #c4c4cc;
