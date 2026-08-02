@@ -2,6 +2,8 @@ import * as React from 'react'
 import { cva } from 'class-variance-authority'
 import { cn } from '@/lib/cn'
 
+// 11px is a literal: the label is sized to the 18px chip. ui/overline is also
+// 11 but is tracked and uppercase, so it is the wrong style, not a match.
 const chipVariants = cva(
   'inline-flex h-[18px] items-center rounded-pip px-[7px] text-[11px] font-medium whitespace-nowrap',
   {

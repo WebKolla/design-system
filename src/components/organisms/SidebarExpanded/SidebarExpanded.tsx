@@ -68,6 +68,7 @@ export const SidebarExpanded = React.forwardRef<
     >
       <div className="flex flex-col gap-2.5">
         <span className="flex items-center gap-2">
+          {/* 9.5px is a literal: the mark is sized to the 20px tile. */}
           <span
             aria-hidden
             className="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-control font-mono text-[9.5px]"

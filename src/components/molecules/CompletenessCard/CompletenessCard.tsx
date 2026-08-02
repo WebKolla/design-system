@@ -44,7 +44,7 @@ export const CompletenessCard = React.forwardRef<
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-ui-label text-subtle-foreground">{title}</span>
-        <span className="text-foreground font-mono text-[11px] tabular-nums">
+        <span className="text-foreground text-mono-xs font-mono tabular-nums">
           {done}/{total}
         </span>
       </div>

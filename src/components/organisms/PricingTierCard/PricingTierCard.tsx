@@ -71,7 +71,7 @@ export const PricingTierCard = React.forwardRef<
       )}
     >
       {recommended ? (
-        <span className="bg-primary text-primary-foreground absolute -top-2.5 left-6 rounded-control px-2.5 py-0.5 text-[10px] font-medium tracking-[0.07em] uppercase">
+        <span className="bg-primary text-primary-foreground absolute -top-2.5 left-6 rounded-control text-ui-nav-section px-2.5 py-0.5 uppercase">
           {badgeLabel}
         </span>
       ) : null}

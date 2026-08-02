@@ -129,6 +129,8 @@ export function AppShell({
             >
               <Bell className="size-3.5" strokeWidth={1.75} aria-hidden />
               {notifications ? (
+                // 9px is a literal: the count is sized to fit a 16px pip, not
+                // to a ramp step.
                 <span className="bg-danger text-primary-foreground absolute -top-1 -right-1 flex min-w-4 items-center justify-center rounded-full px-1 font-mono text-[9px]">
                   {notifications}
                 </span>

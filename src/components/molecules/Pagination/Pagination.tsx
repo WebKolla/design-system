@@ -12,7 +12,7 @@ export interface PaginationProps
 }
 
 const cell =
-  'inline-flex size-7 items-center justify-center rounded-control text-[12px] tabular-nums transition-colors disabled:pointer-events-none disabled:opacity-40'
+  'inline-flex size-7 items-center justify-center rounded-control text-ui-label tabular-nums transition-colors disabled:pointer-events-none disabled:opacity-40'
 
 /**
  * Desktop pagination for list screens.

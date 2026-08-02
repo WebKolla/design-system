@@ -74,7 +74,10 @@ export const SubNavItem = React.forwardRef<HTMLElement, SubNavItemProps>(
         {badge ? (
           <span
             className={cn(
-              'shrink-0 text-[11px] tabular-nums',
+              // font-mono added with the token swap: this is a numeral, and
+              // every other count in the system is mono. Its absence here was
+              // an inconsistency, not a decision.
+              'text-mono-xs shrink-0 font-mono tabular-nums',
               badgeTone === 'warn' ? 'text-warn' : 'text-subtle-foreground',
             )}
           >

@@ -52,7 +52,7 @@ export const TabBarItemMobile = React.forwardRef<
       )}
     >
       <Glyph className="size-5 shrink-0" strokeWidth={1.75} aria-hidden />
-      <span className="text-[10.5px] font-medium">{label}</span>
+      <span className="text-ui-micro">{label}</span>
     </Comp>
   )
 })

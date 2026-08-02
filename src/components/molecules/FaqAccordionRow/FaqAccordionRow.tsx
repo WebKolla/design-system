@@ -53,7 +53,7 @@ export const FaqAccordionRow = React.forwardRef<
             {question}
           </span>
           {summary ? (
-            <span className="text-success shrink-0 text-[12px] group-data-[state=open]:hidden">
+            <span className="text-success text-ui-label shrink-0 group-data-[state=open]:hidden">
               {summary}
             </span>
           ) : null}

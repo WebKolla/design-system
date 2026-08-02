@@ -47,9 +47,19 @@ because the description is what survives into the docs.
 `color/primary-soft` becomes `--color-primary-soft`. A rename is a breaking
 change to every consumer.
 
-**Adding a new text style.** The 24 styles are Tailwind utilities. A 25th is
-fine, but eight sizes currently used by components sit *outside* the ramp
-already, so we should probably close that gap before widening it.
+**Adding a new text style.** The styles are Tailwind utilities, so a new one is
+fine. Note the ramp is now 29: five sizes that components were using as raw
+pixels have been given tokens — `mono/2xs` 10, `mono/xs` 11, `mono/sm` 12 and
+`mono/md` 12.5 fill the gap between `mono/count` (10.5) and `mono/cell` (13),
+and `ui/micro` 10.5 is the mobile tab bar and day picker label. **These exist
+in code but not as Figma text styles yet.** Promoting them is the outstanding
+half of that job.
+
+Five other sizes stay as literals on purpose, because they are a function of
+their container rather than of the ramp: the initials in the 20px and 26px
+avatars, the count inside the 16px notification pip, the sidebar's 20px logo
+mark, and the label in the 18px chip. A change to the type ramp should not move
+any of them.
 
 **Changing a spacing or radius value.** These are used everywhere and a small
 shift is very visible in aggregate.

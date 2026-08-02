@@ -133,11 +133,11 @@ declared in both `:root` and `.dark`, because the base layer reads it through
 
 Design decisions, not defects. All are recorded in `NOTES.md` with measurements.
 
-- **Eight font sizes sit outside the 24-style ramp** (8.5, 10, 10.5, 11, 12,
-  16), used by Avatar, Chip, Tab, SubNavItem and two mobile atoms. Every value
-  is read from Figma, but none is token-backed, so a ramp change will not reach
-  them.
-- **Button Large's 44px target is bought with a transparent `::after`.** Medium
-  and Small are still 34 and 30 and deliberately have no such treatment, so
-  neither is safe under a thumb. Whether they need a mobile-specific size is
-  still open.
+- **The five new type tokens are code-side only.** `mono/2xs`, `mono/xs`,
+  `mono/sm`, `mono/md` and `ui/micro` hold values Figma already specifies on
+  component nodes, but Figma has no text styles for them. Promoting them there
+  would close the loop; until it does, a designer changing the mono ramp will
+  not see these four steps.
+- **`SubNavItem`'s count gained `font-mono`** with the token swap, on the
+  grounds that every other numeral in the system is mono and its absence looked
+  like an oversight. Worth a designer confirming rather than assuming.

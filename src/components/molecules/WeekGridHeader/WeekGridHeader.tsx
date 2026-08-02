@@ -69,7 +69,7 @@ export const WeekGridHeader = React.forwardRef<
               <span className="text-ui-overline text-muted-foreground block font-medium uppercase">
                 {d?.day ?? col.label}
               </span>
-              <span className="text-subtle-foreground block font-mono text-[10.5px] tabular-nums">
+              <span className="text-subtle-foreground text-mono-count block font-mono tabular-nums">
                 {d?.date ?? ''}
               </span>
             </th>

@@ -2,8 +2,8 @@ import { clsx, type ClassValue } from 'clsx'
 import { extendTailwindMerge } from 'tailwind-merge'
 
 /**
- * Our 24 type-ramp tokens live in Tailwind's `text-*` namespace, the same
- * namespace as text colour.
+ * Our type tokens live in Tailwind's `text-*` namespace, the same namespace as
+ * text colour.
  *
  * tailwind-merge only knows Tailwind's built-in font sizes, so it classifies
  * `text-ui-lg` as a *text colour* and then drops any real colour class from the
@@ -12,9 +12,13 @@ import { extendTailwindMerge } from 'tailwind-merge'
  * "later" class won and resolved to nothing.
  *
  * Registering the ramp as font sizes keeps the two groups distinct, so size and
- * colour can coexist on one element. Add any new text token here.
+ * colour can coexist on one element.
+ *
+ * **Every `--text-*` token in `globals.css` must appear here.** Forgetting one
+ * reintroduces the bug for that token only, which is the hardest version of it
+ * to spot. `cn.test.ts` reads the token file and fails if the two drift.
  */
-const TYPE_RAMP = [
+export const TYPE_RAMP = [
   'heading-display',
   'heading-hero',
   'heading-section',
@@ -39,6 +43,11 @@ const TYPE_RAMP = [
   'mono-amount',
   'mono-cell',
   'mono-count',
+  'mono-md',
+  'mono-sm',
+  'mono-xs',
+  'mono-2xs',
+  'ui-micro',
 ] as const
 
 const twMerge = extendTailwindMerge({

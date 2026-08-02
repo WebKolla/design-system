@@ -44,7 +44,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
       >
         {prefix ? (
-          <span className="text-subtle-foreground font-mono text-[13px] tabular-nums">
+          <span className="text-subtle-foreground text-mono-cell font-mono tabular-nums">
             {prefix}
           </span>
         ) : null}

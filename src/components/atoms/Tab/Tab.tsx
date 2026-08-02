@@ -57,7 +57,7 @@ export const Tab = React.forwardRef<HTMLButtonElement, TabProps>(function Tab(
       {count !== undefined ? (
         <span
           className={cn(
-            'font-mono text-[12px] tabular-nums',
+            'text-mono-sm font-mono tabular-nums',
             countIsProblem ? 'text-danger' : 'text-subtle-foreground',
           )}
         >

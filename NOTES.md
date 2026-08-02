@@ -1061,3 +1061,89 @@ as the query filter.
 
 **253 passing, 68 files, zero violations — and this time the contrast half of
 that means something.**
+
+---
+
+## Both remaining open questions closed — 2026-08-02
+
+### Medium and Small touch targets
+
+Extended the mechanism Large already used rather than inventing a second one.
+Each size widens its hit area with a transparent `::after`; the heights Figma
+states are untouched and nothing on screen moves.
+
+| Size | Height | `::after` | Target |
+|---|---|---|---|
+| Large | 42 | 1px proud | 44 |
+| Medium | 34 | 5px proud | 44 |
+| Small | 30 | 7px proud | 44 |
+
+**`pointer: coarse` was the obvious alternative and is worse.** It reports the
+*primary* pointer, so a touchscreen laptop with a trackpad reads as `fine` and
+would have kept the 30px target — the exact device where a mis-tap is likely.
+`any-pointer: coarse` overcorrects and inflates every desktop that happens to
+have a touchscreen. An unconditional invisible expansion costs nothing.
+
+Earlier I argued against doing this for Small on overlap grounds. That was
+overstated: the expansion is vertical only, and two Small buttons stacked
+closer than `gap-4` overlap by a pixel or two, which shifts the boundary
+between them very slightly. That is a much smaller problem than a 30px target.
+Horizontally these buttons clear 44 easily once they have a label.
+
+The `TouchTarget` story now covers all three sizes and asserts both directions:
+`elementFromPoint` at the outer edge of the target must return the button, and
+a pixel beyond it must not — so the test fails if the expansion is removed
+*and* if it is unbounded.
+
+### The font sizes outside the ramp
+
+The original note was wrong in its framing. It said eight sizes sat outside a
+24-style ramp; in fact most were sizes the ramp already had, written as raw
+pixel literals. Splitting them three ways:
+
+**Six collapsed onto styles that already existed** — a real de-duplication, not
+a new token:
+
+| Site | Was | Now |
+|---|---|---|
+| WeekGridHeader date | `text-[10.5px]` | `mono-count` |
+| Input prefix | `text-[13px]` | `mono-cell` |
+| PricingTierCard badge | `text-[10px] tracking-[0.07em]` | `ui-nav-section` (same size *and* same 0.7px tracking) |
+| FaqAccordionRow summary | `text-[12px]` | `ui-label` |
+| Pagination cell | `text-[12px]` | `ui-label` |
+| Avatar 44 initials | `text-[16px]` | `body-lg` |
+
+**Five new tokens for a genuine gap.** The mono ramp jumped 10.5 → 13, and four
+component sizes were sitting in that hole: 10, 11, 12 and 12.5, every one of
+them a small tabular figure in a dense row. Added `mono/2xs`, `mono/xs`,
+`mono/sm`, `mono/md`, plus `ui/micro` 10.5 for the two mobile atoms' labels
+(`ui/nav-section` is 10 and `ui/overline` is 11, and both are tracked
+uppercase, so neither fits). Values are unchanged from Figma's component nodes.
+
+**Five stay literal, and should.** Avatar 20 and 26 initials, the notification
+pip count, the sidebar logo mark, and the Chip label are sized to their
+container — a 20px circle, a 16px pip, an 18px chip — not to the type ramp. A
+ramp change should not move them, so token-backing them would be wrong. Each
+now carries a comment saying so.
+
+`SubNavItem`'s count also gained `font-mono`. Every other numeral in the system
+is mono and the mono rule is documented as load-bearing, so its absence read as
+an oversight rather than a decision. Flagged for a designer to confirm.
+
+**Still outstanding:** the five new tokens exist in code but not as Figma text
+styles. Figma holds these values as node properties, so a designer editing the
+mono ramp will not see the four new steps.
+
+### A guard, because this class of bug has bitten twice
+
+`src/lib/cn.test.ts` reads `globals.css` and fails if any `--text-*` token is
+missing from `TYPE_RAMP` in `cn.ts`, or if `TYPE_RAMP` names one that no longer
+exists. An unregistered token is classified by tailwind-merge as a text
+*colour* and silently eats the colour class beside it — the bug that once made
+every Button label render the inherited foreground. Verified it fails by
+removing `ui-micro` and watching it go red.
+
+It reads the file with `node:fs` rather than `import ... from '...css?raw'`:
+**Vitest stubs CSS imports by default**, so the `?raw` form resolves to an empty
+string and every assertion passes against nothing. That cost a round trip, and
+is exactly the sort of test that looks green and checks air.

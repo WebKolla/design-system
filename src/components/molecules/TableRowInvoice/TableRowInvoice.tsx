@@ -81,13 +81,13 @@ export const TableRowInvoice = React.forwardRef<
       <td className={cn(cell, 'text-body-cell text-muted-foreground truncate')}>
         {consultant}
       </td>
-      <td className={cn(cell, 'text-muted-foreground font-mono text-[12.5px] tabular-nums')}>
+      <td className={cn(cell, 'text-muted-foreground text-mono-md font-mono tabular-nums')}>
         {issued}
       </td>
       <td
         className={cn(
           cell,
-          'font-mono text-[12.5px] tabular-nums',
+          'text-mono-md font-mono tabular-nums',
           overdue ? 'text-danger' : 'text-muted-foreground',
         )}
       >

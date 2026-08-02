@@ -62,7 +62,7 @@ export const DayPickerItemMobile = React.forwardRef<
     >
       <span
         className={cn(
-          'text-[10.5px] font-medium',
+          'text-ui-micro',
           selected
             ? 'text-primary-foreground'
             : state === 'weekend'
@@ -86,7 +86,7 @@ export const DayPickerItemMobile = React.forwardRef<
       </span>
       <span
         className={cn(
-          'font-mono text-[10px] tabular-nums',
+          'text-mono-2xs font-mono tabular-nums',
           selected
             ? 'text-primary-foreground'
             : state === 'weekend'

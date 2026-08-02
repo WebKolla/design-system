@@ -111,7 +111,7 @@ export const TableRowApproval = React.forwardRef<
       </td>
 
       <td className={cell}>
-        <span className="text-muted-foreground block font-mono text-[12.5px] tabular-nums">
+        <span className="text-muted-foreground text-mono-md block font-mono tabular-nums">
           {submitted}
         </span>
         {reminder ? (

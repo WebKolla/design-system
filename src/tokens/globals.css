@@ -378,6 +378,44 @@
   --text-mono-count--font-weight: 500;
 
   /* ------------------------------------------------------------------------
+     [code] MONO MICRO SCALE — the gap between mono/count (10.5) and
+     mono/cell (13).
+
+     Four component sizes were sitting in that gap as raw pixel literals: a
+     mobile date at 10, nav and card tallies at 11, tab counts at 12, and
+     table dates at 12.5. Every one is the same thing — a small tabular figure
+     in a dense row — and none was token-backed, so a change to the mono ramp
+     could never have reached them.
+
+     Values are unchanged from what Figma's component nodes specify; only the
+     backing has changed. Line heights follow the ramp's own ratio. Figma has
+     these as node properties rather than text styles, so promoting them to
+     real styles there is still to do — flagged in NOTES.md.
+     --------------------------------------------------------------------- */
+  --text-mono-2xs: 10px;
+  --text-mono-2xs--line-height: 13px;
+  --text-mono-2xs--font-weight: 500;
+
+  --text-mono-xs: 11px;
+  --text-mono-xs--line-height: 15px;
+  --text-mono-xs--font-weight: 500;
+
+  --text-mono-sm: 12px;
+  --text-mono-sm--line-height: 16px;
+  --text-mono-sm--font-weight: 500;
+
+  --text-mono-md: 12.5px;
+  --text-mono-md--line-height: 18px;
+  --text-mono-md--font-weight: 500;
+
+  /* [code] The two mobile atoms' label size. ui/nav-section is 10 and
+     ui/overline is 11; the mobile tab bar and day picker both sit between
+     them at 10.5, untracked and not uppercase, so neither style fits. */
+  --text-ui-micro: 10.5px;
+  --text-ui-micro--line-height: 14px;
+  --text-ui-micro--font-weight: 500;
+
+  /* ------------------------------------------------------------------------
      [code] BREAKPOINTS — from SPEC. Figma has no concept of these.
      390 mobile / 834 tablet / 1440 desktop.
      ---------------------------------------------------------------------- */

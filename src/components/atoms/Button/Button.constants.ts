@@ -17,17 +17,27 @@ import { cva, type VariantProps } from 'class-variance-authority'
  *   Medium  h34  px14  gap8  radius/button      ui/md 13    icon 15
  *   Small   h30  px11  gap7  radius/control     ui/sm 12.5  icon 14
  *
- * **Large's touch target.** 42px is 2px short of the 44px floor that Apple's
- * HIG and WCAG 2.5.5 both use, and Large is the size mobile CTAs render at.
- * Rather than change a height that Figma and SPEC both state explicitly, the
- * hit area is widened with a transparent `::after` sitting 1px proud top and
- * bottom. The button measures 44 to a finger and 42 to the eye, so the design
- * is untouched and Figma stays correct at 42.
+ * **Touch targets.** All three heights are short of the 44px floor that
+ * Apple's HIG and WCAG 2.5.5 both use. Rather than change heights that Figma
+ * and SPEC both state explicitly, each size widens its hit area with a
+ * transparent `::after`, so every button measures 44 to a finger and its Figma
+ * height to the eye. Nothing on screen moves and Figma stays correct.
  *
- * This is deliberately **not** applied to Medium or Small. Taking 30px to 44px
- * would put 7px of invisible target on each side, which overlaps the next
- * control in any toolbar tighter than `gap-4`. Those two sizes are
- * desktop-density controls; if one needs to be tapped, use Large.
+ *   Large   42 → 44   1px proud
+ *   Medium  34 → 44   5px proud
+ *   Small   30 → 44   7px proud
+ *
+ * `pointer: coarse` was the obvious alternative and is worse: it reports the
+ * *primary* pointer, so a touchscreen laptop with a trackpad reads as `fine`
+ * and would keep the small target. `any-pointer: coarse` overcorrects the
+ * other way and inflates every desktop with a touchscreen. Expanding
+ * unconditionally costs nothing, because the expansion is invisible.
+ *
+ * **The one caveat.** Two Small buttons stacked vertically closer than
+ * `gap-4` (16px) have hit areas that overlap by a pixel or two, which shifts
+ * the boundary between them very slightly. That is a far smaller problem than
+ * a 30px target, but it is why the expansion is vertical only — horizontally
+ * these buttons are already well over 44 once they have a label.
  */
 export const buttonVariants = cva(
   [
@@ -58,14 +68,20 @@ export const buttonVariants = cva(
           'bg-surface text-danger border border-input hover:bg-danger-bg hover:border-danger-border',
       },
       size: {
-        // The 42px is Figma's and stays Figma's; the ::after buys the missing
-        // 2px of target. See the touch-target note in the file header.
+        // Heights are Figma's and stay Figma's; each ::after buys the
+        // difference up to 44. See the touch-target note in the file header.
         lg: [
           'h-[42px] px-5 gap-2 rounded-button-lg text-ui-lg [&_svg]:size-4',
           "after:absolute after:inset-x-0 after:-inset-y-px after:content-['']",
         ].join(' '),
-        md: 'h-[34px] px-3.5 gap-2 rounded-button text-ui-md [&_svg]:size-[15px]',
-        sm: 'h-[30px] px-[11px] gap-[7px] rounded-control text-ui-sm [&_svg]:size-[14px]',
+        md: [
+          'h-[34px] px-3.5 gap-2 rounded-button text-ui-md [&_svg]:size-[15px]',
+          "after:absolute after:inset-x-0 after:-inset-y-[5px] after:content-['']",
+        ].join(' '),
+        sm: [
+          'h-[30px] px-[11px] gap-[7px] rounded-control text-ui-sm [&_svg]:size-[14px]',
+          "after:absolute after:inset-x-0 after:-inset-y-[7px] after:content-['']",
+        ].join(' '),
       },
     },
     defaultVariants: {

@@ -140,33 +140,50 @@ export const DisabledDoesNotFire: Story = {
 }
 
 /**
- * Large is 42px tall because Figma says 42px, and 44px is the touch-target
- * floor. The gap is closed by a transparent `::after` sitting 1px proud top and
- * bottom, so a thumb gets 44 and the design keeps its 42.
+ * Every size keeps the height Figma states and still reaches the 44px
+ * touch-target floor, through a transparent `::after`: 42, 34 and 30 to the
+ * eye, 44 to a finger.
  *
- * The assertion is a real hit test — `elementFromPoint` one pixel above the
- * visible top edge has to come back as the button. Asserting the height would
- * only ever return 42 and prove nothing.
+ * The assertion is a real hit test. `elementFromPoint` at the outer edge of
+ * the expanded target has to come back as the button, and a pixel beyond it
+ * must not. Asserting the height would return 42/34/30 and prove nothing.
  */
 export const TouchTarget: Story = {
-  args: { children: 'Submit timesheet' },
+  render: () => (
+    <div className="flex flex-col items-start gap-6">
+      {BUTTON_SIZES.map((size) => (
+        <Button key={size} size={size} data-size={size}>
+          {SIZE_LABEL[size]}
+        </Button>
+      ))}
+    </div>
+  ),
   play: async ({ canvasElement }) => {
-    const button = within(canvasElement).getByRole('button')
-    const after = getComputedStyle(button, '::after')
-    // Declared geometry.
-    await expect(after.position).toBe('absolute')
-    await expect(after.top).toBe('-1px')
-    await expect(after.bottom).toBe('-1px')
+    const TARGET = 44
 
-    // And the behaviour that geometry is for.
-    const box = button.getBoundingClientRect()
-    const x = box.left + box.width / 2
-    const hitAbove = document.elementFromPoint(x, box.top - 0.5)
-    const hitBelow = document.elementFromPoint(x, box.bottom + 0.5)
+    for (const size of BUTTON_SIZES) {
+      const button = canvasElement.querySelector<HTMLElement>(
+        `[data-size="${size}"]`,
+      )
+      if (!button) throw new Error(`no ${size} button rendered`)
 
-    await expect(button.contains(hitAbove)).toBe(true)
-    await expect(button.contains(hitBelow)).toBe(true)
-    await expect(Math.round(box.height)).toBe(42)
+      const box = button.getBoundingClientRect()
+      const grow = (TARGET - box.height) / 2
+      const x = box.left + box.width / 2
+
+      // Inside the expanded target, top and bottom.
+      await expect(
+        button.contains(document.elementFromPoint(x, box.top - grow + 0.5)),
+      ).toBe(true)
+      await expect(
+        button.contains(document.elementFromPoint(x, box.bottom + grow - 0.5)),
+      ).toBe(true)
+
+      // And not a pixel beyond it. The target is 44, not unbounded.
+      await expect(
+        button.contains(document.elementFromPoint(x, box.top - grow - 1.5)),
+      ).toBe(false)
+    }
   },
 }
 
