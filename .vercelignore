@@ -1,0 +1,13 @@
+# Vercel builds Storybook itself; uploading a stale local build wastes time and
+# would be silently served if the build command ever changed.
+storybook-static/
+dist/
+coverage/
+
+# Working notes and the WBS pipeline are for the repo, not the deployment.
+docs/wbs/
+*.log
+
+.storybook/*.log
+node_modules/
+.git/

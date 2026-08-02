@@ -1,9 +1,12 @@
 {
   "name": "@timesubmit/design-system",
   "version": "0.1.0",
+  "engines": {
+    "node": "24.x"
+  },
   "private": true,
   "type": "module",
-  "description": "TimeSubmit design system — tokens and React component library.",
+  "description": "TimeSubmit design system \u2014 tokens and React component library.",
   "scripts": {
     "dev": "storybook dev -p 6006",
     "storybook": "storybook dev -p 6006",
