@@ -54,7 +54,8 @@ export const CompletenessCard = React.forwardRef<
         aria-valuenow={done}
         aria-valuemin={0}
         aria-valuemax={total}
-        aria-label={`${title}: ${done} of ${total} sections`}
+        // Not "sections": the sidebar reuses this card for plan seats.
+        aria-label={`${title}: ${done} of ${total}`}
         className="bg-control h-1.5 w-full overflow-hidden rounded-pip"
       >
         <div className="bg-primary h-full rounded-pip" style={{ width: `${pct}%` }} />
