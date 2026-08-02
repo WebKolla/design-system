@@ -1,0 +1,97 @@
+import type { Meta, StoryObj } from '@storybook/react-vite'
+import { expect, within } from 'storybook/test'
+import { CircleAlert, Info, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { Banner } from './Banner'
+
+const meta = {
+  title: 'Molecules/Banner',
+  component: Banner,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'A standing statement of fact, not a dismissible alert. **There is no close button on ' +
+          'purpose**: the rate-blind banner on the approver queue is the reason that screen is trusted, ' +
+          'and an approver who dismisses it loses the one sentence that tells them they are not being ' +
+          'asked to make a commercial judgement.\n\nTone `primary` is the rate-blind panel. Info, ' +
+          'success, warn and danger are for transient system states — **if you find yourself wanting a ' +
+          'close button, you want a Toast.**',
+      },
+    },
+  },
+  args: {
+    title: 'You are approving hours, not money',
+    body: 'Rates and totals are hidden from approvers by design.',
+    icon: ShieldCheck,
+    link: { label: 'How this works', href: '#how' },
+  },
+  decorators: [
+    (Story) => (
+      <div className="w-[720px]">
+        <Story />
+      </div>
+    ),
+  ],
+} satisfies Meta<typeof Banner>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+/** The rate-blind panel — the reason this component has no close button. */
+export const Default: Story = {}
+
+export const Tones: Story = {
+  render: (args) => (
+    <div className="flex flex-col gap-3">
+      <Banner {...args} tone="primary" />
+      <Banner
+        {...args}
+        tone="info"
+        icon={Info}
+        title="Invoicing runs at 18:00 tonight"
+        body="Anything approved before then is included."
+      />
+      <Banner
+        {...args}
+        tone="success"
+        icon={ShieldCheck}
+        title="All timesheets approved for July"
+        body="Nothing is outstanding for this period."
+      />
+      <Banner
+        {...args}
+        tone="warn"
+        icon={TriangleAlert}
+        title="Three consultants have not submitted"
+        body="Week ending 1 August closes on Monday."
+      />
+      <Banner
+        {...args}
+        tone="danger"
+        icon={CircleAlert}
+        title="Two invoices failed to send"
+        body="Pemberton Clarke rejected the purchase order reference."
+      />
+    </div>
+  ),
+}
+
+export const WithoutLinkOrIcon: Story = {
+  render: ({ title, body }) => <Banner title={title} body={body} />,
+}
+
+/** There must be no dismiss control, in any tone. */
+export const HasNoCloseButton: Story = {
+  play: async ({ canvasElement }) => {
+    const buttons = within(canvasElement).queryAllByRole('button')
+    await expect(buttons).toHaveLength(0)
+  },
+}
+
+export const EdgeContent: Story = {
+  args: {
+    title:
+      'You are approving hours, not money — rates, totals and invoice values are hidden from approver-scoped views',
+    body: 'This is a product guarantee, not a styling preference. If you can see a rate on this screen, report it.',
+  },
+}

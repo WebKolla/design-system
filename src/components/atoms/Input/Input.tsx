@@ -5,13 +5,13 @@ import { cn } from '@/lib/cn'
 export interface InputProps
   extends Omit<React.ComponentPropsWithoutRef<'input'>, 'size' | 'prefix'> {
   /** Marks the control invalid and switches the border to danger. */
-  invalid?: boolean
+  invalid?: boolean | undefined
   /**
    * Currency or unit prefix. Rendered mono, because the value beside it is.
    */
-  prefix?: string
+  prefix?: string | undefined
   /** Trailing affordance — a chevron makes this read as a select. */
-  trailingIcon?: LucideIcon
+  trailingIcon?: LucideIcon | undefined
 }
 
 /**
