@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { Slot } from 'radix-ui'
 import { cn } from '@/lib/cn'
 
 export type SubNavBadgeTone = 'faint' | 'warn'
 
 export interface SubNavItemProps
-  extends Omit<React.ComponentPropsWithoutRef<'button'>, 'children'> {
+  extends Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'ref'> {
   label: string
   /**
    * The badge is the whole point: "3/7" against Bank details tells you what is
@@ -20,7 +19,8 @@ export interface SubNavItemProps
   badgeTone?: SubNavBadgeTone
   /** @default false */
   active?: boolean
-  asChild?: boolean
+  /** Render as a link. Omit for a button. */
+  href?: string | undefined
 }
 
 /**
@@ -32,27 +32,35 @@ export interface SubNavItemProps
  *
  * Becomes a scrollable chip row below 768.
  */
-export const SubNavItem = React.forwardRef<HTMLButtonElement, SubNavItemProps>(
+export const SubNavItem = React.forwardRef<HTMLElement, SubNavItemProps>(
   function SubNavItem(
     {
       label,
       badge,
       badgeTone = 'faint',
       active = false,
-      asChild = false,
+      href,
       className,
       type,
       ...rest
     },
     ref,
   ) {
-    const Comp = asChild ? Slot.Root : 'button'
+    /*
+   * Renders an <a> when href is given, a <button> otherwise.
+   *
+   * TypeScript cannot union the two elements' prop and ref types without a
+   * full polymorphic-component generic, which is a lot of machinery for a
+   * two-case switch. One cast here, at the boundary, keeps the public props
+   * fully typed for consumers.
+   */
+  const Comp = (href ? 'a' : 'button') as React.ElementType
 
     return (
       <Comp
         {...rest}
-        ref={ref}
-        {...(asChild ? {} : { type: type ?? 'button' })}
+        ref={ref as never}
+        {...(href ? { href } : { type: type ?? 'button' })}
         aria-current={active ? 'true' : undefined}
         className={cn(
           'flex h-[38px] w-full items-center gap-2 rounded-control px-[11px] text-ui-sm transition-colors',

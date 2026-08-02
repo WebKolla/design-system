@@ -600,6 +600,73 @@ token-only.
 with `group-data-[state=open]:rotate-180` — so nothing is missing and no icon
 needed importing.
 
+---
+
+## Phase 4 — organisms
+
+All 8 built. `npm test` → **220 tests, 55 files**, every story axe-clean.
+Story counts: Foundations 3 · Atoms 71 · Molecules 112 · Organisms 34.
+
+### §13.4 — the three composed APIs, for review
+
+None of these exist as Figma components; they appear in the file only as
+assemblies inside screens.
+
+```tsx
+<DataTable columns caption header pagination? empty?>{rows}</DataTable>
+<WeekGrid caption days dayTotals weekTotal empty?>{rows}</WeekGrid>
+<AccordionGroup type? defaultValue?>{rows}</AccordionGroup>
+```
+
+Each owns exactly what the molecules deliberately do not:
+
+- **DataTable** — the card, the `<table>`/`<caption>`/`<colgroup>`, and
+  horizontal overflow so a wide table scrolls inside its card instead of
+  pushing the page sideways. Presentational only: sorting, selection and
+  paging state stay with the caller. Works for both invoices and approvals by
+  taking `columns` — one organism, two tables.
+- **WeekGrid** — the same, plus it renders the header and total row itself
+  since they are fixed for this table.
+- **AccordionGroup** — the bordered 12-radius shell and the Radix
+  `Accordion.Root`. The last row's divider is suppressed by the caller passing
+  `last`, **not** by `:last-child`: a row may be conditionally rendered, and
+  `:last-child` would then underline whichever row happened to be last in the
+  DOM.
+
+### §8.2 clipping — now demonstrated
+
+`PricingTierCard › ClippingTrap` renders the same card twice: once in an
+`overflow-hidden` wrapper where the badge is visibly sliced, once without where
+it survives. The card sets no `overflow` of its own.
+
+First attempt at this story did **not** work — I had given the clipping wrapper
+top padding, so the badge sat inside the clip box and both sides looked
+identical. A demonstration that does not demonstrate is worse than none.
+
+### Latent bug found: `asChild` on the nav atoms never worked
+
+`NavItem`, `NavRailItem`, `SubNavItem` and `TabBarItemMobile` all exposed
+`asChild`, but each renders its own icon + label + badge. Radix `Slot` requires
+a **single** element child, so passing `asChild` would have thrown or silently
+misbehaved. No story exercised it, so 186 tests passed over a broken API — it
+only surfaced when `SidebarExpanded` became the first real consumer.
+
+Replaced with an `href` prop on all four: `<a>` when given, `<button>`
+otherwise. `Button` and `ButtonInk` keep `asChild` and are correct, because
+they pass `children` straight through when it is set.
+
+One documented cast each (`ref as never`) — TypeScript cannot union the two
+elements' prop and ref types without a full polymorphic generic, which is a lot
+of machinery for a two-case switch. The public props stay fully typed.
+
+### Side-by-side stories removed for landmark components
+
+`SiteHeader` renders a `banner` and `SiteFooter` a `contentinfo`. Rendering
+either twice for a mode comparison creates duplicate landmarks and fails axe's
+`landmark-unique` — a defect in the comparison, not the component. Those two
+`BothModes` stories are gone; the Theme toolbar still switches modes on every
+other story, and ink invariance is already proved in Foundations.
+
 ### Still open
 
 - [ ] a11y addon is configured with `test: 'error'` but has not been asserted

@@ -1,18 +1,17 @@
 import * as React from 'react'
-import { Slot } from 'radix-ui'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 export interface NavItemProps
-  extends Omit<React.ComponentPropsWithoutRef<'button'>, 'children'> {
+  extends Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'ref'> {
   label: string
   icon: LucideIcon
   /** @default false */
   active?: boolean
   /** Count badge. Omit to hide it. */
   badge?: string | number
-  /** Render as a link without duplicating the styling. */
-  asChild?: boolean
+  /** Render as a link. Omit for a button. */
+  href?: string | undefined
 }
 
 /**
@@ -25,18 +24,26 @@ export interface NavItemProps
  * Active uses `primary-soft` with a primary icon and label, plus a 2px active
  * bar at the leading edge.
  */
-export const NavItem = React.forwardRef<HTMLButtonElement, NavItemProps>(
+export const NavItem = React.forwardRef<HTMLElement, NavItemProps>(
   function NavItem(
-    { label, icon: Glyph, active = false, badge, asChild = false, className, type, ...rest },
+    { label, icon: Glyph, active = false, badge, href, className, type, ...rest },
     ref,
   ) {
-    const Comp = asChild ? Slot.Root : 'button'
+    /*
+   * Renders an <a> when href is given, a <button> otherwise.
+   *
+   * TypeScript cannot union the two elements' prop and ref types without a
+   * full polymorphic-component generic, which is a lot of machinery for a
+   * two-case switch. One cast here, at the boundary, keeps the public props
+   * fully typed for consumers.
+   */
+  const Comp = (href ? 'a' : 'button') as React.ElementType
 
     return (
       <Comp
         {...rest}
-        ref={ref}
-        {...(asChild ? {} : { type: type ?? 'button' })}
+        ref={ref as never}
+        {...(href ? { href } : { type: type ?? 'button' })}
         aria-current={active ? 'page' : undefined}
         className={cn(
           'flex h-8 w-full items-center gap-[9px] rounded-pip pr-[9px] text-ui-sm transition-colors',

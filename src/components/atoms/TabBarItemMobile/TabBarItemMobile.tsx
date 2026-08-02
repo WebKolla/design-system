@@ -1,15 +1,15 @@
 import * as React from 'react'
-import { Slot } from 'radix-ui'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 export interface TabBarItemMobileProps
-  extends Omit<React.ComponentPropsWithoutRef<'button'>, 'children'> {
+  extends Omit<React.ComponentPropsWithoutRef<'button'>, 'children' | 'ref'> {
   label: string
   icon: LucideIcon
   /** @default false */
   active?: boolean
-  asChild?: boolean
+  /** Render as a link. Omit for a button. */
+  href?: string | undefined
 }
 
 /**
@@ -23,19 +23,27 @@ export interface TabBarItemMobileProps
  * tap to find out what things are.
  */
 export const TabBarItemMobile = React.forwardRef<
-  HTMLButtonElement,
+  HTMLElement,
   TabBarItemMobileProps
 >(function TabBarItemMobile(
-  { label, icon: Glyph, active = false, asChild = false, className, type, ...rest },
+  { label, icon: Glyph, active = false, href, className, type, ...rest },
   ref,
 ) {
-  const Comp = asChild ? Slot.Root : 'button'
+  /*
+   * Renders an <a> when href is given, a <button> otherwise.
+   *
+   * TypeScript cannot union the two elements' prop and ref types without a
+   * full polymorphic-component generic, which is a lot of machinery for a
+   * two-case switch. One cast here, at the boundary, keeps the public props
+   * fully typed for consumers.
+   */
+  const Comp = (href ? 'a' : 'button') as React.ElementType
 
   return (
     <Comp
       {...rest}
-      ref={ref}
-      {...(asChild ? {} : { type: type ?? 'button' })}
+      ref={ref as never}
+      {...(href ? { href } : { type: type ?? 'button' })}
       aria-current={active ? 'page' : undefined}
       className={cn(
         'inline-flex h-[52px] flex-1 flex-col items-center justify-center gap-1 transition-colors',
