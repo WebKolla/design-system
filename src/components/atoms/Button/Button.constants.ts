@@ -37,8 +37,10 @@ export const buttonVariants = cva(
         secondary:
           'bg-surface text-foreground border border-input hover:bg-control',
         ghost: 'bg-transparent text-muted-foreground hover:bg-control',
+        // ink-foreground, not primary-foreground: the latter flips to ink/950
+        // in dark mode, putting dark text on the green fill at 2.98:1.
         approve:
-          'bg-success-solid text-primary-foreground hover:bg-success',
+          'bg-success-solid text-ink-foreground hover:bg-success',
         // Secondary shell, danger text. Never a filled red button.
         destructive:
           'bg-surface text-danger border border-input hover:bg-danger-bg hover:border-danger-border',

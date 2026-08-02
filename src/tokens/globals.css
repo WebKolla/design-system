@@ -78,6 +78,7 @@
 
   --p-success-100: #e6f2ec;
   --p-success-200: #cfe7dc;
+  --p-success-400: #47b083;
   --p-success-500: #3e9a73;
   --p-success-600: #1d6f4f;
   --p-success-700: #0e6e4c;
@@ -89,11 +90,13 @@
 
   --p-danger-100: #fbeaea;
   --p-danger-200: #f3d4d5;
+  --p-danger-400: #d2868a;
   --p-danger-500: #c0555b;
   --p-danger-700: #a81f26;
 
   --p-info-100: #e8eefa;
   --p-info-200: #d2e0f4;
+  --p-info-400: #799ed2;
   --p-info-500: #4e7fc4;
   --p-info-700: #1f4fa8;
 
@@ -464,17 +467,22 @@
   --color-primary-border: var(--p-mix-primary-border-dark);
   --color-ring: var(--p-mix-ring-dark);
 
-  /* status */
-  --color-success: var(--p-success-500);
+  /* status
+     success, info and danger use the 400 step here, not 500: on their dark
+     tinted backgrounds the 500s measured 3.94, 3.43 and 3.17 against a 4.5
+     minimum. The 400s keep the same hue and saturation and reach ~5.05, which
+     is what warn/500 already measured. The 500s are unchanged and still drive
+     the chart ramp, which sits on surface rather than on a tint. */
+  --color-success: var(--p-success-400);
   --color-success-bg: var(--p-mix-success-bg-dark);
   --color-success-border: var(--p-mix-success-bd-dark);
   --color-warn: var(--p-warn-500);
   --color-warn-bg: var(--p-mix-warn-bg-dark);
   --color-warn-border: var(--p-mix-warn-bd-dark);
-  --color-danger: var(--p-danger-500);
+  --color-danger: var(--p-danger-400);
   --color-danger-bg: var(--p-mix-danger-bg-dark);
   --color-danger-border: var(--p-mix-danger-bd-dark);
-  --color-info: var(--p-info-500);
+  --color-info: var(--p-info-400);
   --color-info-bg: var(--p-mix-info-bg-dark);
   --color-info-border: var(--p-mix-info-bd-dark);
   --color-neutral: var(--p-ink-300);
