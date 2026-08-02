@@ -545,6 +545,24 @@ danger as well as showing a danger status pill, "so the status pill is not the
 only signal". Both are wired to the same `overdue` prop so they cannot
 disagree.
 
+### Harness limitation — no absolute pixel assertions in play functions
+
+Hit three times, so recording it as a rule rather than rediscovering it.
+
+Inside a play function under `@storybook/addon-vitest`, `getBoundingClientRect`
+returns **pre-layout** values: a 42px Button measured 24, a 358px card measured
+1200 (the viewport). The components were correct each time — verified in the
+browser — the measurement was not.
+
+**Rule:** play functions assert *behaviour* (clicks, focus, ARIA, text,
+attributes). Layout and sizing are verified visually.
+
+**Exception that does work:** *relative* comparison between two elements in the
+same layout pass. `TableHeaderInvoices › AlignsWithRows` compares the right
+edge of the Amount heading with the right edge of the first amount cell and is
+reliable, because both readings come from the same (equally pre-layout) pass.
+Absolute values are wrong; the relationship between them is not.
+
 ### Still open
 
 - [ ] a11y addon is configured with `test: 'error'` but has not been asserted
