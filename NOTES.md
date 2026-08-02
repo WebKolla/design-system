@@ -235,6 +235,84 @@ additional colour ramps. Every unused token is a maintenance cost.
 Measured live from the rendered DOM, Light mode, against each token's intended
 background. Several are expected; three are not.
 
+---
+
+## Figma write-back — 2026-08-02
+
+§2 made Figma access read-only **for the library build**. That was lifted by an
+explicit instruction to fix the defects and push the token changes back. All
+writes below were made through `use_figma`, each verified by reading the file
+back and by screenshot.
+
+### The black-rendering defect — root cause found and fixed
+
+`Button` Primary and Secondary rendered black at Medium and Small. The audit
+found **11 paints across the file** whose bound variable disagreed with the
+paint's own colour:
+
+| Where | Variable | Painted | Should be |
+|---|---|---|---|
+| Button Primary Medium, Small | `color/primary` | `#000000` | `#16606b` |
+| Button Secondary Medium, Small (fill + stroke) | `color/surface`, `color/input` | `#000000` | `#ffffff`, `#dedee4` |
+| Button Secondary Medium, Small labels | `color/foreground` | `#000000` | `#16161c` |
+| SiteFooter column headings ×3 | `color/ink-faint` | `#ffffff` | `#5e7274` |
+
+The three footer headings were a defect nobody had reported — they rendered
+white instead of faint grey.
+
+Cause is the gotcha the handoff already records: **`setBoundVariableForPaint`
+returns a new paint and must be reassigned.** During the original build the
+binding was written but the paint's own colour never was, leaving a dangling
+binding over a default colour.
+
+**My first repair attempt did nothing.** Calling `setBoundVariableForPaint` on
+the existing paint re-attaches a binding that was already there and leaves the
+stale literal untouched — it reported eight nodes "mutated" while changing
+nothing. The working fix rebuilds the paint with the resolved colour *and* then
+binds it. Re-audited afterwards: **0 mismatches file-wide.**
+
+### Variable changes propagate correctly
+
+Worth recording, because the above could suggest otherwise: after re-aliasing
+`color/input`, a bound stroke updated from `#dedee4` to `#74747f` on its own.
+Figma propagation works. The 11 were genuinely broken bindings, not evidence
+that literals always win.
+
+### What changed in Figma
+
+| Change | Detail |
+|---|---|
+| `color/input` re-aliased | Light `neutral/250` → `neutral/500`, Dark `ink/600` → `ink/500`. Now 4.32:1 and 3.58:1, clearing WCAG 1.4.11 |
+| `color/focus-ring` added | New variable aliasing `color/primary` in both modes, scoped to stroke and effect only |
+| `color/ring` description | Rewritten to say it is the soft halo and never the sole indicator |
+| Button icon side | Moved from leading to trailing in **all 15 variants**; description updated |
+| 11 paints repaired | Listed above |
+
+Every changed variable and the Button set carry a dated description explaining
+the reason, so the next person reading the file does not have to find this
+document.
+
+### Code and Figma now agree
+
+Two entries below are no longer deviations — Figma has been brought in line:
+
+- **`color/input`** — pushed. Code and Figma both `neutral/500` / `ink/500`.
+- **Icon side (§13.1)** — pushed. Figma is now trailing, matching the code, the
+  component sheet and all seven marketing pages.
+
+The focus ring is now expressed in Figma as `color/focus-ring`. The code's
+`--color-focus-ring` should be re-pointed at that token rather than at
+`color/primary` directly, next time the token file is regenerated.
+
+### Still needs a decision — `ink/850` and `ink/900`
+
+**Not fixed.** Both hold `#131e20`, so `color/ink-raised` and dark-mode
+`color/surface` are indistinguishable. Nothing in the file says which of the
+two is wrong or what it should be, and guessing a value would be inventing
+design. Needs a human answer before it can be pushed.
+
+---
+
 ### RESOLVED 2026-08-02 — two token deviations, on instruction
 
 Both are deliberate departures from Figma and **must be pushed back to the
