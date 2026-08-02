@@ -1,0 +1,123 @@
+{
+  "runId": "ts-ds-2026-08-02",
+  "fileKey": "gK7SDHmNwdB9ac0a3miBZ2",
+  "fileUrl": "https://www.figma.com/design/gK7SDHmNwdB9ac0a3miBZ2/TimeSubmit-Design-System",
+  "sourceOfTruth": "globals.css (Tailwind v4 @theme) + screens/SPEC.md from TimeSubmit_UX_positioning-claude.zip",
+  "status": "Foundations + 34 components complete. 10 of 24 screen frames complete (all 5 dashboard screens, desktop + mobile). Marketing pass not started.",
+
+  "collections": {
+    "Primitives": "VariableCollectionId:28:284",
+    "Color": "VariableCollectionId:29:284",
+    "Radius": "VariableCollectionId:30:293",
+    "Spacing": "VariableCollectionId:30:300"
+  },
+  "modes": { "Color.Light": "29:0", "Color.Dark": "29:1" },
+  "effectStyles": {
+    "shadow/e1": "S:99c632a11ef4b16f0a48e49d34c3555a1f3c6bce,",
+    "shadow/e2": "S:8e0a7c0867a9e8d3c82bbf55269d9e0a89e28f04,",
+    "shadow/e3": "S:929371b2aba2890de59bc167fff66c29138db22f,",
+    "shadow/e4": "S:3ccf153ab2caf5011f4f4e040c19ea44c2021116,"
+  },
+
+  "components": {
+    "Icons holder (42 icons)": "12:2",
+    "Button": "15:53",
+    "Nav item": "16:33",
+    "Chip": "16:42",
+    "KPI card": "17:23",
+    "Legend row": "17:30",
+    "Project bar row": "17:34",
+    "Attention row": "18:79",
+    "Status pill": "35:17",
+    "Avatar": "35:35",
+    "Field": "37:42",
+    "Checkbox": "39:8",
+    "Toggle": "39:13",
+    "Tab": "39:335",
+    "Table header · Invoices": "40:2",
+    "Table row · Invoice": "40:95",
+    "Banner": "41:47",
+    "Toolbar search": "42:20",
+    "Filter select": "42:34",
+    "Pagination": "42:35",
+    "Tab chip · Mobile": "46:10",
+    "Tab bar item · Mobile": "46:27",
+    "List card · Invoice · Mobile": "46:645",
+    "Table header · Approvals": "50:27",
+    "Table row · Approval": "50:106",
+    "List card · Approval · Mobile": "53:14",
+    "Sidebar · Expanded": "55:10",
+    "Attention card · Mobile": "58:89",
+    "Week grid cell": "61:14",
+    "Week grid header": "62:2",
+    "Week grid row": "62:28",
+    "Week grid total row": "62:58",
+    "Day picker item · Mobile": "63:1709",
+    "Sub-nav item": "66:121",
+    "Completeness card": "66:122"
+  },
+
+  "screens": {
+    "1a desktop 1440x980": "56:284",
+    "1a mobile 390x1680": "59:440",
+    "1b desktop 1440x900": "63:2",
+    "1b mobile 390x1400": "64:179",
+    "1c desktop 1440x820": "51:50",
+    "1c mobile 390x1200": "54:238",
+    "1d desktop 1440x860": "44:2",
+    "1d mobile 390x1100": "48:290",
+    "1e desktop 1440x820": "68:2",
+    "1e mobile 390x1300": "69:387"
+  },
+
+  "keyPages": {
+    "Photography · staging": "70:9",
+    "Mobile patterns": "46:2",
+    "Icons": "33:292",
+    "Button": "33:293",
+    "Table": "33:298",
+    "Navigation": "33:299",
+    "Cards": "33:296",
+    "Week grid": "33:301",
+    "Design ethos & guidelines": "33:286",
+    "Reference · imported sheet": "33:318"
+  },
+
+  "remainingComponents": ["Nav rail item", "Empty state", "Toast", "Site header", "Site footer", "Section header", "Feature card (photo)", "Pricing tier card", "FAQ accordion row", "Stat cell", "Step card", "Dark CTA band"],
+  "remainingScreens": ["2a Home", "2b Approval workflows", "2c Pricing", "2d About", "2e FAQ", "2f Contact", "2g Sign in"],
+
+  "photography": {
+    "status": "NOT YET IN FIGMA",
+    "location": "screens/uploads/*.webp in the zip (16 named files; ignore the uploads/mcp/ folder, those are tool artefacts)",
+    "files": ["hero-banner","team-dashboard","consultancy-manager","consultant-portrait","feature-time-tracking","feature-approval","feature-invoicing","timesheet-moment","social-proof-trust","testimonial-case-study","mission-values","team-culture","blog-insights","faq-help-centre","support-helpdesk","login-background"],
+    "routeA": "upload_assets MCP tool + POST bytes from bash. Requires mcp.figma.com on the sandbox network egress allowlist. User added it 2026-08-02 but it needs a FRESH session to take effect.",
+    "routeB": "Drag the 16 webp files onto the 'Photography · staging' page (node 70:9). Figma names each layer after the filename, so they can be matched automatically and their imageHash reused as fills."
+  },
+
+  "conflictsResolved": [
+    "Radius renamed to pip5/control7/button8/button-lg9/card10/panel12 per --radius-*",
+    "primary-soft #EDF4F5 -> #ECF2F2 (resolved oklab color-mix)",
+    "primary-border #C5DBDE -> #C5D5D8 (resolved oklab color-mix)",
+    "text/label and border/row-hairline folded into subtle-foreground / hairline (no CSS token exists)",
+    "ui/label line-height 16 -> 16.8; ui/overline auto -> 11",
+    "Button heights corrected to spec 42/34/30; variants extended to Primary/Secondary/Ghost/Approve/Destructive (15 variants)",
+    "Checkbox uses 3px radius deliberately off-scale (radius/pip 5 on a 14px square reads as a radio)",
+    "Component sheet field text 13.5px ignored in favour of the SPEC type ramp (body/cell 13)",
+    "Original 1600px Overview build deleted and rebuilt at spec 1440",
+    "html.to.design residue deleted: 491 variables, 143 text styles, 77 paint styles"
+  ],
+
+  "apiGotchas": [
+    "resize() AFTER setting primaryAxisSizingMode='AUTO' silently reverts the frame to FIXED. Always resize first, then set sizing modes.",
+    "Component property keys carry unpredictable #id suffixes (Label#46:9 vs Label#46:0). ALWAYS read componentPropertyDefinitions before setProperties - never guess.",
+    "componentPropertyDefinitions can only be read from a COMPONENT_SET or a non-variant COMPONENT, never from a variant child.",
+    "swapComponent invalidates descendant node references. Never audit boundVariables in the same script that swaps nested instances - run the audit as a separate call.",
+    "INSTANCE_SWAP discards per-instance colour overrides on the swapped subtree. Bind icon strokes on the icon COMPONENT, not the instance.",
+    "INSTANCE_SWAP addComponentProperty defaultValue takes a node id, not a component key.",
+    "Variable names cannot contain '.' (spacing/1.5 fails; use spacing/1-5).",
+    "textAutoResize has no 'WIDTH' value - use 'WIDTH_AND_HEIGHT'.",
+    "Screen frames are viewports: keep the spec height and let content hug at the top, with rail/main FILL vertically."
+  ],
+
+  "validationStandard": "Every frame checked for: zero unbound paints, no placeholder text, Geist/Geist Mono only, column grids aligned between header and row components."
+}

@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   PLACEHOLDER — Phase 0 scaffold only.
+
+   This file is REPLACED WHOLESALE in Phase 1, generated from the four Figma
+   variable collections (Primitives 59, Color 50 × light/dark, Radius 6,
+   Spacing 9) plus the 24 text styles and 4 effect styles.
+
+   Only the handful of tokens needed to prove the scaffold renders are defined
+   here. Every value below carries its provenance:
+     [figma]  read from the Figma file via get_variable_defs — authoritative
+     [stub]   placeholder, NOT a design decision, replaced in Phase 1
+
+   Do not build components against this file.
+   ========================================================================== */
+
+@theme {
+  --color-primary: #16606b;            /* [figma] color/primary */
+  --color-primary-foreground: #ffffff; /* [figma] color/primary-foreground */
+  --color-foreground: #16161c;         /* [figma] color/foreground */
+  --color-surface: #ffffff;            /* [figma] color/surface */
+  --color-background: #f7f7f9;         /* [stub] pending Phase 1 */
+  --color-border: #dedee4;             /* [figma] color/input */
+
+  --radius-button: 8px;                /* [figma] radius/button */
+  --radius-control: 7px;               /* [figma] radius/control */
+  --radius-button-lg: 9px;             /* [figma] radius/button-lg */
+}
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+  /* [stub] Phase 1 emits the real Dark mode ramp here. */
+  --color-background: #0e1719;
+  --color-foreground: #ffffff;
+  --color-surface: #16161c;
+}
