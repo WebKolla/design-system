@@ -151,9 +151,100 @@ than reporting quietly.
 
 ---
 
-## Tokens defined in code rather than derived from Figma
+## Phase 1 — token layer
 
-*(Phase 1 — to be filled in as each is defined, per §5.)*
+### Read from Figma (authoritative)
+
+One `use_figma` read-only call returned the whole set. Counts match the brief
+exactly: **Primitives 59, Color 50 (Light + Dark), Radius 6, Spacing 9**, plus
+**24 text styles** and **4 effect styles**.
+
+### Open question §13.3 — RESOLVED, not guessed
+
+`color/chart-grid` and `color/chart-axis` "do not resolve to plain colour
+values" because they are the **only second-order aliases in the Color
+collection**. Every other Color variable aliases a *Primitive*; these two alias
+another *semantic Color token*:
+
+- `color/chart-grid` → `color/hairline`
+- `color/chart-axis` → `color/faint-foreground`
+
+Both are therefore correct in both modes for free, following whatever their
+target resolves to. Emitted as `--color-chart-grid: var(--color-hairline)` and
+`--color-chart-axis: var(--color-faint-foreground)`. No value invented.
+
+### `ink/*` mode-invariance — verified
+
+All eight `ink/*` tokens alias the same primitive in Light and Dark in Figma,
+and read back byte-identical from the browser in both modes
+(`inkInvariant: true`, zero diffs). They are emitted once and never overridden
+in `.dark`.
+
+### The `mix/*` primitives — 14, not 3
+
+§5 notes three tokens were `color-mix()` and were resolved to static hex.
+Figma actually holds **14** resolved `mix/*` primitives — the three named
+(`primary-soft`, `primary-border`, `ring`, each × Light/Dark) plus the eight
+dark-mode status bg/border pairs. The two hex values the brief calls out are
+confirmed exactly: `#ECF2F2` and `#C5D5D8`. No `color-mix()` is reintroduced.
+
+### `@theme static` vs `@theme inline` — a real trap
+
+First cut used `@theme static` for everything so all tokens are emitted (the
+default tree-shakes unused ones, which would break portability back to the
+product app). Verification then showed `--color-card` was `#ffffff` in **both**
+modes and `--color-chart-grid` was frozen at its Light value.
+
+Cause: under `static`, Tailwind resolves intra-theme `var()` references at
+build time, so any *second-order* alias freezes at Light.
+
+Resolution: two blocks.
+- `@theme static` — primitives and first-order semantic tokens. Always emitted.
+- `@theme inline` — second-order aliases only (`chart-grid`, `chart-axis`, and
+  the whole shadcn block). `inline` keeps the `var()` inside the generated
+  utility so it resolves per element and follows the mode.
+
+### Figma defect found (not fixed — read-only per §2)
+
+`ink/850` and `ink/900` hold the **same value, `#131e20`**. One of them is
+likely wrong: `color/ink-raised` → `ink/850` and `color/surface` (Dark) →
+`ink/900` are meant to be distinguishable surfaces but currently render
+identically. Flagged for the Figma file; the generated CSS reproduces Figma
+faithfully rather than inventing a difference.
+
+### Tokens defined in code rather than derived from Figma
+
+Each is marked `[code]` in `globals.css`.
+
+| Token group | Values | Why it is not in Figma |
+|---|---|---|
+| `--font-sans`, `--font-mono` | Geist / Geist Mono + system fallbacks | Figma stores only a family name; it has no concept of a fallback stack |
+| `--breakpoint-mobile/tablet/desktop` | 390 / 834 / 1440 | From SPEC §Frame sizes. Figma frames are fixed widths, not breakpoints |
+| `--ease-standard`, `--ease-out-soft` | two cubic-beziers | Figma has no motion tokens |
+| `--duration-control`, `--duration-surface` | 120ms / 180ms | ditto. Values from the v0.1 README's stated motion rule |
+| `prefers-reduced-motion` reset | base layer | Not expressible in Figma |
+| `--focus-ring-width`, `--focus-ring-offset` | 2px / 2px | The *colour* (`color/ring`) exists in Figma; width and offset do not |
+| `--z-sticky … --z-toast` | 100–500 | Figma has z-order, not a named scale |
+| shadcn mapping block | aliases only | Exists purely to satisfy shadcn/Radix internals; no new values |
+
+Deliberately **not** invented: no extra spacing steps, no extra radii, no
+additional colour ramps. Every unused token is a maintenance cost.
+
+### Phase 1 is NOT complete
+
+Still outstanding before this phase is reviewable:
+
+- [ ] Foundations story — every colour with name, resolved value, contrast
+      ratio against its intended background, light/dark side by side
+- [ ] Type story — full ramp at desktop and mobile sizes
+- [ ] **shadcn mapping proof** — the brief requires mounting one wrapped
+      primitive (Button) in both modes. Attempted to verify by injecting
+      utility classes at runtime; that is invalid, because Tailwind JIT only
+      generates utilities it finds in source, so the injected classes had no
+      rules and the readings were meaningless. This can only be proven by the
+      real Button in Phase 2.
+- [ ] Geist / Geist Mono webfonts are not yet loaded, so Storybook currently
+      renders the fallback stack
 
 ---
 

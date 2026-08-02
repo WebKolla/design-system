@@ -1,41 +1,549 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   PLACEHOLDER — Phase 0 scaffold only.
+   TimeSubmit design system — token layer
 
-   This file is REPLACED WHOLESALE in Phase 1, generated from the four Figma
-   variable collections (Primitives 59, Color 50 × light/dark, Radius 6,
-   Spacing 9) plus the 24 text styles and 4 effect styles.
+   GENERATED FROM FIGMA. Do not hand-edit values.
+   Source: figma.com/design/gK7SDHmNwdB9ac0a3miBZ2 (TimeSubmit Design System)
 
-   Only the handful of tokens needed to prove the scaffold renders are defined
-   here. Every value below carries its provenance:
-     [figma]  read from the Figma file via get_variable_defs — authoritative
-     [stub]   placeholder, NOT a design decision, replaced in Phase 1
+     Primitives   59 variables   raw ramps, internal only
+     Color        50 variables   semantic, Light + Dark modes — the public API
+     Radius        6 variables
+     Spacing       9 variables
+     Text styles  24
+     Effects       4
 
-   Do not build components against this file.
+   Structure:
+     1. Dark-mode variant
+     2. @theme — primitives (--p-*), then semantic tokens aliasing them
+     3. .dark — semantic overrides only
+     4. shadcn/ui compatibility mapping
+     5. Base layer
+
+   Rules this file encodes:
+     - Components reference semantic tokens only. Primitives are --p-* and are
+       internal; a component referencing --p-* is a bug.
+     - Light is :root, Dark is .dark. One set of custom properties, never two
+       sets of Tailwind classes.
+     - ink/* is mode-invariant: identical in both modes, emitted once, never
+       overridden in .dark.
    ========================================================================== */
 
-@theme {
-  --color-primary: #16606b;            /* [figma] color/primary */
-  --color-primary-foreground: #ffffff; /* [figma] color/primary-foreground */
-  --color-foreground: #16161c;         /* [figma] color/foreground */
-  --color-surface: #ffffff;            /* [figma] color/surface */
-  --color-background: #f7f7f9;         /* [stub] pending Phase 1 */
-  --color-border: #dedee4;             /* [figma] color/input */
+/* 1 ---------------------------------------------------------------- variant */
 
-  --radius-button: 8px;                /* [figma] radius/button */
-  --radius-control: 7px;               /* [figma] radius/control */
-  --radius-button-lg: 9px;             /* [figma] radius/button-lg */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 2 ------------------------------------------------------------------ theme */
+
+@theme static {
+  /* ------------------------------------------------------------------------
+     PRIMITIVES — internal. Never reference these from a component.
+     Figma collection "Primitives" (59), single "Value" mode.
+     ---------------------------------------------------------------------- */
+
+  --p-white: #ffffff;
+
+  --p-accent-100: #7fb0b6;
+  --p-accent-400: #35a5b2;
+  --p-accent-600: #16606b;
+  --p-accent-700: #0f4a53;
+
+  --p-neutral-25: #fbfbfc;
+  --p-neutral-50: #f7f7f9;
+  --p-neutral-100: #f1f1f4;
+  --p-neutral-150: #efeff2;
+  --p-neutral-200: #e4e4e9;
+  --p-neutral-250: #dedee4;
+  --p-neutral-300: #d3d3db;
+  --p-neutral-400: #a6a6b0;
+  --p-neutral-500: #74747f;
+  --p-neutral-700: #45454f;
+  --p-neutral-900: #16161c;
+
+  --p-ink-200: #c6d0d2;
+  --p-ink-300: #a8b4b6;
+  --p-ink-400: #8b9a9c;
+  --p-ink-500: #5e7274;
+  --p-ink-600: #2b3b3d;
+  --p-ink-700: #1e2c2e;
+  --p-ink-800: #1a272a;
+  --p-ink-850: #131e20;
+  --p-ink-900: #131e20;
+  --p-ink-950: #0e1719;
+
+  --p-muted-500: #c4c4cc;
+  --p-muted-700: #5a5a65;
+
+  --p-success-100: #e6f2ec;
+  --p-success-200: #cfe7dc;
+  --p-success-500: #3e9a73;
+  --p-success-600: #1d6f4f;
+  --p-success-700: #0e6e4c;
+
+  --p-warn-100: #fbf2e0;
+  --p-warn-200: #f0e1c2;
+  --p-warn-500: #c89a3c;
+  --p-warn-700: #8a5a00;
+
+  --p-danger-100: #fbeaea;
+  --p-danger-200: #f3d4d5;
+  --p-danger-500: #c0555b;
+  --p-danger-700: #a81f26;
+
+  --p-info-100: #e8eefa;
+  --p-info-200: #d2e0f4;
+  --p-info-500: #4e7fc4;
+  --p-info-700: #1f4fa8;
+
+  /* Resolved oklab color-mix() expressions.
+     These were mixes during the original build; the design build resolved them
+     to static hex and every component was designed against the resolved value.
+     Do NOT reintroduce color-mix() — it shifts them. */
+  --p-mix-primary-soft-light: #ecf2f2;
+  --p-mix-primary-soft-dark: #192f32;
+  --p-mix-primary-border-light: #c5d5d8;
+  --p-mix-primary-border-dark: #21454a;
+  --p-mix-ring-light: #dfe7e9;
+  --p-mix-ring-dark: #1e3d42;
+  --p-mix-success-bg-dark: #1b322e;
+  --p-mix-success-bd-dark: #224239;
+  --p-mix-warn-bg-dark: #303229;
+  --p-mix-warn-bd-dark: #48432e;
+  --p-mix-danger-bg-dark: #31292a;
+  --p-mix-danger-bd-dark: #483132;
+  --p-mix-info-bg-dark: #1d2e3a;
+  --p-mix-info-bd-dark: #243b50;
+
+  /* ------------------------------------------------------------------------
+     SEMANTIC COLOUR — the public API. Light mode values.
+     Figma collection "Color" (50). Dark overrides live in .dark below.
+     ---------------------------------------------------------------------- */
+
+  /* surfaces */
+  --color-background: var(--p-neutral-50);
+  --color-surface: var(--p-white);
+  --color-surface-raised: var(--p-neutral-25);
+  --color-control: var(--p-neutral-100);
+
+  /* text */
+  --color-foreground: var(--p-neutral-900);
+  --color-muted-foreground: var(--p-neutral-700);
+  --color-subtle-foreground: var(--p-neutral-500);
+  --color-faint-foreground: var(--p-neutral-400);
+
+  /* lines */
+  --color-border: var(--p-neutral-200);
+  --color-border-strong: var(--p-neutral-300);
+  --color-hairline: var(--p-neutral-150);
+  --color-input: var(--p-neutral-250);
+
+  /* accent */
+  --color-primary: var(--p-accent-600);
+  --color-primary-hover: var(--p-accent-700);
+  --color-primary-foreground: var(--p-white);
+  --color-primary-soft: var(--p-mix-primary-soft-light);
+  --color-primary-border: var(--p-mix-primary-border-light);
+  --color-ring: var(--p-mix-ring-light);
+
+  /* status */
+  --color-success: var(--p-success-700);
+  --color-success-bg: var(--p-success-100);
+  --color-success-border: var(--p-success-200);
+  --color-success-solid: var(--p-success-600);
+  --color-warn: var(--p-warn-700);
+  --color-warn-bg: var(--p-warn-100);
+  --color-warn-border: var(--p-warn-200);
+  --color-danger: var(--p-danger-700);
+  --color-danger-bg: var(--p-danger-100);
+  --color-danger-border: var(--p-danger-200);
+  --color-info: var(--p-info-700);
+  --color-info-bg: var(--p-info-100);
+  --color-info-border: var(--p-info-200);
+  --color-neutral: var(--p-muted-700);
+  --color-neutral-bg: var(--p-neutral-100);
+  --color-neutral-border: var(--p-neutral-200);
+
+  /* charts. chart-grid and chart-axis alias SEMANTIC tokens, not primitives —
+     they are the only second-order aliases in the Color collection, which is
+     why they do not resolve to a plain colour through the API. Because they
+     are second-order they live in the `inline` block below, so the alias is
+     resolved per-element and still flips with the mode. */
+  --color-chart-1: var(--p-accent-600);
+  --color-chart-2: var(--p-info-500);
+  --color-chart-3: var(--p-warn-500);
+  --color-chart-4: var(--p-danger-500);
+  --color-chart-5: var(--p-success-500);
+  --color-chart-6: var(--p-muted-500);
+
+  /* ------------------------------------------------------------------------
+     INK — mode-invariant.
+     A self-contained dark palette for CTA bands, the sign-in panel and the
+     rate-blind band. Ink is ink in both modes. These are deliberately absent
+     from the .dark block; adding them there is a bug.
+
+     Note: muted-foreground on ink fails contrast (~2:1). Use ink-muted.
+     ---------------------------------------------------------------------- */
+  --color-ink: var(--p-ink-950);
+  --color-ink-raised: var(--p-ink-850);
+  --color-ink-foreground: var(--p-white);
+  --color-ink-muted: var(--p-ink-200);
+  --color-ink-subtle: var(--p-ink-400);
+  --color-ink-faint: var(--p-ink-500);
+  --color-ink-border: var(--p-ink-700);
+  --color-ink-accent: var(--p-accent-100);
+
+  /* ------------------------------------------------------------------------
+     RADIUS — Figma collection "Radius" (6)
+     ---------------------------------------------------------------------- */
+  --radius-pip: 5px;
+  --radius-control: 7px;
+  --radius-button: 8px;
+  --radius-button-lg: 9px;
+  --radius-card: 10px;
+  --radius-panel: 12px;
+
+  /* ------------------------------------------------------------------------
+     SPACING — Figma collection "Spacing" (9)
+     Figma forbids "." in variable names, hence 1-5 rather than 1.5. The
+     hyphenated name is preserved so Figma and code stay greppable together.
+     Tailwind's native p-1.5 resolves to the same 6px.
+     ---------------------------------------------------------------------- */
+  --spacing-1: 4px;
+  --spacing-1-5: 6px;
+  --spacing-2: 8px;
+  --spacing-2-5: 10px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+
+  /* ------------------------------------------------------------------------
+     ELEVATION — Figma effect styles (4). One hairline family, no coloured
+     shadows. Shadow colour is #14141e at the alphas below.
+     ---------------------------------------------------------------------- */
+  --shadow-e1: 0 1px 2px 0 rgb(20 20 30 / 0.05);
+  --shadow-e2:
+    0 1px 2px 0 rgb(20 20 30 / 0.05),
+    0 8px 24px -12px rgb(20 20 30 / 0.12);
+  --shadow-e3:
+    0 1px 2px 0 rgb(20 20 30 / 0.05),
+    0 18px 44px -20px rgb(20 20 30 / 0.18);
+  --shadow-e4: 0 24px 60px -30px rgb(20 20 30 / 0.3);
+
+  /* ------------------------------------------------------------------------
+     TYPOGRAPHY — Figma text styles (24)
+
+     The mono rule is load-bearing: Geist Mono is for every hour, rate, amount,
+     date and identifier, and only those. Overlines, kickers and labels are
+     Geist even where the marketing HTML shows Mono.
+     ---------------------------------------------------------------------- */
+
+  /* [code] Font stacks — Figma stores only the family name. */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* heading/* — Geist SemiBold */
+  --text-heading-display: 54px;
+  --text-heading-display--line-height: 57.78px;
+  --text-heading-display--letter-spacing: -1.9px;
+  --text-heading-display--font-weight: 600;
+
+  --text-heading-hero: 44px;
+  --text-heading-hero--line-height: 47.52px;
+  --text-heading-hero--letter-spacing: -1.4px;
+  --text-heading-hero--font-weight: 600;
+
+  --text-heading-section: 32px;
+  --text-heading-section--line-height: 36.8px;
+  --text-heading-section--letter-spacing: -0.9px;
+  --text-heading-section--font-weight: 600;
+
+  --text-heading-page-title: 24px;
+  --text-heading-page-title--line-height: 28.8px;
+  --text-heading-page-title--letter-spacing: -0.48px;
+  --text-heading-page-title--font-weight: 600;
+
+  --text-heading-card-title: 18px;
+  --text-heading-card-title--line-height: 23.4px;
+  --text-heading-card-title--letter-spacing: -0.27px;
+  --text-heading-card-title--font-weight: 600;
+
+  --text-heading-block: 15px;
+  --text-heading-block--line-height: 19.5px;
+  --text-heading-block--font-weight: 600;
+
+  /* body/* — Geist Regular */
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 25.92px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body: 14px;
+  --text-body--line-height: 21.7px;
+  --text-body--font-weight: 400;
+
+  --text-body-cell: 13px;
+  --text-body-cell--line-height: 20.8px;
+  --text-body-cell--font-weight: 400;
+
+  --text-body-caption: 12.5px;
+  --text-body-caption--line-height: 18.75px;
+  --text-body-caption--font-weight: 400;
+
+  --text-body-micro: 11.5px;
+  --text-body-micro--line-height: 15px;
+  --text-body-micro--font-weight: 400;
+
+  /* ui/* — Geist Medium */
+  --text-ui-lg: 14.5px;
+  --text-ui-lg--line-height: 19px;
+  --text-ui-lg--font-weight: 500;
+
+  --text-ui-md: 13px;
+  --text-ui-md--line-height: 17px;
+  --text-ui-md--font-weight: 500;
+
+  --text-ui-sm: 12.5px;
+  --text-ui-sm--line-height: 16px;
+  --text-ui-sm--font-weight: 500;
+
+  --text-ui-xs: 11.5px;
+  --text-ui-xs--line-height: 15px;
+  --text-ui-xs--font-weight: 500;
+
+  --text-ui-label: 12px;
+  --text-ui-label--line-height: 16.8px;
+  --text-ui-label--font-weight: 500;
+
+  --text-ui-overline: 11px;
+  --text-ui-overline--line-height: 11px;
+  --text-ui-overline--letter-spacing: 0.77px;
+  --text-ui-overline--font-weight: 500;
+
+  --text-ui-nav-section: 10px;
+  --text-ui-nav-section--line-height: 13px;
+  --text-ui-nav-section--letter-spacing: 0.7px;
+  --text-ui-nav-section--font-weight: 500;
+
+  /* mono/* — Geist Mono. Numerals and identifiers only. */
+  --text-mono-price: 32px;
+  --text-mono-price--line-height: 32px;
+  --text-mono-price--letter-spacing: -0.96px;
+  --text-mono-price--font-weight: 600;
+
+  --text-mono-kpi: 27px;
+  --text-mono-kpi--line-height: 32px;
+  --text-mono-kpi--letter-spacing: -0.4px;
+  --text-mono-kpi--font-weight: 600;
+
+  --text-mono-metric: 24px;
+  --text-mono-metric--line-height: 29px;
+  --text-mono-metric--font-weight: 500;
+
+  --text-mono-amount: 18px;
+  --text-mono-amount--line-height: 23.4px;
+  --text-mono-amount--letter-spacing: -0.27px;
+  --text-mono-amount--font-weight: 600;
+
+  --text-mono-cell: 13px;
+  --text-mono-cell--line-height: 20px;
+  --text-mono-cell--font-weight: 500;
+
+  --text-mono-count: 10.5px;
+  --text-mono-count--line-height: 14px;
+  --text-mono-count--font-weight: 500;
+
+  /* ------------------------------------------------------------------------
+     [code] BREAKPOINTS — from SPEC. Figma has no concept of these.
+     390 mobile / 834 tablet / 1440 desktop.
+     ---------------------------------------------------------------------- */
+  --breakpoint-mobile: 390px;
+  --breakpoint-tablet: 834px;
+  --breakpoint-desktop: 1440px;
+
+  /* ------------------------------------------------------------------------
+     [code] MOTION — Figma has no concept of these.
+     120ms on controls, 180ms on surfaces. No infinite animations exist in the
+     product, so no keyframe tokens are defined.
+     ---------------------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* [code] Non-Tailwind-namespaced custom properties.
+   These are not utility namespaces, so they live outside @theme. */
 :root {
   color-scheme: light;
+
+  /* motion */
+  --duration-control: 120ms;
+  --duration-surface: 180ms;
+
+  /* focus ring — the colour token color/ring exists in Figma; width and
+     offset do not, and are defined here. */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* z-index scale */
+  --z-sticky: 100;
+  --z-dropdown: 200;
+  --z-overlay: 300;
+  --z-dialog: 400;
+  --z-toast: 500;
 }
 
+/* 3 ------------------------------------------------------------------- dark */
+
+/*
+  Dark mode. Semantic tokens only — primitives never change, and ink/* is
+  deliberately absent because it is mode-invariant.
+*/
 .dark {
   color-scheme: dark;
-  /* [stub] Phase 1 emits the real Dark mode ramp here. */
-  --color-background: #0e1719;
-  --color-foreground: #ffffff;
-  --color-surface: #16161c;
+
+  /* surfaces */
+  --color-background: var(--p-ink-950);
+  --color-surface: var(--p-ink-900);
+  --color-surface-raised: var(--p-ink-800);
+  --color-control: var(--p-ink-800);
+
+  /* text */
+  --color-foreground: var(--p-white);
+  --color-muted-foreground: var(--p-ink-200);
+  --color-subtle-foreground: var(--p-ink-400);
+  --color-faint-foreground: var(--p-ink-500);
+
+  /* lines */
+  --color-border: var(--p-ink-700);
+  --color-border-strong: var(--p-ink-600);
+  --color-hairline: var(--p-ink-800);
+  --color-input: var(--p-ink-600);
+
+  /* accent */
+  --color-primary: var(--p-accent-400);
+  --color-primary-hover: var(--p-accent-100);
+  --color-primary-foreground: var(--p-ink-950);
+  --color-primary-soft: var(--p-mix-primary-soft-dark);
+  --color-primary-border: var(--p-mix-primary-border-dark);
+  --color-ring: var(--p-mix-ring-dark);
+
+  /* status */
+  --color-success: var(--p-success-500);
+  --color-success-bg: var(--p-mix-success-bg-dark);
+  --color-success-border: var(--p-mix-success-bd-dark);
+  --color-warn: var(--p-warn-500);
+  --color-warn-bg: var(--p-mix-warn-bg-dark);
+  --color-warn-border: var(--p-mix-warn-bd-dark);
+  --color-danger: var(--p-danger-500);
+  --color-danger-bg: var(--p-mix-danger-bg-dark);
+  --color-danger-border: var(--p-mix-danger-bd-dark);
+  --color-info: var(--p-info-500);
+  --color-info-bg: var(--p-mix-info-bg-dark);
+  --color-info-border: var(--p-mix-info-bd-dark);
+  --color-neutral: var(--p-ink-300);
+  --color-neutral-bg: var(--p-ink-800);
+  --color-neutral-border: var(--p-ink-700);
+
+  /* charts. chart-2..6 are identical across modes by design — status hues do
+     not flip. chart-grid/chart-axis follow their semantic aliases. */
+  --color-chart-1: var(--p-accent-400);
+
+  /* success-solid is mode-invariant (success/600 in both). */
+}
+
+/* 4 --------------------------------------------------------- shadcn mapping */
+
+/*
+  shadcn/ui compatibility.
+
+  Everything below exists ONLY to satisfy shadcn/Radix component internals.
+  Nothing in this block is a TimeSubmit design decision — each line aliases a
+  token defined above. If you are choosing a colour for a component, use the
+  semantic token, not the name in this block.
+
+  Already satisfied by our own names, no mapping needed:
+    --color-background --color-foreground --color-border --color-input
+    --color-ring --color-primary --color-primary-foreground
+    --color-muted-foreground --color-chart-1..5
+
+  WHY `inline` AND NOT `static`:
+  Every token here is a *second-order* alias — it points at another semantic
+  token rather than at a primitive. Under `@theme static` Tailwind resolves
+  those references at build time, freezing each one at its Light value, so
+  `bg-card` stayed white in dark mode. `inline` keeps the `var()` reference
+  inside the generated utility, so it is resolved per-element and follows the
+  mode correctly. Verified in both modes before this file was committed.
+*/
+@theme inline {
+  /* Second-order Color tokens from Figma. */
+  --color-chart-grid: var(--color-hairline);
+  --color-chart-axis: var(--color-faint-foreground);
+
+  /* shadcn/ui names. */
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-foreground);
+
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-foreground);
+
+  --color-secondary: var(--color-control);
+  --color-secondary-foreground: var(--color-foreground);
+
+  --color-muted: var(--color-control);
+
+  --color-accent: var(--color-primary-soft);
+  --color-accent-foreground: var(--color-primary);
+
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: var(--color-primary-foreground);
+
+  --radius: var(--radius-card);
+  --radius-sm: var(--radius-control);
+  --radius-md: var(--radius-button);
+  --radius-lg: var(--radius-card);
+  --radius-xl: var(--radius-panel);
+}
+
+/* 5 ------------------------------------------------------------------- base */
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Every figure is tabular so columns of money and hours line up. */
+  .font-mono,
+  [class*="text-mono-"] {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Visible keyboard focus everywhere. */
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  /* [code] prefers-reduced-motion reset. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
