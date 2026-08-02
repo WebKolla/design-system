@@ -1,0 +1,37 @@
+{
+  // Declaration surface for the published package.
+  //
+  // The root tsconfig also covers `.storybook`, the stories and the tests.
+  // Those must be type-checked but must not produce `.d.ts` files, so the
+  // library build points vite-plugin-dts at this narrower project instead.
+  //
+  // `include` is an allowlist rather than an exclude list on purpose: the page
+  // compositions under `src/pages/*` (other than `_shells`), the Storybook
+  // foundations helpers and the raw shadcn primitives in `src/components/ui`
+  // are all absent because none of them are public API. See src/index.ts.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src"
+  },
+  "include": [
+    "src/index.ts",
+    "src/shells.ts",
+    "src/components/atoms",
+    "src/components/molecules",
+    "src/components/organisms",
+    "src/lib",
+    "src/pages/_shells"
+  ],
+  "exclude": [
+    "src/**/*.stories.tsx",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    // Story fixtures and the shells' demo navigation data. Neither is exported,
+    // so emitting declarations for them would ship types nothing can import.
+    "src/**/*.fixtures.ts",
+    "src/pages/_shells/app-data.ts"
+  ]
+}
