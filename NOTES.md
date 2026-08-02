@@ -300,9 +300,22 @@ Two entries below are no longer deviations — Figma has been brought in line:
 - **Icon side (§13.1)** — pushed. Figma is now trailing, matching the code, the
   component sheet and all seven marketing pages.
 
-The focus ring is now expressed in Figma as `color/focus-ring`. The code's
-`--color-focus-ring` should be re-pointed at that token rather than at
-`color/primary` directly, next time the token file is regenerated.
+### Focus ring is now a generated token, not a code-invented one
+
+`--color-focus-ring` is retagged from `[deviation]` to `[figma]
+color/focus-ring → color/primary`. The emitted value is unchanged, because the
+Figma token aliases primary — what changed is provenance: re-point the alias in
+Figma and regeneration follows, instead of the decision living only here.
+
+It stays a plain per-mode custom property rather than moving into `@theme`,
+and the reason is worth keeping: it is a **second-order alias**. Under
+`@theme static` that resolves at build time and freezes at the Light value;
+`@theme inline` fixes the utilities but emits no variable, and the base layer
+consumes this through `var()`. A plain property declared in both `:root` and
+`.dark` is the only form that satisfies both. Verified: `#16606b` Light,
+`#35a5b2` Dark.
+
+`color/input`'s comment is likewise no longer a deviation note — Figma matches.
 
 ### RESOLVED — `ink/900` set to `#111a1c`
 

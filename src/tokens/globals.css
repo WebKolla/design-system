@@ -137,11 +137,9 @@
   --color-border: var(--p-neutral-200);
   --color-border-strong: var(--p-neutral-300);
   --color-hairline: var(--p-neutral-150);
-  /* [deviation] Figma has color/input -> neutral/250 (#dedee4), which measures
-     1.25:1 against background. Form-control borders are non-text UI and need
-     3:1 (WCAG 1.4.11). Re-aliased to the next existing primitive that clears
-     it — neutral/500, 4.32:1. No new value invented. Figma needs the same
-     change; see NOTES.md. */
+  /* color/input was neutral/250 (#dedee4) and measured 1.25:1 against
+     background, failing WCAG 1.4.11 for non-text UI. Changed to neutral/500
+     (4.32:1) in Figma and here on 2026-08-02 — no longer a deviation. */
   --color-input: var(--p-neutral-500);
 
   /* accent */
@@ -150,6 +148,9 @@
   --color-primary-foreground: var(--p-white);
   --color-primary-soft: var(--p-mix-primary-soft-light);
   --color-primary-border: var(--p-mix-primary-border-light);
+  /* The soft halo behind a focused Field's primary border. Never the sole
+     focus indicator — that is --color-focus-ring, declared below the theme
+     block because it is a second-order alias. */
   --color-ring: var(--p-mix-ring-light);
 
   /* status */
@@ -391,19 +392,25 @@
   --duration-control: 120ms;
   --duration-surface: 180ms;
 
-  /* focus ring — width and offset are code-defined; Figma has neither.
+  /* FOCUS RING
 
-     [deviation] The COLOUR is also code-defined. Figma's color/ring (#dfe7e9)
-     measures 1.17:1 against background, invisible as a sole indicator where
-     WCAG 2.4.11 wants 3:1. color/ring is left untouched for its shadcn role
-     (the soft `ring-ring/50` halo behind a border); the indicator itself uses
-     primary — 6.72:1 Light, 8.09:1 Dark.
+     [figma] color/focus-ring → color/primary. A real token as of 2026-08-02,
+     no longer code-invented: re-point it in Figma and regeneration follows.
+     Measures 6.72:1 Light and 6.21:1 Dark.
 
-     Declared as a plain custom property AND repeated in .dark. Both are
-     necessary. A custom property's var() is substituted on the element that
-     DECLARES it, so a single :root declaration bakes in the Light value and
-     descendants inherit that resolved result rather than re-resolving. Every
-     other semantic token here is declared per mode for the same reason. */
+     It is not in @theme because it is a *second-order* alias — it points at
+     another semantic token rather than at a primitive. Under @theme static
+     that resolves at build time and freezes at the Light value; @theme inline
+     would fix the utilities but emit no variable, and the base layer below
+     consumes this through var(). A plain property, declared per mode, is the
+     only form that satisfies both.
+
+     Repeated in .dark deliberately. A custom property's var() is substituted
+     on the element that DECLARES it, so a single :root declaration bakes in
+     Light and descendants inherit that resolved result rather than
+     re-resolving.
+
+     Width and offset remain [code] — Figma has no token for either. */
   --color-focus-ring: var(--color-primary);
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
@@ -558,8 +565,9 @@
   }
 
   /* Visible keyboard focus everywhere.
-     Uses --color-focus-ring (primary, 7.19:1), not color/ring — see the
-     deviation note in the mapping block above. */
+     Uses --color-focus-ring (Figma's color/focus-ring), not color/ring.
+     color/ring is the soft halo behind a focused border and measures 1.17:1
+     on its own, which fails WCAG 2.4.11 as a sole indicator. */
   :focus-visible {
     outline: var(--focus-ring-width) solid var(--color-focus-ring);
     outline-offset: var(--focus-ring-offset);
