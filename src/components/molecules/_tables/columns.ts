@@ -28,6 +28,25 @@ export interface TableColumn {
   align?: 'left' | 'right'
   /** Hidden heading text for columns with no visible label. */
   srLabel?: string
+  /**
+   * Whether this column can be sorted. `TableHeader` turns the heading into a
+   * button and puts `aria-sort` on the `<th>`; the sort state itself stays with
+   * the caller, like selection and paging.
+   *
+   * Marking a column sortable and then not passing `onSortChange` renders a
+   * plain heading, so a screen that has not wired sorting yet does not ship a
+   * dead control.
+   */
+  sortable?: boolean
+}
+
+/** `aria-sort`'s own vocabulary. Not 'asc'/'desc' — the attribute is the API. */
+export type SortDirection = 'ascending' | 'descending'
+
+/** Which column is sorted, and which way. Owned by the caller. */
+export interface TableSort {
+  key: string
+  direction: SortDirection
 }
 
 /**

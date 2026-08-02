@@ -48,29 +48,68 @@ export interface AvatarProps extends React.ComponentPropsWithoutRef<'span'> {
    * decorative and hidden — correct when the name is already beside it.
    */
   label?: string
+  /**
+   * A photograph, when one exists. Initials are the fallback, and they are not
+   * optional: pass them even with a `src`, because a broken image, a signed URL
+   * that has expired or a user who has never uploaded one all land back on
+   * them.
+   *
+   * The only source of these in the product is Clerk's `useUser()`, on the
+   * approver profile screen.
+   */
+  src?: string | undefined
 }
 
 /**
- * Initials only.
+ * Initials, with an optional photograph over them.
  *
- * TimeSubmit stores no profile photographs, so an image avatar would always be
- * a placeholder.
+ * TimeSubmit stores no profile photographs of its own; the one place a real
+ * image appears is the account picture Clerk holds. So the image is the
+ * exception and the initials are the component — which is why `initials` stays
+ * required and a failed load silently reverts to them rather than showing a
+ * broken-image glyph in a 20px circle.
+ *
+ * **Not reviewed by design.** The image slot adds no new value: it fills the
+ * existing circle at the existing four sizes, clipped by the existing radius.
  */
 export const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(
   function Avatar(
-    { initials, size = 20, tone = 'neutral', label, className, ...rest },
+    { initials, size = 20, tone = 'neutral', label, src, className, ...rest },
     ref,
   ) {
+    // Which src failed, rather than a boolean: a new src must get its own
+    // attempt, and a boolean would keep the fallback forever.
+    const [failed, setFailed] = React.useState<string | null>(null)
+    const showImage = src !== undefined && src !== '' && failed !== src
+
     return (
       <span
         {...rest}
         ref={ref}
-        className={cn(avatarVariants({ size, tone }), className)}
-        {...(label
-          ? { role: 'img', 'aria-label': label }
-          : { 'aria-hidden': true })}
+        className={cn(
+          avatarVariants({ size, tone }),
+          showImage && 'overflow-hidden',
+          className,
+        )}
+        {...(showImage
+          ? {}
+          : label
+            ? { role: 'img', 'aria-label': label }
+            : { 'aria-hidden': true })}
       >
-        {initials.slice(0, 2).toUpperCase()}
+        {showImage ? (
+          <img
+            src={src}
+            // An empty alt where there is no label, matching the initials path:
+            // an avatar beside the name it depicts is decoration, and reading
+            // the name twice is noise.
+            alt={label ?? ''}
+            className="size-full object-cover"
+            onError={() => setFailed(src)}
+          />
+        ) : (
+          initials.slice(0, 2).toUpperCase()
+        )}
       </span>
     )
   },

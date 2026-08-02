@@ -1266,3 +1266,93 @@ from build B with its id intact.
 The cooldown was verified separately: a second event 12.1s after a recovery did
 not reload and left the marker untouched. An earlier attempt at 20s did reload —
 correct, the cooldown had expired, though it briefly looked like a failure.
+
+## Upstream primitives batch — 2026-08-02
+
+Ten primitives, built as one batch. Eight were the set `docs/design-gaps.md`
+identified as blocking Phase 3; two more (`Textarea`, image `Avatar`) arrived
+mid-task from route triage and were folded in rather than left for a second PR.
+
+They were built **before being designed in Figma**, which is a deliberate,
+accepted trade and the single biggest risk in this task. The mitigation was to
+derive every one of them from something that already shipped, and to add no
+token at all. What each came from:
+
+| Primitive | Derived from |
+|---|---|
+| `Card` (atom) | `KpiCard`, `CompletenessCard`, `ListCardInvoiceMobile`, `AttentionCardMobile`, `DataTable`, `WeekGrid` surfaces; `FeatureCardPhoto`/`PricingTierCard` for the marketing radius |
+| `Skeleton` (atom) | `COMPONENTS.md`'s existing spec plus `EmptyState`'s `bg-control` well; sizes are the existing 34px control height and `radius/pip` |
+| `Separator` (atom) | The `border-hairline` divider `TableRowInvoice` and `FaqAccordionRow` already carry |
+| `Textarea` (atom) | `Input`, class for class |
+| `Avatar` image slot | `Avatar` itself — same circle, same four sizes, same radius |
+| `Banner` `dismissible` | `TableRowInvoice`'s icon-button treatment, in the banner's own tone colour |
+| `Dialog` (molecule) | `Card`/`Toast` surface, `radius/panel`, `e3`, `--color-ink` at 60% for the overlay |
+| `Popover` (molecule) | `Toast`'s `e2` surface; `--z-dropdown` |
+| `TableHeader` (molecule) | `TableHeaderInvoices`, minus invoices |
+| `TableRow` (molecule) | `TableRowInvoice`, minus the invoice columns |
+| `TableCell` (molecule) | The six cell treatments `TableRowInvoice` had inline |
+
+**No new token.** Nothing needed one — the z-index scale, `e3`, `radius/panel`,
+`--color-ink` and the mono micro-scale were all already there and unused by
+anything that floats, which is itself evidence that the token layer was designed
+ahead of the components.
+
+### The Banner constraint, and how it stayed intact
+
+`dismissible` defaults to `false`, the component holds no dismissal state, and
+it never reads or writes `localStorage`. `BannerIsUndismissable` on
+`Pages/1c · Approver queue` and `HasNoCloseButton` on the Banner itself are both
+**unmodified** and both still pass, because the default they assert did not move.
+The guarantee is now per-instance rather than per-component, which is what
+`design-gaps.md` §2.1 recommended: the approver-queue banner is undismissable
+because *it* is, not because the component cannot.
+
+### Focus, on one implementation rather than two
+
+`Dialog` and `Popover` are both Radix, deliberately. Focus trap, restoration to
+the trigger and Escape are the vendor's, and four stories assert each of the
+three behaviours rather than trusting them. `Popover` defaults `modal` to `true`
+where Radix defaults it to `false`: modal is what supplies the trap, and a
+non-modal surface is mouse-reachable and keyboard-invisible.
+
+### `aria-sort` is no longer a claim
+
+`COMPONENTS.md:96` asserted sortable headers carry `aria-sort` and a grep over
+`src/` returned zero matches. `TableHeader` now implements it and
+`SortIsAnnounced` asserts all three states plus the transition between columns.
+Non-sortable columns carry no `aria-sort`, which is correct and easy to get
+wrong: the attribute means "sortable, and here is its state", not "unsorted".
+
+A column marked `sortable` with no `onSortChange` renders as a plain heading, so
+a screen that has not wired sorting yet cannot ship a dead control.
+
+### The contrast trap, closed from inside the run
+
+The Tailwind plugin was confirmed present in `vitest.config.ts` before any
+contrast result was believed, and `Atoms/Card → IsActuallyStyled` now asserts it
+from inside the browser run: computed background, border width, radius and
+padding are read off a rendered `Card` and checked against the real values
+(16px padding, 10px radius, 1px border, non-transparent background). If the
+plugin ever falls out again that story fails, rather than every colour-contrast
+check quietly passing against browser defaults.
+
+### `COMPONENTS.md` corrections
+
+- Button's fifth variant is **`approve`**, not `positive`. The document had been
+  wrong since it was written; the component was always right and was not
+  touched.
+- Card padding is 14 / 16 / 24, the values the domain cards use, not the
+  16–18 / 22–24 ranges the document gave, which nothing matched.
+- Card elevation defaults to `none`, not `e1`: every app card in the library is
+  flat. Flagged for a designer rather than silently changed.
+
+### Not built, deliberately
+
+- **`Calendar`.** Still absent. It depends on `Popover`, which now exists, but a
+  date picker is a substantial component and inventing one here would be exactly
+  the failure this batch was structured to avoid. Keep native `type="date"`.
+- **`Select` and `Menu`.** `Popover` is the layer they belong on; building them
+  without a design would be inventing a listbox.
+- **A `Field` that wraps a `Textarea`.** `Field` is typed to `Input` and has no
+  control slot, so the Dialog form story hand-rolls its label. Small, and a
+  change to a shipped component's API, so it was left alone and recorded here.
