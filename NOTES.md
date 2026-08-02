@@ -230,21 +230,89 @@ Each is marked `[code]` in `globals.css`.
 Deliberately **not** invented: no extra spacing steps, no extra radii, no
 additional colour ramps. Every unused token is a maintenance cost.
 
-### Phase 1 is NOT complete
+### Contrast findings from the Foundations story
 
-Still outstanding before this phase is reviewable:
+Measured live from the rendered DOM, Light mode, against each token's intended
+background. Several are expected; three are not.
 
-- [ ] Foundations story — every colour with name, resolved value, contrast
-      ratio against its intended background, light/dark side by side
-- [ ] Type story — full ramp at desktop and mobile sizes
-- [ ] **shadcn mapping proof** — the brief requires mounting one wrapped
-      primitive (Button) in both modes. Attempted to verify by injecting
-      utility classes at runtime; that is invalid, because Tailwind JIT only
-      generates utilities it finds in source, so the injected classes had no
-      rules and the readings were meaningless. This can only be proven by the
-      real Button in Phase 2.
-- [ ] Geist / Geist Mono webfonts are not yet loaded, so Storybook currently
-      renders the fallback stack
+**Needs a decision — `color/ring` at 1.17:1.**
+`#dfe7e9` on `#f7f7f9`. §5 says the focus-ring colour token exists in Figma and
+should be used, so the base layer currently does exactly that:
+`:focus-visible { outline: 2px solid var(--color-ring) }`. At 1.17:1 that
+indicator is effectively invisible, and WCAG 2.4.11 / 1.4.11 require 3:1.
+
+Two readings, and this is not mine to pick:
+- `color/ring` is meant as a *soft halo* behind a `border-ring` edge — which is
+  how shadcn uses it (`focus-visible:border-ring focus-visible:ring-ring/50`).
+  If so, the token is fine and **my base-layer rule is wrong**.
+- `color/ring` is meant as the visible indicator, in which case the Figma value
+  is too light and needs changing.
+
+`color/primary` measures 7.19:1 and would pass comfortably. Not changed
+pending a decision — flagged rather than silently swapped.
+
+**Needs a decision — `color/input` at 1.25:1.** Form control borders are
+non-text UI and want 3:1 under WCAG 1.4.11. `#dedee4` on `#f7f7f9` is well
+under. Affects every Field, Input, Checkbox and Toggle in Phase 2/3.
+
+**Marginal — `color/subtle-foreground` at 4.32:1.** Just below the 4.5:1 AA
+threshold for body text. Fine for incidental text, not for anything a user has
+to read. Worth knowing before it lands in table captions and helper text.
+
+**Charts below the 3:1 graphical threshold:** `chart-6` 1.73:1 and `chart-3`
+2.58:1 against surface. A six-series chart currently has two series that are
+hard to separate from the background. `chart-1` 7.19, `chart-2` 4.87,
+`chart-4` 4.48, `chart-5` 3.46 all pass.
+
+**Expected and correct, not defects:**
+- `faint-foreground` 2.26:1 and `ink-faint` 3.58:1 — decorative by definition
+- `border` 1.18, `border-strong` 1.39, `hairline` 1.07, `ink-border` 1.26 —
+  separators, not affordances; the story labels them as such
+- `primary-border` 1.41 — a tint edge, paired with a filled surface
+
+**The §8.5 trap is now demonstrated, not described.** The Foundations story
+renders the same CTA line twice on ink: `muted-foreground` measures **1.92:1**
+and is visibly unreadable; `ink-muted` measures **11.56:1**. This is the bug
+that shipped as an invisible arrow icon on the dark CTA band, and it now fails
+loudly in the story rather than living in a comment.
+
+### Phase 1 — remaining
+
+- [x] **Foundations story** — all 45 semantic entries in 7 groups, each with
+      resolved value, the background it is measured against, contrast ratio and
+      a pass/below verdict. Values are read from the live DOM via a probe
+      element, not transcribed, so a token change updates the story with no
+      edit. 48 rows render, zero unresolved.
+- [x] **Type story** — all 24 Figma text styles in 4 groups. Desktop from
+      Figma; the mobile step from SPEC, shown only for styles that actually
+      change size (Display 54→34, Hero 44→30, Section 32→24, Page 24→20,
+      Card 18→17, Body large 16→15). Plus a tabular-figures column proving
+      `£11,400.00` and `€14,280.00` share a column edge.
+- [x] **shadcn mapping proof** — `Foundations/shadcn mapping` mounts the
+      unmodified shadcn Button. All six mapped names differ across modes
+      (`identical: []`): `bg-card` `#ffffff`→`#131e20`, `bg-secondary`
+      `#f1f1f4`→`#1a272a`, `bg-accent` `#ecf2f2`→`#192f32`, `bg-destructive`
+      `#a81f26`→`#c0555b`. Button resolves `#16606b`/white in Light and
+      `#35a5b2`/`#0e1719` in Dark at 8px radius. This is what caught the
+      `@theme static` freezing bug.
+- [x] **Webfonts** — `@fontsource-variable/geist` and `geist-mono`, imported in
+      `.storybook/preview.tsx` rather than `globals.css` so the token file stays
+      portable to the product app. Note the packages register the families as
+      **"Geist Variable"** / **"Geist Mono Variable"**, so both those names and
+      the plain `"Geist"` / `"Geist Mono"` the product app uses are listed in
+      the stacks. Verified: body computes to `"Geist Variable", Geist, …`.
+
+The stock shadcn Button lives at `src/components/ui/button.tsx`. The
+`components.json` `ui` alias was moved from `@/components/atoms` to
+`@/components/ui` so shadcn primitives never collide with our own components —
+`button.tsx` and `Button.tsx` are the same path on a case-insensitive
+filesystem, which would have silently overwritten the Phase 2 Button.
+
+### Still open
+
+- [ ] a11y addon is configured with `test: 'error'` but has not been asserted
+      in CI — there is no Storybook test-runner in the project yet, so "no
+      violations" is currently unproven for these stories.
 
 ---
 

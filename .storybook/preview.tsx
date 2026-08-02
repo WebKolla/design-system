@@ -1,5 +1,14 @@
 import type { Preview, Decorator } from '@storybook/react-vite'
 import * as React from 'react'
+
+/**
+ * Webfonts are loaded here, not in globals.css, so that the token file stays
+ * portable back into the product app — which loads Geist its own way. The
+ * variable builds cover the 400/500/600 weights the ramp uses.
+ */
+import '@fontsource-variable/geist'
+import '@fontsource-variable/geist-mono'
+
 import '../src/tokens/globals.css'
 
 /**

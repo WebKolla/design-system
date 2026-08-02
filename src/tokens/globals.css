@@ -239,11 +239,14 @@
      Geist even where the marketing HTML shows Mono.
      ---------------------------------------------------------------------- */
 
-  /* [code] Font stacks — Figma stores only the family name. */
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono",
-    Menlo, Consolas, "Liberation Mono", monospace;
+  /* [code] Font stacks — Figma stores only the family name.
+     "Geist Variable" is the family @fontsource-variable registers; "Geist" is
+     what the product app registers via next/font. Both are listed so this file
+     drops into either environment unchanged. */
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace,
+    SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* heading/* — Geist SemiBold */
   --text-heading-display: 54px;
