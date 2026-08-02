@@ -563,6 +563,43 @@ edge of the Amount heading with the right edge of the first amount cell and is
 reliable, because both readings come from the same (equally pre-layout) pass.
 Absolute values are wrong; the relationship between them is not.
 
+### All 27 molecules built
+
+`npm test` → **186 tests, 47 files**, every story axe-clean in both modes.
+
+### §8 layout rules, each proved by a story
+
+- **Max-width, not fixed** — `SectionHeader` is `width:100%` with
+  `max-width: 840px` (centre) / `1000px` (left). `AtMobileWidth` renders it in
+  a 390px box and asserts `scrollWidth <= parent.clientWidth`, so the
+  regression that broke the CTA band and seven instances cannot come back.
+- **Hairline grids** — `StepCard` is square-cornered and borderless; the
+  container owns radius, border and clipping, with 1px gaps showing the border
+  through. `HasSquareCorners` asserts the cell's own radius is `0px`.
+- **Don't clip overhanging children** — still to prove, on
+  `PricingTierCard` in Phase 4.
+
+### Two a11y and lint catches on the marketing four
+
+**Duplicate landmarks.** `SectionHeader` originally rendered a `<header>`,
+which is a `banner` landmark at top level — two on a page failed axe's
+`landmark-unique`. It now renders a plain `div`; a section heading block is not
+a page banner and the heading level carries the semantics.
+
+**The no-raw-hex rule fired on my own story fixture.** The placeholder
+photography is an inline SVG data URI, which cannot reference a CSS custom
+property. Rather than weaken the rule, placeholder imagery moved to
+`*.fixtures.ts` with a narrow, documented exemption in `eslint.config.js`.
+**Do not widen that exemption to `*.stories.tsx`** — stories must still be
+token-only.
+
+### The missing chevron-up is a non-issue in code
+
+§4 flags that Figma has no `chevron-up` and the FAQ open state is a rotated
+`chevron-down`. In CSS that is exactly what `FaqAccordionRow` does — one glyph
+with `group-data-[state=open]:rotate-180` — so nothing is missing and no icon
+needed importing.
+
 ### Still open
 
 - [ ] a11y addon is configured with `test: 'error'` but has not been asserted

@@ -63,7 +63,15 @@ export default tseslint.config(
    */
   {
     files: ['**/*.{ts,tsx}'],
-    ignores: ['src/tokens/**'],
+    /**
+     * `src/tokens/**` is the generated token layer.
+     *
+     * `*.fixtures.ts` holds placeholder imagery for stories — SVG data URIs
+     * standing in for photography. They are not component styling and a data
+     * URI cannot reference a CSS custom property. Narrow by design: do not
+     * widen this to `*.stories.tsx`.
+     */
+    ignores: ['src/tokens/**', '**/*.fixtures.ts'],
     rules: {
       'no-restricted-syntax': [
         'error',
