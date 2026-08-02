@@ -1210,3 +1210,59 @@ product's screens out of search results.
 
 No password was set. The `passwordProtection` call failed, so the generated
 value was never applied to anything.
+
+---
+
+## BUG-003 — stale tabs after a redeploy — 2026-08-02
+
+Every story showed "Failed to fetch dynamically imported module" on the
+deployed Storybook, across all four tiers.
+
+**Not a broken build.** Storybook code-splits one chunk per story file with a
+content hash in the filename, so every build renames them. A tab holds the
+shell it loaded and only fetches a story's chunk when you navigate to it. Four
+production deployments went out while the reporter had the tab open, so every
+lazy import was asking for filenames that no longer existed.
+
+| Check | Result |
+|---|---|
+| The requested chunk `...stories-CwSiebno.js` | 404 |
+| Same story in the current build | `...stories-cP94VblL.js` |
+| `index.json` live | story present, index fine |
+| Fresh load of the same story URL | renders, 34 nodes, no error |
+
+That last row is what makes it skew rather than breakage.
+
+**Fix:** `vite:preloadError` handlers in `preview-head.html` and
+`manager-head.html`, reloading once with a 15s cooldown.
+
+Vercel Skew Protection would solve it at the platform level and was rejected
+for now: it only applies automatically to frameworks Vercel supports, and a
+plain static build needs the deployment ID threaded onto every asset URL at
+build time via Vite's `experimental.renderBuiltUrl`. That is the better answer
+eventually — no reload at all — but it means owning asset-URL rewriting inside
+the Storybook build. **It was also not switched on in project settings**, on the
+grounds that a setting which changes nothing here reads as protection that is
+not actually in place.
+
+### Two reproductions that proved nothing first
+
+Same trap as BUG-002's false-positive test, caught the same way — by asserting a
+marker rather than "did it render".
+
+1. `pushState` + `popstate` in the manager: story rendered, no error, but the
+   preview never changed story so no chunk was ever lazily fetched.
+2. `setCurrentStory` via the manager: the manager reloaded the iframe, which
+   fetched a fresh document from the new build. No skew left to test.
+
+Both showed `recoveredAt: null`, which is the only reason they were caught.
+
+The reproduction that works removes the manager: serve build A, open
+`iframe.html` **directly**, swap the served directory to build B, then emit
+`setCurrentStory` on the preview channel for a story file that document has
+never imported. Vite fired the event, the handler reloaded, the story rendered
+from build B with its id intact.
+
+The cooldown was verified separately: a second event 12.1s after a recovery did
+not reload and left the marker untouched. An earlier attempt at 20s did reload —
+correct, the cooldown had expired, though it briefly looked like a failure.

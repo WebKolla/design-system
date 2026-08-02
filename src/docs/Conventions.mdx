@@ -120,6 +120,15 @@ why.
 That is a flaw in the comparison, not the component, so those two components
 have no side-by-side story. Use the Theme toolbar instead.
 
+**A tab left open across a deploy will fail to load stories, and recovers
+itself.** Story chunks are content-hashed, so every build renames them; a tab
+holds the shell it loaded and only fetches a story's chunk when you navigate to
+it. Once the deployment moves, those filenames are gone. `preview-head.html` and
+`manager-head.html` listen for Vite's `vite:preloadError` and reload once, with
+a 15 second cooldown so a genuinely missing chunk surfaces the error instead of
+looping. If you see "Failed to fetch dynamically imported module" and it does
+*not* clear itself, that is a real broken build, not skew.
+
 **Second-order aliases cannot live in `@theme static`.** A token pointing at
 another semantic token, rather than at a primitive, gets resolved at build time
 and frozen at its light value. `chart-grid`, `chart-axis` and the shadcn

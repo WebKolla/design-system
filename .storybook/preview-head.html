@@ -1,0 +1,50 @@
+<!--
+  BUG-003 — recover a tab left open across a redeploy.
+
+  Storybook's static build code-splits one chunk per story file and names it
+  with a content hash, so every build produces new filenames. A tab holds the
+  shell it loaded and only fetches a story's chunk when you navigate to it, so
+  once the production alias moves to a newer deployment every lazy import 404s
+  and the preview shows "Failed to fetch dynamically imported module". Nothing
+  is wrong with the build; the client is simply on an older one.
+
+  Vite dispatches `vite:preloadError` for exactly this case. Reloading the
+  preview iframe re-fetches iframe.html, picks up the current chunk names and
+  keeps the story in the URL, so the user lands back where they were.
+
+  Vercel's Skew Protection solves this at the platform level, but only
+  automatically for frameworks it supports. This is a plain static build, so it
+  would need the deployment ID threaded onto every asset URL at build time. See
+  BUG-003 for that option; this handler is the self-contained half and works on
+  any host.
+-->
+<script>
+  (function () {
+    var KEY = 'sb-preload-recovered-at'
+    var COOLDOWN_MS = 15000
+
+    window.addEventListener('vite:preloadError', function (event) {
+      var now = Date.now()
+      var last = 0
+      try {
+        last = parseInt(sessionStorage.getItem(KEY) || '0', 10)
+      } catch (e) {
+        /* storage blocked — fall through and allow one reload */
+      }
+
+      // A genuinely missing chunk would reload forever. One recovery per
+      // cooldown means a real 404 surfaces the error instead of looping,
+      // while a second deploy later in the same session still recovers.
+      if (now - last < COOLDOWN_MS) return
+
+      try {
+        sessionStorage.setItem(KEY, String(now))
+      } catch (e) {
+        /* ignore */
+      }
+
+      event.preventDefault()
+      window.location.reload()
+    })
+  })()
+</script>
