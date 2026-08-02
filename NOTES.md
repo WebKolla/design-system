@@ -667,6 +667,42 @@ either twice for a mode comparison creates duplicate landmarks and fails axe's
 `BothModes` stories are gone; the Theme toolbar still switches modes on every
 other story, and ink invariance is already proved in Foundations.
 
+---
+
+## Page phase — started
+
+§1 scoped pages out **of the library phase** and said they exist so a later
+phase can assemble them from the library. This is that phase.
+
+**Assumption, stated rather than asked:** pages are built as `Pages/*` stories
+in this repo, composed purely from the library. That is what §1 said they were
+for, and it proves the library actually assembles into the screens. If they
+should instead be emitted into the product app, that is a different target and
+worth saying before the remaining eleven are built.
+
+### The Figma file has moved on since the handoff
+
+All **24 screen frames now exist** — 12 screens × desktop + mobile. The handoff
+lists 2a–2g as `remainingScreens`; they are built. The 16 photographs are also
+now uploaded to the `Photography · staging` page (`70:9`), which the handoff
+records as "NOT YET IN FIGMA".
+
+### Shells
+
+`AppShell` and `MarketingShell` are layout only — they compose library
+components and introduce no new visual decisions.
+
+`AppShell` has the three responsive states from SPEC: 236px sidebar at ≥1280,
+52px rail at 834–1279, bottom tab bar below 834. **The rail is generated from
+the same destination list as the sidebar**, so icon order and grouping cannot
+drift between the two — the pairing note on `NavItem`/`NavRailItem` is enforced
+by construction rather than by discipline.
+
+### Screens built
+
+- **1a · Admin overview** (`56:284` / `59:440`) — desktop and mobile.
+  Attention rows swap to `AttentionCardMobile` below 768.
+
 ### Still open
 
 - [ ] a11y addon is configured with `test: 'error'` but has not been asserted
