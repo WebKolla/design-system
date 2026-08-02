@@ -83,7 +83,7 @@ export const PALETTE: TokenGroup[] = [
       t('border', 'background', 'line'),
       t('border-strong', 'background', 'line'),
       t('hairline', 'background', 'line', 'Deliberately sub-threshold — separator, not an affordance'),
-      t('input', 'background', 'line'),
+      t('input', 'background', 'line', 'Re-aliased to neutral/500 to clear 3:1 — Figma still has neutral/250'),
     ],
   },
   {
@@ -97,7 +97,8 @@ export const PALETTE: TokenGroup[] = [
       t('primary-foreground', 'primary', 'text'),
       t('primary-soft', 'primary', 'text', 'Tinted fill carrying primary text'),
       t('primary-border', 'background', 'line'),
-      t('ring', 'background', 'line', 'Focus ring'),
+      t('focus-ring', 'background', 'line', 'The visible focus indicator — aliases primary'),
+      t('ring', 'background', 'line', 'shadcn halo only, not the indicator — sub-threshold by design'),
     ],
   },
   {

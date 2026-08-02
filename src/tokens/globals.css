@@ -135,7 +135,12 @@
   --color-border: var(--p-neutral-200);
   --color-border-strong: var(--p-neutral-300);
   --color-hairline: var(--p-neutral-150);
-  --color-input: var(--p-neutral-250);
+  /* [deviation] Figma has color/input -> neutral/250 (#dedee4), which measures
+     1.25:1 against background. Form-control borders are non-text UI and need
+     3:1 (WCAG 1.4.11). Re-aliased to the next existing primitive that clears
+     it — neutral/500, 4.32:1. No new value invented. Figma needs the same
+     change; see NOTES.md. */
+  --color-input: var(--p-neutral-500);
 
   /* accent */
   --color-primary: var(--p-accent-600);
@@ -384,8 +389,20 @@
   --duration-control: 120ms;
   --duration-surface: 180ms;
 
-  /* focus ring — the colour token color/ring exists in Figma; width and
-     offset do not, and are defined here. */
+  /* focus ring — width and offset are code-defined; Figma has neither.
+
+     [deviation] The COLOUR is also code-defined. Figma's color/ring (#dfe7e9)
+     measures 1.17:1 against background, invisible as a sole indicator where
+     WCAG 2.4.11 wants 3:1. color/ring is left untouched for its shadcn role
+     (the soft `ring-ring/50` halo behind a border); the indicator itself uses
+     primary — 6.72:1 Light, 8.09:1 Dark.
+
+     Declared as a plain custom property AND repeated in .dark. Both are
+     necessary. A custom property's var() is substituted on the element that
+     DECLARES it, so a single :root declaration bakes in the Light value and
+     descendants inherit that resolved result rather than re-resolving. Every
+     other semantic token here is declared per mode for the same reason. */
+  --color-focus-ring: var(--color-primary);
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
@@ -406,6 +423,10 @@
 .dark {
   color-scheme: dark;
 
+  /* Re-declared so it re-resolves against the dark primary — see the note on
+     the :root declaration. */
+  --color-focus-ring: var(--color-primary);
+
   /* surfaces */
   --color-background: var(--p-ink-950);
   --color-surface: var(--p-ink-900);
@@ -422,7 +443,9 @@
   --color-border: var(--p-ink-700);
   --color-border-strong: var(--p-ink-600);
   --color-hairline: var(--p-ink-800);
-  --color-input: var(--p-ink-600);
+  /* [deviation] as Light: ink/600 (#2b3b3d) measures ~1.5:1 on the dark
+     background. ink/500 clears 3:1 at 3.58:1. */
+  --color-input: var(--p-ink-500);
 
   /* accent */
   --color-primary: var(--p-accent-400);
@@ -532,9 +555,11 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Visible keyboard focus everywhere. */
+  /* Visible keyboard focus everywhere.
+     Uses --color-focus-ring (primary, 7.19:1), not color/ring — see the
+     deviation note in the mapping block above. */
   :focus-visible {
-    outline: var(--focus-ring-width) solid var(--color-ring);
+    outline: var(--focus-ring-width) solid var(--color-focus-ring);
     outline-offset: var(--focus-ring-offset);
   }
 

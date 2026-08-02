@@ -235,7 +235,52 @@ additional colour ramps. Every unused token is a maintenance cost.
 Measured live from the rendered DOM, Light mode, against each token's intended
 background. Several are expected; three are not.
 
-**Needs a decision — `color/ring` at 1.17:1.**
+### RESOLVED 2026-08-02 — two token deviations, on instruction
+
+Both are deliberate departures from Figma and **must be pushed back to the
+Figma file**, or code and design will drift.
+
+| | Figma | Code now | Light | Dark |
+|---|---|---|---|---|
+| Focus indicator | `color/ring` `#dfe7e9` | `--color-focus-ring` → `color/primary` | **6.72:1 pass** | **6.21:1 pass** |
+| `color/input` | `neutral/250` `#dedee4` | `neutral/500` / `ink/500` | **4.32:1 pass** | **3.58:1 pass** |
+
+`color/ring` itself is **unchanged**, and still measures 1.17:1. That is
+correct: it is retained for its shadcn role as the soft `ring-ring/50` halo
+behind a border, where it is not the indicator. The Foundations story labels it
+as such so the sub-threshold reading is not mistaken for a defect.
+
+`color/input` was re-aliased to the nearest **existing** primitive that clears
+3:1 in each mode. No new value was invented. The only alternative would have
+been a new `neutral/450` around `#8f8f9a` to land nearer exactly 3:1 —
+available if `neutral/500` reads too heavy on a resting input border.
+
+**A CSS trap worth recording.** The first attempt declared
+`--color-focus-ring: var(--color-primary)` once, at `:root`, and it stayed
+`#16606b` in dark mode (2.53:1 — still failing). A custom property's `var()` is
+substituted on the element that *declares* it, so `:root` bakes in the Light
+value and descendants inherit that already-resolved result instead of
+re-resolving. It must be declared in `.dark` as well, like every other semantic
+token. Putting it in `@theme inline` does not work either — `inline` only
+inlines into generated utilities, and this token is consumed through `var()` in
+the base layer, not through a utility.
+
+### Not changed — reported only
+
+The Foundations story also flags these. None were in scope; all are current
+Figma values.
+
+- **Status borders**, Light 1.12–1.19:1 (`success-border`, `warn-border`,
+  `danger-border`, `info-border`, `neutral-border`). Tint edges on tinted
+  fills, directly analogous to `primary-border` — probably fine, same category.
+- **Dark-mode status text below 4.5:1**: `success` 3.94, `info` 3.43,
+  `danger` 3.17, and `success-solid` 2.98 (white on the solid fill). These are
+  text colours, so unlike the borders they are a genuine AA question.
+- `subtle-foreground` 4.32:1, `chart-3` 2.58:1, `chart-6` 1.73:1 — as before.
+
+### Superseded — original finding
+
+**`color/ring` at 1.17:1.**
 `#dfe7e9` on `#f7f7f9`. §5 says the focus-ring colour token exists in Figma and
 should be used, so the base layer currently does exactly that:
 `:focus-visible { outline: 2px solid var(--color-ring) }`. At 1.17:1 that
