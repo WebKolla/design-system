@@ -31,6 +31,15 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   ...storybook.configs['flat/recommended'],
 
+  // Build scripts run in Node, not the browser. Without this they fail on
+  // `console` and `process`, which is a lint config gap rather than a defect.
+  {
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {

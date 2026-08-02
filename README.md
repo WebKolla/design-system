@@ -49,6 +49,66 @@ pending, overdue.
 
 ---
 
+## Installing it
+
+```bash
+npm install github:WebKolla/design-system#<commit-sha>
+```
+
+Pin a commit. A floating branch turns every `npm install` into an unreviewed
+design change. `prepare` runs the build on install, so the consumer gets `dist`
+even though `dist` is not committed.
+
+`react` and `react-dom` are peer dependencies. The library never bundles them,
+nor Radix, nor lucide-react, so there is exactly one copy of each in the
+application and hooks and Radix context work.
+
+### Three things the application must do
+
+**1. Import the tokens.** They replace the app's `globals.css` outright. Do not
+merge the two files.
+
+```css
+@import '@timesubmit/design-system/tokens/globals.css';
+```
+
+**2. Tell Tailwind to scan the package.** Tailwind v4 only generates classes it
+can see, and it does not look inside `node_modules` by default. Without this
+every component arrives unstyled:
+
+```css
+@source "../node_modules/@timesubmit/design-system/dist";
+```
+
+**3. Import the fonts.** They ship as dependencies of this package but nothing
+in the library imports them, because a library that injects `@font-face` at
+import time is a library that fights the application's font loading strategy.
+
+```ts
+import '@fontsource-variable/geist'
+import '@fontsource-variable/geist-mono'
+```
+
+### What you can import
+
+| Specifier | What |
+|---|---|
+| `@timesubmit/design-system` | Every atom, molecule and organism, plus `cn` and `TYPE_RAMP` |
+| `@timesubmit/design-system/shells` | `AppShell`, `MarketingShell`, `PortalShell`, `MobileTabBar`, `Section` |
+| `@timesubmit/design-system/tokens/globals.css` | The token layer, unprocessed |
+
+Nothing else resolves. The page compositions under `src/pages` are static
+reference layouts built from hardcoded content, so they are deliberately outside
+the `exports` map — read them as blueprints, do not import them. The same goes
+for the Storybook foundations helpers and the raw shadcn primitives in
+`src/components/ui`.
+
+The build preserves the module graph, one file per source module, so importing
+`Button` does not drag the other fifty-odd components into the application
+bundle.
+
+---
+
 ## Foundations at a glance
 
 **Surfaces: three, down from six.**
