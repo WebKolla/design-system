@@ -97,7 +97,7 @@ function Row({ s }: { s: TypeStyle }) {
                 fontSize: 10,
                 letterSpacing: '0.07em',
                 textTransform: 'uppercase',
-                color: 'var(--color-faint-foreground)',
+                color: 'var(--color-subtle-foreground)',
                 marginBottom: 6,
               }}
             >

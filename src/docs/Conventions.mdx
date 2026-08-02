@@ -62,6 +62,18 @@ while the build stayed green.
 **One story file per component, colocated.** `Button/Button.tsx` and
 `Button/Button.stories.tsx`.
 
+**`faint-foreground` and `ink-faint` are not text colours.** Both fail AA by a
+wide margin — 2.41:1 and 3.58:1. They survive in exactly three places: a
+disabled input's value, where WCAG 1.4.3 exempts inactive controls; the
+`aria-hidden` breadcrumb slash, which carries no content; and the Foundations
+page, which renders the failure on purpose. Anything a user reads uses
+`subtle-foreground` or darker.
+
+**A story that must contain a contrast failure marks the node
+`data-a11y-exempt`** and excludes that selector via `parameters.a11y.context`.
+Never switch the rule off for a whole file — the other 50 swatches on the
+Colour page are still checked.
+
 **Optional props that a consumer may clear are typed `?: T | undefined`.**
 `exactOptionalPropertyTypes` is on, so `prop?: T` cannot receive an explicit
 `undefined`, which stories routinely need to do.
@@ -125,7 +137,7 @@ Design decisions, not defects. All are recorded in `NOTES.md` with measurements.
   16), used by Avatar, Chip, Tab, SubNavItem and two mobile atoms. Every value
   is read from Figma, but none is token-backed, so a ramp change will not reach
   them.
-- **Text tokens failing contrast now that axe can see them.** 64 story
-  failures, almost all `faint-foreground` and `ink-faint` rendered as real
-  text. Either the tokens darken in Figma or roughly 22 usages move to
-  `subtle-foreground`. That is a design decision, not a defect fix.
+- **Button Large's 44px target is bought with a transparent `::after`.** Medium
+  and Small are still 34 and 30 and deliberately have no such treatment, so
+  neither is safe under a thumb. Whether they need a mobile-specific size is
+  still open.

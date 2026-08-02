@@ -59,8 +59,8 @@ export const WeekGridCell = React.forwardRef<HTMLInputElement, WeekGridCellProps
             className={cn(
               'w-full bg-transparent text-center font-mono text-mono-cell tabular-nums outline-none',
               // The mid-dot placeholder must read as an absence, not a value.
-              'placeholder:text-faint-foreground',
-              isEmpty || isWeekend ? 'text-faint-foreground' : 'text-foreground',
+              'placeholder:text-subtle-foreground',
+              isEmpty || isWeekend ? 'text-subtle-foreground' : 'text-foreground',
             )}
           />
         </div>

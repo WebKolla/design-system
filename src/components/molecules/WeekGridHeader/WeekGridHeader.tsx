@@ -58,20 +58,18 @@ export const WeekGridHeader = React.forwardRef<
                 weekend && 'bg-control',
               )}
             >
-              <span
-                className={cn(
-                  'text-ui-overline block font-medium uppercase',
-                  weekend ? 'text-faint-foreground' : 'text-subtle-foreground',
-                )}
-              >
+              {/*
+                Weekend used to be signalled a second time in the text colour,
+                with faint-foreground and chart-6 — both of which fail contrast,
+                and chart-6 is a chart series colour with no business being
+                text. The `bg-control` on the cell already says "weekend", so
+                the two-level hierarchy here is day name over date and nothing
+                else.
+              */}
+              <span className="text-ui-overline text-muted-foreground block font-medium uppercase">
                 {d?.day ?? col.label}
               </span>
-              <span
-                className={cn(
-                  'block font-mono text-[10.5px] tabular-nums',
-                  weekend ? 'text-chart-6' : 'text-faint-foreground',
-                )}
-              >
+              <span className="text-subtle-foreground block font-mono text-[10.5px] tabular-nums">
                 {d?.date ?? ''}
               </span>
             </th>

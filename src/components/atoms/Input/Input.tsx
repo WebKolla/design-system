@@ -54,8 +54,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           disabled={disabled}
           aria-invalid={invalid || undefined}
           className={cn(
-            'text-body-cell text-foreground placeholder:text-faint-foreground',
+            'text-body-cell text-foreground placeholder:text-subtle-foreground',
             'min-w-0 flex-1 bg-transparent outline-none',
+            // faint-foreground survives here on purpose: WCAG 1.4.3 exempts
+            // inactive controls, and looking unavailable is the point.
             'disabled:cursor-not-allowed disabled:text-faint-foreground',
           )}
         />

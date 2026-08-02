@@ -81,6 +81,18 @@ this reason:
 
 Every colour token now clears its threshold in both modes.
 
+**`faint-foreground` and `ink-faint` are the exception, and they stay that
+way.** At 2.41:1 and 3.58:1 they are decorative, and the code now treats them
+as such: 22 call sites that were rendering real text in them have moved to
+`subtle-foreground` and `ink-subtle`. If a mock shows body text, a label, a
+date or a count in faint, it will not be built that way. Faint is for a
+disabled control and for punctuation nobody has to read.
+
+The visible effect is small — the weekend column in the week grid, footer
+section headings, tab counts, nav section labels and search placeholders all
+sit one step darker than the mock. Weekend cells still recede, because that
+was always carried by the background rather than the text colour.
+
 **A focus indicator that cannot be seen.** `color/ring` measures 1.17:1 and
 fails as a sole indicator. It is still correct as the soft halo *behind* a
 primary border on a focused field. The visible indicator is `color/focus-ring`,

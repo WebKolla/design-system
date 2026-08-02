@@ -56,10 +56,18 @@ export const Default: Story = {}
  * The resolved value *is* correct (12px, verified in the browser at mobile
  * width); it simply cannot be read from here. Checking the declaration is the
  * strongest thing this harness can honestly assert.
+ *
+ * `hidden: true` is required for the same reason. Until Tailwind was actually
+ * wired into the test run, `md:hidden` did nothing here and the bar was
+ * queryable by role; now that the CSS loads, it is `display: none` at desktop
+ * width. That is the fix working. Accessible-name computation returns an empty
+ * string for a `display: none` element, so the label is asserted directly
+ * rather than used as the query filter.
  */
 export const BarSuppliesItsOwnHeight: Story = {
   play: async ({ canvasElement }) => {
-    const bar = within(canvasElement).getByRole('navigation', { name: 'Primary' })
+    const bar = within(canvasElement).getByRole('navigation', { hidden: true })
+    await expect(bar).toHaveAttribute('aria-label', 'Primary')
     // 12px top: a 52px item inside a 64px bar.
     await expect(bar.className).toContain('pt-3')
     // Safe-area inset beneath, 0 on devices without a home indicator.

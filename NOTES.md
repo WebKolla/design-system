@@ -1015,3 +1015,49 @@ account for nearly all of it. Both tokens are documented as decorative, so
 either they are being misused and the call sites move to `subtle-foreground`,
 or Figma's design genuinely specifies faint text at 11px and the tokens have to
 darken. **That is a design decision and is not being made unilaterally.**
+
+### Resolved — the 64 contrast failures
+
+Direction taken: **move the call sites, keep the ramp.** `faint-foreground` and
+`ink-faint` stay exactly where Figma has them and remain decorative; the code
+stops using them for text. 22 call sites moved.
+
+| Was | Now | Where |
+|---|---|---|
+| `text-faint-foreground` | `text-subtle-foreground` | StepCard, WeekGridTotalRow, WeekGridCell, ToolbarSearch, DayPickerItemMobile, Tab, SubNavItem, TabChipMobile, SidebarExpanded, Input placeholder |
+| `text-ink-faint` | `text-ink-subtle` | SiteFooter ×3, SignIn |
+
+**Three deliberate survivors of `faint-foreground`:**
+
+1. A disabled input's value. WCAG 1.4.3 exempts inactive controls, and looking
+   unavailable is the entire point.
+2. The `aria-hidden` breadcrumb slash. Punctuation, no content.
+3. The Foundations ink-trap rows, which render the failure on purpose.
+
+**WeekGridHeader needed a decision rather than a swap.** Weekend was signalled
+three times over: `bg-control` on the cell, `faint-foreground` on the day name,
+and `chart-6` on the date. Two of the three failed, and `chart-6` is a chart
+series colour with no business being text at 10.5px. The background already
+says "weekend", so the text hierarchy is now day name (`muted-foreground`) over
+date (`subtle-foreground`) and nothing else. Checked in the browser — the
+weekend column still reads as recessed.
+
+**Two `link-in-text-block` failures**, separate from contrast. The terms and
+privacy links in SignIn were distinguished from the sentence around them by
+colour alone, underlining only on hover. Now underlined at rest.
+
+**Two story artefacts, not component defects.** The Checkbox and Toggle
+`States` stories fade a label with `opacity-50` to depict a disabled row. That
+label belongs to a disabled control and is exempt, but axe cannot see the
+relationship. Marked `data-a11y-exempt` and excluded by selector, not by
+switching the rule off for the file.
+
+**One test broke for a good reason.** `BarSuppliesItsOwnHeight` could no longer
+find its `<nav>`: with CSS finally loading, `md:hidden` genuinely resolves to
+`display: none` at desktop width, which removes the element's role. It now
+queries with `hidden: true`. Accessible-name computation returns `''` for a
+`display: none` element, so the label is asserted separately rather than used
+as the query filter.
+
+**253 passing, 68 files, zero violations — and this time the contrast half of
+that means something.**

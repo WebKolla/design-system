@@ -47,7 +47,7 @@ export const TabChipMobile = React.forwardRef<
         <span
           className={cn(
             'font-mono text-[12px] tabular-nums',
-            active ? 'text-primary-foreground' : 'text-faint-foreground',
+            active ? 'text-primary-foreground' : 'text-subtle-foreground',
           )}
         >
           {count}

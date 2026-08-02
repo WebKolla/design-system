@@ -7,6 +7,13 @@ const meta = {
   title: 'Atoms/Toggle',
   component: Toggle,
   parameters: {
+    /**
+     * The disabled row's label is faded by hand so the story shows what a
+     * disabled control looks like. WCAG 1.4.3 exempts inactive controls, but
+     * axe cannot tell that a `<span>` belongs to a disabled `<input>` — so the
+     * one node is excluded rather than the rule switched off for the file.
+     */
+    a11y: { context: { exclude: [['[data-a11y-exempt]']] } },
     docs: {
       description: {
         component:
@@ -40,11 +47,11 @@ export const States: Story = {
       ))}
       <span className="flex items-center gap-2">
         <Toggle {...args} disabled aria-label="Disabled off" />
-        <span className="text-body-caption opacity-50">Disabled</span>
+        <span data-a11y-exempt className="text-body-caption opacity-50">Disabled</span>
       </span>
       <span className="flex items-center gap-2">
         <Toggle {...args} disabled checked aria-label="Disabled on" />
-        <span className="text-body-caption opacity-50">Disabled on</span>
+        <span data-a11y-exempt className="text-body-caption opacity-50">Disabled on</span>
       </span>
     </div>
   ),

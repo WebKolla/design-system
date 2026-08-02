@@ -75,7 +75,7 @@ export const SubNavItem = React.forwardRef<HTMLElement, SubNavItemProps>(
           <span
             className={cn(
               'shrink-0 text-[11px] tabular-nums',
-              badgeTone === 'warn' ? 'text-warn' : 'text-faint-foreground',
+              badgeTone === 'warn' ? 'text-warn' : 'text-subtle-foreground',
             )}
           >
             {badge}

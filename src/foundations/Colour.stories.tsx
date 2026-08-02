@@ -280,6 +280,11 @@ function InkTrap() {
             }}
           >
             <span
+              // One of these two rows is deliberately unreadable — that is the
+              // whole demonstration. Excluded from axe by the `context` below
+              // rather than by switching the rule off for the page, so every
+              // other swatch on it is still checked.
+              data-a11y-exempt
               style={{
                 color: `var(${e.cssVar})`,
                 fontSize: 15,
@@ -334,6 +339,15 @@ const meta = {
   title: 'Foundations/Colour',
   component: Palette,
   parameters: {
+    /**
+     * The ink-trap rows render a genuine contrast failure on purpose, so that
+     * "muted-foreground on ink is invisible" stays a thing you can see rather
+     * than a sentence in a comment. Excluding those two nodes keeps every other
+     * swatch on the page under the rule.
+     */
+    a11y: {
+      context: { exclude: [['[data-a11y-exempt]']] },
+    },
     docs: {
       description: {
         component:

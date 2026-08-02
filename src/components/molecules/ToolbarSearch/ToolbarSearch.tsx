@@ -30,7 +30,7 @@ export const ToolbarSearch = React.forwardRef<
       )}
     >
       <Search
-        className="text-faint-foreground size-3.5 shrink-0"
+        className="text-subtle-foreground size-3.5 shrink-0"
         strokeWidth={1.75}
         aria-hidden
       />
@@ -39,7 +39,7 @@ export const ToolbarSearch = React.forwardRef<
         ref={ref}
         type="search"
         placeholder={placeholder}
-        className="text-ui-sm text-foreground placeholder:text-faint-foreground min-w-0 flex-1 bg-transparent outline-none"
+        className="text-ui-sm text-foreground placeholder:text-subtle-foreground min-w-0 flex-1 bg-transparent outline-none"
       />
     </div>
   )

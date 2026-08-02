@@ -91,7 +91,7 @@ export const SidebarExpanded = React.forwardRef<
         >
           <Search className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
           <span className="text-ui-sm flex-1 text-left">Search or jump to</span>
-          <span className="text-faint-foreground font-mono text-mono-count">⌘K</span>
+          <span className="text-subtle-foreground font-mono text-mono-count">⌘K</span>
         </button>
       </div>
 
@@ -106,7 +106,7 @@ export const SidebarExpanded = React.forwardRef<
 
         {groups.map((group) => (
           <div key={group.heading} className="flex flex-col gap-0.5 pt-3">
-            <span className="text-ui-nav-section text-faint-foreground px-2 uppercase">
+            <span className="text-ui-nav-section text-subtle-foreground px-2 uppercase">
               {group.heading}
             </span>
             {group.items.map((item) => (

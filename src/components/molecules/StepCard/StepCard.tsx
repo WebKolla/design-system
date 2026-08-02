@@ -25,7 +25,7 @@ export const StepCard = React.forwardRef<HTMLDivElement, StepCardProps>(
         ref={ref}
         className={cn('bg-surface flex w-full flex-col gap-2.5 p-6', className)}
       >
-        <span className="text-faint-foreground font-mono text-mono-count tabular-nums">
+        <span className="text-subtle-foreground font-mono text-mono-count tabular-nums">
           {number}
         </span>
         <h3 className="text-heading-card-title text-foreground">{title}</h3>

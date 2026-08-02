@@ -44,7 +44,7 @@ export function SignIn() {
           </p>
         </div>
 
-        <p className="text-body-caption text-ink-faint relative">
+        <p className="text-body-caption text-ink-subtle relative">
           © 2026 TimeSubmit Ltd.
         </p>
       </div>
@@ -55,7 +55,7 @@ export function SignIn() {
             <h1 className="text-heading-page-title text-foreground">Sign in</h1>
             <p className="text-body text-muted-foreground">
               No account?{' '}
-              <a href="/sign-up" className="text-primary underline-offset-4 hover:underline">
+              <a href="/sign-up" className="text-primary underline underline-offset-4">
                 Start a free practice
               </a>
             </p>
@@ -87,11 +87,11 @@ export function SignIn() {
 
           <p className="text-body-caption text-subtle-foreground">
             Signing in accepts our{' '}
-            <a href="/terms" className="text-primary underline-offset-4 hover:underline">
+            <a href="/terms" className="text-primary underline underline-offset-4">
               terms
             </a>{' '}
             and{' '}
-            <a href="/privacy" className="text-primary underline-offset-4 hover:underline">
+            <a href="/privacy" className="text-primary underline underline-offset-4">
               privacy notice
             </a>
             .

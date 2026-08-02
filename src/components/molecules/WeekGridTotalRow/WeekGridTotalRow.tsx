@@ -59,7 +59,7 @@ export const WeekGridTotalRow = React.forwardRef<
             className={cn(
               'h-10 px-2.5 text-left align-middle font-mono text-mono-cell tabular-nums',
               weekend && 'bg-control',
-              empty || weekend ? 'text-faint-foreground' : 'text-foreground',
+              empty || weekend ? 'text-subtle-foreground' : 'text-foreground',
             )}
           >
             {empty ? '·' : value}

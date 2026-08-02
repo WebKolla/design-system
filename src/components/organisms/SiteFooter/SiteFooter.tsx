@@ -66,7 +66,7 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
 
           {columns.map((col) => (
             <nav key={col.heading} aria-label={col.heading} className="min-w-[150px]">
-              <h2 className="text-ui-overline text-ink-faint uppercase">
+              <h2 className="text-ui-overline text-ink-subtle uppercase">
                 {col.heading}
               </h2>
               <ul className="flex flex-col gap-2 pt-3">
@@ -86,9 +86,9 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
         </div>
 
         <div className="border-ink-border flex flex-wrap items-center justify-between gap-3 border-t pt-4.5">
-          <span className="text-body-caption text-ink-faint">{copyright}</span>
+          <span className="text-body-caption text-ink-subtle">{copyright}</span>
           {strapline ? (
-            <span className="text-body-caption text-ink-faint">{strapline}</span>
+            <span className="text-body-caption text-ink-subtle">{strapline}</span>
           ) : null}
         </div>
       </footer>

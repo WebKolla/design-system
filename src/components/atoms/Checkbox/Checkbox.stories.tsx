@@ -7,6 +7,13 @@ const meta = {
   title: 'Atoms/Checkbox',
   component: Checkbox,
   parameters: {
+    /**
+     * The disabled row's label is faded by hand so the story shows what a
+     * disabled control looks like. WCAG 1.4.3 exempts inactive controls, but
+     * axe cannot tell that a `<span>` belongs to a disabled `<input>` — so the
+     * one node is excluded rather than the rule switched off for the file.
+     */
+    a11y: { context: { exclude: [['[data-a11y-exempt]']] } },
     docs: {
       description: {
         component:
@@ -42,7 +49,7 @@ export const States: Story = {
       ))}
       <label className="flex items-center gap-2">
         <Checkbox disabled aria-label="Disabled" />
-        <span className="text-body-caption opacity-50">Disabled</span>
+        <span data-a11y-exempt className="text-body-caption opacity-50">Disabled</span>
       </label>
     </div>
   ),

@@ -66,7 +66,7 @@ export const DayPickerItemMobile = React.forwardRef<
           selected
             ? 'text-primary-foreground'
             : state === 'weekend'
-              ? 'text-faint-foreground'
+              ? 'text-subtle-foreground'
               : 'text-subtle-foreground',
         )}
       >
@@ -90,7 +90,7 @@ export const DayPickerItemMobile = React.forwardRef<
           selected
             ? 'text-primary-foreground'
             : state === 'weekend'
-              ? 'text-faint-foreground'
+              ? 'text-subtle-foreground'
               : 'text-subtle-foreground',
         )}
       >

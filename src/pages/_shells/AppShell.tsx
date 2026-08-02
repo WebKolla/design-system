@@ -94,6 +94,8 @@ export function AppShell({
             <nav aria-label="Breadcrumb" className="min-w-0">
               <ol className="text-ui-sm flex min-w-0 items-center gap-2">
                 <li className="text-muted-foreground truncate">{sidebar.org}</li>
+                {/* Pure punctuation, hidden from AT, carrying no content —
+                    the one place faint-foreground is still honest. */}
                 <li aria-hidden className="text-faint-foreground">
                   /
                 </li>
