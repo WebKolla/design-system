@@ -709,10 +709,59 @@ the same destination list as the sidebar**, so icon order and grouping cannot
 drift between the two — the pairing note on `NavItem`/`NavRailItem` is enforced
 by construction rather than by discipline.
 
-### Screens built
+### Three app chromes, not one
 
-- **1a · Admin overview** (`56:284` / `59:440`) — desktop and mobile.
-  Attention rows swap to `AttentionCardMobile` below 768.
+Checking the frames rather than extrapolating from 1a was worth it:
+
+- **Admin sidebar/rail** — 1a, 1e
+- **Portal top nav** — 1b consultant, 1c approver. Three to five destinations,
+  not thirteen, and both screens want the full width.
+- **1d sits on the 52px rail even at 1440** — a nine-column table wants the
+  horizontal space more than the sidebar wants to be legible. `AppShell` takes
+  `collapsed` for this.
+
+The rail is generated from the same destination list as the sidebar, so the
+"keep icon order identical" pairing note on `NavItem`/`NavRailItem` is enforced
+by construction rather than by discipline.
+
+### Photography
+
+The 16 originals were copied from `screens/uploads/*.webp` in the UX
+positioning bundle, **not** re-exported from Figma — Figma holds the same
+images, so exporting from there would only add a generation of loss. 1.1 MB
+total, in `src/assets/photography/`.
+
+Alt text lives in `src/assets/photography/index.ts` beside each import rather
+than at the call site, so one photograph cannot acquire two different
+descriptions on two pages. It describes what the image shows, not what the
+section argues — the copy already carries the message.
+
+### All 12 screens built
+
+| | Screen | Chrome |
+|---|---|---|
+| 1a | Admin overview | sidebar |
+| 1b | Consultant weekly timesheet | portal |
+| 1c | Approver queue | portal |
+| 1d | Invoices list | rail |
+| 1e | Consultant record | sidebar |
+| 2a–2f | Home, Approval workflows, Pricing, About, FAQ, Contact | marketing |
+| 2g | Sign in | none — two panels |
+
+Product rules asserted at **page** level, not just component level:
+
+- 1b — no cell in the week grid renders a zero
+- 1c — no currency symbol anywhere in the approver-scoped view, and the
+  rate-blind banner has no dismiss control
+- 1e — the completeness bar is announced and the cost-rate error is
+  programmatically associated
+
+### a11y caught a heading-order break on Pricing
+
+The hero is `h1` and the tier cards are `h3`, with nothing between — the Plans
+section had no heading at all. Fixed with a visually-hidden `<h2>Plans</h2>`
+rather than by demoting the cards: the section genuinely needs a name, it just
+does not need a visible one above four cards that are self-evidently the plans.
 
 ### Still open
 
