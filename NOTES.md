@@ -956,3 +956,62 @@ margin.
 
 Dark mode was never affected — `subtle-foreground` there is `ink/400`, which
 measures 6.23:1.
+
+---
+
+## Button Large touch target — 2026-08-02
+
+Large is 42px because Figma and SPEC both state 42px, and 44px is the floor
+Apple's HIG and WCAG 2.5.5 use. Rather than change a height the design owns,
+the hit area is widened with a transparent `::after` sitting 1px proud top and
+bottom. The button measures **44 to a finger and 42 to the eye**, so nothing
+in Figma has to change and nothing on screen moves.
+
+Deliberately **not** applied to Medium or Small. Taking 30px to 44px puts 7px
+of invisible target on each side, which overlaps the next control in any
+toolbar tighter than `gap-4` — a worse bug than the one being fixed. Those are
+desktop-density controls; anything meant for a thumb uses Large.
+
+The `TouchTarget` story asserts it with a real hit test: `elementFromPoint` one
+half-pixel above the visible top edge has to return the button. Asserting the
+height would return 42 and prove nothing.
+
+### The reason that test could not pass at first — no CSS in the test run
+
+The first version of the assertion failed with `position: static`, and the same
+code was demonstrably correct in the browser. Dumping every loaded rule from
+inside the play function showed the cause: **the utility CSS was not there at
+all.** Total stylesheet content was 18kB, and `.h-[42px]` — which every Button
+story had supposedly been passing with for weeks — was absent.
+
+`vitest.config.ts` declares its own plugin list, and Vitest reads it *instead
+of* `vite.config.ts`. `@tailwindcss/vite` lived only in the latter. So
+`@import "tailwindcss"` at the top of `globals.css` resolved to nothing: the
+`@theme` custom properties loaded, and not one utility class did.
+
+The Storybook dev server never had the problem, because react-vite merges
+`vite.config.ts`. That is precisely why it survived so long — every story looked
+right in the browser and passed in CI.
+
+**What this invalidates.** Behaviour, ARIA, role, text and attribute assertions
+are all unaffected; they never depended on styling. But axe's `color-contrast`
+rule was measuring unstyled browser defaults, so **every green contrast result
+in this project before today proved nothing.** The Foundations/Colour page was
+never affected — it measures the real rendered DOM in a real browser.
+
+With the plugin added, the suite goes from 252 passing to **189 passing and 64
+failing across 26 files**, all colour-contrast:
+
+| Foreground | On | Ratio | What it is |
+|---|---|---|---|
+| `#a6a6b0` | various light | 2.13–2.41 | `faint-foreground` used as real text — the bulk of it |
+| `#5e7274` | `#0e1719` | 3.57 | `ink-faint` as text on ink |
+| `#878798` | `#f1f1f4` | 3.13 | `muted/600` as bold 10.5px |
+| `#87878b` | `#f7f7f9` | 3.34 | 12.5px label |
+| `#45454f` | `#0e1719` | 1.91 | a light-mode token inside a dark region — the "contrast on ink is not automatic" trap, shipped again |
+
+18 usages of `text-faint-foreground` across 12 files and 4 of `text-ink-faint`
+account for nearly all of it. Both tokens are documented as decorative, so
+either they are being misused and the call sites move to `subtle-foreground`,
+or Figma's design genuinely specifies faint text at 11px and the tokens have to
+darken. **That is a design decision and is not being made unilaterally.**

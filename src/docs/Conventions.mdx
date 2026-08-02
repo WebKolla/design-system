@@ -87,12 +87,21 @@ the reason several components look over-specified.
 
 Worth knowing before you trust a green run.
 
-**Play functions cannot assert layout.** `getBoundingClientRect` returns
-pre-layout values inside one, and anything behind a `md:hidden` is
-`display: none` at test width so its computed padding reads `0px` regardless of
-what is declared. Both have produced tests that failed for the wrong reason and
-could never have passed. Relative comparison between two elements in the same
-pass does work, and is how column alignment is checked.
+**Layout assertions in play functions need care.** Anything behind a
+`md:hidden` is `display: none` at test width, so its computed padding reads
+`0px` regardless of what is declared — that has produced a test that failed for
+the wrong reason and could never have passed. Relative comparisons within one
+layout pass are sound, and are how column alignment and the Button touch target
+are checked.
+
+**Until 2 August 2026 the test run had no CSS at all.** Vitest reads
+`vitest.config.ts` *instead of* `vite.config.ts`, so the Tailwind plugin was
+never applied to the test project and `@import "tailwindcss"` resolved to
+nothing. Stories mounted unstyled and axe's colour-contrast rule measured
+browser defaults. Behaviour, ARIA and text assertions were unaffected and
+remain valid; **every previous green colour-contrast result was worthless.**
+The plugin is now listed explicitly in the test project with a comment saying
+why.
 
 **Side-by-side theme stories break landmark components.** Rendering a
 `SiteHeader` twice creates two `banner` landmarks and fails `landmark-unique`.
@@ -116,6 +125,7 @@ Design decisions, not defects. All are recorded in `NOTES.md` with measurements.
   16), used by Avatar, Chip, Tab, SubNavItem and two mobile atoms. Every value
   is read from Figma, but none is token-backed, so a ramp change will not reach
   them.
-- **Button Large is 42px** against a 44px minimum touch target on mobile. The
-  height is explicit in both Figma and SPEC, so this needs either an exception
-  or a mobile-specific size.
+- **Text tokens failing contrast now that axe can see them.** 64 story
+  failures, almost all `faint-foreground` and `ink-faint` rendered as real
+  text. Either the tokens darken in Figma or roughly 22 usages move to
+  `subtle-foreground`. That is a design decision, not a defect fix.

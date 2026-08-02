@@ -16,10 +16,22 @@ import { cva, type VariantProps } from 'class-variance-authority'
  *   Large   h42  px20  gap8  radius/button-lg  ui/lg 14.5  icon 16
  *   Medium  h34  px14  gap8  radius/button      ui/md 13    icon 15
  *   Small   h30  px11  gap7  radius/control     ui/sm 12.5  icon 14
+ *
+ * **Large's touch target.** 42px is 2px short of the 44px floor that Apple's
+ * HIG and WCAG 2.5.5 both use, and Large is the size mobile CTAs render at.
+ * Rather than change a height that Figma and SPEC both state explicitly, the
+ * hit area is widened with a transparent `::after` sitting 1px proud top and
+ * bottom. The button measures 44 to a finger and 42 to the eye, so the design
+ * is untouched and Figma stays correct at 42.
+ *
+ * This is deliberately **not** applied to Medium or Small. Taking 30px to 44px
+ * would put 7px of invisible target on each side, which overlaps the next
+ * control in any toolbar tighter than `gap-4`. Those two sizes are
+ * desktop-density controls; if one needs to be tapped, use Large.
  */
 export const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center whitespace-nowrap',
+    'relative inline-flex items-center justify-center whitespace-nowrap',
     'font-medium select-none',
     'transition-colors',
     // Icon sizing is driven here rather than on the Icon atom so that a
@@ -46,7 +58,12 @@ export const buttonVariants = cva(
           'bg-surface text-danger border border-input hover:bg-danger-bg hover:border-danger-border',
       },
       size: {
-        lg: 'h-[42px] px-5 gap-2 rounded-button-lg text-ui-lg [&_svg]:size-4',
+        // The 42px is Figma's and stays Figma's; the ::after buys the missing
+        // 2px of target. See the touch-target note in the file header.
+        lg: [
+          'h-[42px] px-5 gap-2 rounded-button-lg text-ui-lg [&_svg]:size-4',
+          "after:absolute after:inset-x-0 after:-inset-y-px after:content-['']",
+        ].join(' '),
         md: 'h-[34px] px-3.5 gap-2 rounded-button text-ui-md [&_svg]:size-[15px]',
         sm: 'h-[30px] px-[11px] gap-[7px] rounded-control text-ui-sm [&_svg]:size-[14px]',
       },

@@ -16,7 +16,12 @@ export interface ButtonProps
    * @default 'primary'
    */
   variant?: ButtonVariant
-  /** Large 42 · Medium 34 · Small 30. @default 'lg' */
+  /**
+   * Large 42 · Medium 34 · Small 30.
+   *
+   * Large carries a 44px touch target (2px of it transparent) and is the only
+   * size safe to put under a thumb. @default 'lg'
+   */
   size?: ButtonSize
   /** An icon from `lucide-react`. Omit for a label-only button. */
   icon?: LucideIcon

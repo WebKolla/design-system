@@ -140,6 +140,37 @@ export const DisabledDoesNotFire: Story = {
 }
 
 /**
+ * Large is 42px tall because Figma says 42px, and 44px is the touch-target
+ * floor. The gap is closed by a transparent `::after` sitting 1px proud top and
+ * bottom, so a thumb gets 44 and the design keeps its 42.
+ *
+ * The assertion is a real hit test — `elementFromPoint` one pixel above the
+ * visible top edge has to come back as the button. Asserting the height would
+ * only ever return 42 and prove nothing.
+ */
+export const TouchTarget: Story = {
+  args: { children: 'Submit timesheet' },
+  play: async ({ canvasElement }) => {
+    const button = within(canvasElement).getByRole('button')
+    const after = getComputedStyle(button, '::after')
+    // Declared geometry.
+    await expect(after.position).toBe('absolute')
+    await expect(after.top).toBe('-1px')
+    await expect(after.bottom).toBe('-1px')
+
+    // And the behaviour that geometry is for.
+    const box = button.getBoundingClientRect()
+    const x = box.left + box.width / 2
+    const hitAbove = document.elementFromPoint(x, box.top - 0.5)
+    const hitBelow = document.elementFromPoint(x, box.bottom + 0.5)
+
+    await expect(button.contains(hitAbove)).toBe(true)
+    await expect(button.contains(hitBelow)).toBe(true)
+    await expect(Math.round(box.height)).toBe(42)
+  },
+}
+
+/**
  * Edge content: the longest realistic label, a single character, and an empty
  * label. Nothing may clip or collapse.
  */
