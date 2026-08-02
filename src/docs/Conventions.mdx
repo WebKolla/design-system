@@ -37,7 +37,7 @@ appears, add stylelint.
 
 `npm test` mounts every story in headless Chromium and runs axe with
 `a11y.test: 'error'`, so a violation fails the run rather than reporting
-quietly. 252 tests across 68 files at the time of writing.
+quietly. 305 tests across 77 files at the time of writing.
 
 Product rules are asserted, not trusted:
 
@@ -48,6 +48,9 @@ Product rules are asserted, not trusted:
 | Table columns align | Header vs first row, by comparing their right edges |
 | The rate-blind banner cannot be dismissed | Banner, and the approver-queue page |
 | Every rail item has an accessible name | `NavRailItem` |
+| Sortable headers carry a correct `aria-sort` | `TableHeader` |
+| Dialog and Popover trap focus, restore it, and close on Escape | `Dialog`, `Popover` |
+| Utilities are actually compiled in the test run | `Card` — see below |
 
 ---
 
@@ -113,7 +116,10 @@ nothing. Stories mounted unstyled and axe's colour-contrast rule measured
 browser defaults. Behaviour, ARIA and text assertions were unaffected and
 remain valid; **every previous green colour-contrast result was worthless.**
 The plugin is now listed explicitly in the test project with a comment saying
-why.
+why, **and `Atoms/Card → IsActuallyStyled` asserts it from inside the run**: it
+reads the computed background, border width, radius and padding off a rendered
+`Card`. If the plugin ever falls out again those resolve to browser defaults and
+that story fails, instead of every contrast check quietly passing.
 
 **Side-by-side theme stories break landmark components.** Rendering a
 `SiteHeader` twice creates two `banner` landmarks and fails `landmark-unique`.

@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { expect, waitFor, within } from 'storybook/test'
 import { Avatar, type AvatarSize } from './Avatar'
+import { PORTRAIT } from './Avatar.fixtures'
 
 const SIZES: Array<{ size: AvatarSize; use: string }> = [
   { size: 20, use: 'Inline in a table cell' },
@@ -15,8 +17,11 @@ const meta = {
     docs: {
       description: {
         component:
-          'Initials only. TimeSubmit stores no profile photographs, so an image avatar would always be ' +
-          'a placeholder.\n\nSizes are fixed to their use: 20 inline in a table cell, 26 in a topbar or ' +
+          'Initials, with an optional photograph over them.\n\nTimeSubmit stores no profile ' +
+          'photographs of its own; the one place a real image appears is the account picture Clerk ' +
+          'holds, on the approver profile screen. So the image is the exception and the initials are ' +
+          'the component — which is why `initials` stays required and a failed load silently reverts ' +
+          'to them rather than showing a broken-image glyph in a 20px circle.\n\nSizes are fixed to their use: 20 inline in a table cell, 26 in a topbar or ' +
           'list row, 34 in a card header, 44 on a record header. **44 alone is a rounded square on ' +
           '`radius/panel` rather than a circle** — at that size a circle reads as a social profile ' +
           'picture, and this is a record, not a person page.\n\nTone `primary` is reserved for the ' +
@@ -67,4 +72,32 @@ export const EdgeContent: Story = {
       <Avatar {...args} initials="ø" label="Øyvind Nilsen" />
     </div>
   ),
+}
+
+/**
+ * With a photograph. `initials` is still required, because a signed URL that
+ * has expired and a user who has never uploaded one both land back on it.
+ */
+export const WithImage: Story = {
+  args: { src: PORTRAIT },
+  render: (args) => (
+    <div className="flex items-center gap-4">
+      {SIZES.map(({ size }) => (
+        <Avatar key={size} {...args} size={size} />
+      ))}
+    </div>
+  ),
+}
+
+/** A broken image reverts to the initials rather than a broken-image glyph. */
+export const FallsBackWhenTheImageFails: Story = {
+  args: { src: 'https://example.invalid/not-a-photograph.png', size: 34 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await waitFor(async () => {
+      await expect(canvas.getByText('CB')).toBeInTheDocument()
+    })
+    // The <img> is gone entirely, rather than left showing a broken glyph.
+    await expect(canvasElement.querySelector('img')).toBeNull()
+  },
 }

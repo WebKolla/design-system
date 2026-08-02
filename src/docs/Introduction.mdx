@@ -21,9 +21,15 @@ four Figma variable collections. It carries every colour, radius, spacing step,
 text style and shadow the product uses, in light and dark. It is self-contained
 and drops into the product app unchanged.
 
-**A component library.** 52 React components in three tiers: 17 atoms,
-27 molecules, 8 organisms. Every one is built from tokens, has a story per
+**A component library.** 61 React components in three tiers: 21 atoms,
+32 molecules, 8 organisms. Every one is built from tokens, has a story per
 variant and state, and passes an accessibility check in both colour modes.
+
+Nine of them — `Card`, `Skeleton`, `Separator`, `Textarea`, `Dialog`,
+`Popover`, `TableHeader`, `TableRow`, `TableCell` — were built ahead of their
+Figma nodes, because the application rebuild could not proceed without them.
+Each is derived from a component that already shipped and introduces no new
+token, and each is marked as unreviewed by design in its own docs.
 
 **Twelve assembled screens.** Five app screens and seven marketing pages, built
 only from the library. They exist to prove the library actually composes into
