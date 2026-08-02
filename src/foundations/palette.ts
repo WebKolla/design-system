@@ -71,7 +71,7 @@ export const PALETTE: TokenGroup[] = [
     entries: [
       t('foreground', 'background', 'text'),
       t('muted-foreground', 'background', 'text'),
-      t('subtle-foreground', 'background', 'text'),
+      t('subtle-foreground', 'background', 'text', 'Light is neutral/500, darkened to clear AA on background'),
       t('faint-foreground', 'background', 'text', 'Decorative only — not for body copy'),
     ],
   },

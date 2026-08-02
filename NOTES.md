@@ -886,3 +886,73 @@ Carried from §13, none yet decided:
    via the API. To be inspected in Phase 1.
 4. **DataTable / WeekGrid / AccordionGroup** — composed APIs need review before
    the page phase depends on them.
+
+---
+
+## Contrast remediation pass — 2026-08-02
+
+Closes every item left open under "Contrast findings from the Foundations
+story". After this pass the Foundations/Colour table has **zero FAIL rows in
+either mode**, verified by reading the rendered page rather than by
+recalculating. Every value below was pushed back to Figma as well as to
+`globals.css`.
+
+The `*-border` tokens still read `BELOW`. That is the expected category, not a
+failure — they are tint edges on tinted fills, the same case as
+`primary-border`, and the story labels them as such.
+
+### Dark-mode status text — 500 step → 400 step
+
+`success`, `info` and `danger` measured 3.94, 3.43 and 3.17 on their own tinted
+backgrounds, against 4.5 for text. Each new step keeps the hue and saturation
+of the 500 and raises lightness to match what `warn/500` already measured
+(5.05:1), so the four status colours now sit at the same perceived weight.
+
+| Token | Value | Measured on its tint |
+|---|---|---|
+| `success/400` | `#47b083` | 5.06:1 |
+| `info/400` | `#799ed2` | 5.08:1 |
+| `danger/400` | `#d2868a` | 5.08:1 |
+
+### `success-solid` — the label, not the fill
+
+White on the solid fill measured 2.98:1 in dark. The fill is correct; the
+label was wrong. The Approve button variant now uses `text-ink-foreground`
+rather than `text-primary-foreground`, because the latter flips to `ink/950` in
+dark mode and puts dark text on a green fill. Now 6.11:1.
+
+This one is worth remembering: a `*-foreground` token is only safe on the
+surface it is named for. On a *solid status* fill, use an ink token.
+
+### Light-mode charts — below the 3:1 graphical threshold
+
+Two of six series were hard to separate from the surface. Both moved down one
+ramp step; no new primitives.
+
+| Series | Was | Now | Light on surface |
+|---|---|---|---|
+| `chart-3` | `warn/500` 2.58:1 | `warn/600` `#aa8230` | 3.53:1 |
+| `chart-6` | `muted/500` 1.73:1 | `muted/600` `#878798` | 3.53:1 |
+
+`chart-grid` and `chart-axis` are second-order aliases (`color/hairline` and
+`color/subtle-foreground`), so they cannot live in `@theme static` — they are
+plain custom properties declared in **both** `:root` and `.dark`. Same trap as
+`--color-focus-ring`.
+
+### `subtle-foreground` — the ramp step, not the alias
+
+Light measured 4.32:1 against background, just under AA for body text. The
+alias points at `neutral/500`, so the choice was to re-point it at a new step
+or to darken the step in place.
+
+A consumer audit in Figma found `neutral/500` has exactly two dependents:
+`color/subtle-foreground (Light)` and `color/input (Light)`. Input needs 3:1
+for a non-text border and only gains from a darker value, so darkening in place
+was safe and avoided adding a ramp step nobody else would use.
+
+`#74747f` → `#6d6d78`. Now 4.78:1 on background and 5.11:1 on surface.
+`#71717c` would have cleared it at 4.51:1, but a two-hundredths margin is not a
+margin.
+
+Dark mode was never affected — `subtle-foreground` there is `ink/400`, which
+measures 6.23:1.

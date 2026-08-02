@@ -61,7 +61,7 @@ shift is very visible in aggregate.
 **A colour that fails contrast.** The
 [Foundations/Colour](/docs/foundations-colour--all-tokens) page measures every
 token live against the background it is actually intended to sit on, and marks
-anything below its WCAG threshold. Four tokens have already been changed for
+anything below its WCAG threshold. Several tokens have already been changed for
 this reason:
 
 - `color/input` was `neutral/250`, measuring 1.25:1 against background. Form
@@ -71,6 +71,15 @@ this reason:
   4.5 minimum. They now use a 400 step, computed by keeping the hue and
   saturation and raising lightness to 5.05, which is what `warn/500` already
   measured.
+- `chart-3` and `chart-6` in **light mode** measured 2.58:1 and 1.73:1 against
+  surface, below the 3:1 for graphical objects. Both moved down a step, to
+  `warn/600` and `muted/600`, and now measure 3.53:1.
+- `neutral/500` itself was darkened from a value measuring 4.32:1 to one
+  measuring 4.78:1, because `color/subtle-foreground` points at it and is used
+  for body-sized text. The only other consumer is `color/input`, which needs
+  3:1 and gains from the change.
+
+Every colour token now clears its threshold in both modes.
 
 **A focus indicator that cannot be seen.** `color/ring` measures 1.17:1 and
 fails as a sole indicator. It is still correct as the soft halo *behind* a

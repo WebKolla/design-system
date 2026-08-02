@@ -56,7 +56,9 @@
   --p-neutral-250: #dedee4;
   --p-neutral-300: #d3d3db;
   --p-neutral-400: #a6a6b0;
-  --p-neutral-500: #74747f;
+  /* Nudged from #74747f on 2026-08-02: subtle-foreground measured 4.32:1
+     against background, just under the 4.5 for body text. Now 4.78:1. */
+  --p-neutral-500: #6d6d78;
   --p-neutral-700: #45454f;
   --p-neutral-900: #16161c;
 
