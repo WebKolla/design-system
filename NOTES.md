@@ -502,6 +502,49 @@ TabBarItemMobile label, which is Geist.
 Button Small gap was written as `gap-1.5` (6px); Figma specifies **7px**. Now
 `gap-[7px]`. Caught by reading computed styles rather than by eye.
 
+## Phase 3 — molecules
+
+### Tables are real tables, and the columns cannot drift
+
+§8 rule 8 forbids CSS-grid pseudo-tables — they are not announced as tables and
+fixed pixel columns overflow rather than reflow. But Figma specifies the layout
+as column templates, and the handoff's validation standard requires "column
+grids aligned between header and row components".
+
+Both are satisfied by splitting ownership:
+
+- `_tables/columns.ts` holds the single column definition per table. The `fr`
+  ratios from Figma are expressed as percentages, because `fr` has no meaning
+  in a `<colgroup>`.
+- Header molecules render `<thead><tr>` with `<th scope="col">`; row molecules
+  render `<tr>` with `<td>`.
+- `_tables/TableShell.tsx` supplies the `<table>`, the required `<caption>` and
+  the `<colgroup>`. Stories use it to render a header or row in isolation; the
+  DataTable organism will use it for real in Phase 4.
+
+Because both components read the same definition, they cannot drift. There is
+an assertion for it: `TableHeaderInvoices › AlignsWithRows` compares the right
+edge of the Amount heading with the right edge of the first amount cell and
+requires them to be identical.
+
+Column grids, verbatim from Figma:
+- Invoices `34 · 108 · 1.15fr · 1fr · 96 · 96 · 122 · 108 · 40` = 1332
+- Approvals `38 · 1.5fr · 1.05fr · 1.15fr · 92 · 118 · 96` = 1384
+- Week grid `266px repeat(7,1fr) 84px`
+
+### The approver money guarantee is now enforced by a test
+
+README rule 10 — "Approvers never see money" — is asserted rather than trusted:
+`TableHeaderApprovals › NoMoneyColumn` fails if any column heading contains
+amount, rate, total or value.
+
+### Dual signalling on overdue rows
+
+Per the Figma description, an overdue invoice recolours the **due date** to
+danger as well as showing a danger status pill, "so the status pill is not the
+only signal". Both are wired to the same `overdue` prop so they cannot
+disagree.
+
 ### Still open
 
 - [ ] a11y addon is configured with `test: 'error'` but has not been asserted
