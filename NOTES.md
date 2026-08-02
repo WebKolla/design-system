@@ -557,6 +557,17 @@ browser — the measurement was not.
 **Rule:** play functions assert *behaviour* (clicks, focus, ARIA, text,
 attributes). Layout and sizing are verified visually.
 
+**Extended by BUG-002 — this also covers hidden elements.** The harness runs at
+desktop width, so anything behind a `md:hidden` (the mobile tab bar, the mobile
+list cards) is `display: none` during the test. `getComputedStyle` then reports
+`0px` for padding and margin regardless of what is declared.
+
+That produced a test that *looked* correct: removing the fix made it fail, so it
+seemed to bite. It did not — it failed for the wrong reason and could never have
+passed. **A test that fails for the wrong reason is worse than no test**, because
+the red-then-green cycle reads as proof. For responsive-hidden elements, assert
+the declared classes and verify the resolved value in the browser.
+
 **Exception that does work:** *relative* comparison between two elements in the
 same layout pass. `TableHeaderInvoices › AlignsWithRows` compares the right
 edge of the Amount heading with the right edge of the first amount cell and is

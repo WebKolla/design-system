@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
-import { TabBarItemMobile } from '@/components/atoms/TabBarItemMobile/TabBarItemMobile'
+import { MobileTabBar } from './MobileTabBar'
 import type { SidebarExpandedProps } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
 import { cn } from '@/lib/cn'
 
@@ -79,22 +79,9 @@ export function PortalShell({
         <Avatar initials={user.initials} size={26} tone="primary" label={user.name} />
       </header>
 
-      <main className="flex-1 pb-16 md:pb-0">{children}</main>
+      <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
 
-      <nav
-        aria-label="Primary"
-        className="border-border bg-surface fixed inset-x-0 bottom-0 flex items-stretch border-t md:hidden"
-      >
-        {mobileTabs.map((tab) => (
-          <TabBarItemMobile
-            key={tab.href}
-            label={tab.label}
-            icon={tab.icon}
-            href={tab.href}
-            {...(tab.current ? { active: true } : {})}
-          />
-        ))}
-      </nav>
+      <MobileTabBar tabs={mobileTabs} />
     </div>
   )
 }

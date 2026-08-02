@@ -5,7 +5,7 @@ import {
   type SidebarExpandedProps,
 } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
 import { NavRailItem } from '@/components/atoms/NavRailItem/NavRailItem'
-import { TabBarItemMobile } from '@/components/atoms/TabBarItemMobile/TabBarItemMobile'
+import { MobileTabBar } from './MobileTabBar'
 import { cn } from '@/lib/cn'
 
 export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -135,24 +135,11 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 pb-16 md:pb-0">{children}</main>
+        <main className="min-w-0 flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
 
       {/* <834 */}
-      <nav
-        aria-label="Primary"
-        className="border-border bg-surface fixed inset-x-0 bottom-0 flex items-stretch border-t md:hidden"
-      >
-        {mobileTabs.map((tab) => (
-          <TabBarItemMobile
-            key={tab.href}
-            label={tab.label}
-            icon={tab.icon}
-            href={tab.href}
-            {...(tab.current ? { active: true } : {})}
-          />
-        ))}
-      </nav>
+      <MobileTabBar tabs={mobileTabs} />
     </div>
   )
 }
