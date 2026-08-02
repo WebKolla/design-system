@@ -1147,3 +1147,66 @@ It reads the file with `node:fs` rather than `import ... from '...css?raw'`:
 **Vitest stubs CSS imports by default**, so the `?raw` form resolves to an empty
 string and every assertion passes against nothing. That cost a round trip, and
 is exactly the sort of test that looks green and checks air.
+
+---
+
+## Vercel — 2026-08-02
+
+Project `timesubmit-design-system` on team `webkollas-projects`, connected to
+the GitHub repo, so a push to `main` deploys. Live at
+`https://timesubmit-design-system.vercel.app`.
+
+**Build command is `npm run typecheck && npm run lint && npm run
+build-storybook`.** Storybook's build transpiles without typechecking, so
+without the first two a type error deploys perfectly happily. Tests are not in
+the build: they need a Playwright browser, which belongs in CI, not in the path
+of every deploy.
+
+**`engines.node` is `24.x`, deliberately unlike `.nvmrc`'s `26.5.0`.** Node 26
+is not a Vercel build runtime. `engines.node` overrides both `.nvmrc` and the
+project setting, and local development stays on 26.
+
+**The MCP could not do the upload.** `deploy_to_vercel` takes a file tree
+inline, and this repo is 17MB including 1.1MB of photography — base64 in a tool
+call would have been several hundred thousand tokens of context for no benefit.
+The CLI did the upload; the MCP did project discovery, deployment status, build
+logs and the protection settings.
+
+### `vercel.json` has no comment syntax
+
+A `"//"` key inside a `headers` entry failed the deployment at config
+validation — **no build logs at all**, which is the signature of a schema
+rejection rather than a build failure. Worth recognising: an ERROR state with
+zero log events means the build never started.
+
+### Deployment protection — what is actually possible here
+
+The production alias is **public**. Not for want of trying:
+
+| Attempt | Result |
+|---|---|
+| `ssoProtection: {deploymentType: 'all'}` | 428 `Vercel Authentication is not available on your plan for production deployments` |
+| Same, direct to the REST API with a Pro team token | Identical 428, so not an MCP artefact |
+| `passwordProtection` | 428 **`Advanced Deployment Protection is not enabled on your team`** |
+
+That second message is the real one. The team **is** on Pro — confirmed via
+`/v2/teams`, `billing.plan: pro`. Pro gives Standard Deployment Protection,
+which covers preview and deployment URLs only. Protecting a *production* alias,
+by SSO or by password, needs the **Advanced Deployment Protection** add-on.
+
+Current state, verified with unauthenticated `curl` rather than a browser that
+had a Vercel session cookie:
+
+- `timesubmit-design-system.vercel.app` → **200**, serves the Storybook
+- the hashed deployment URL → **302** to SSO
+
+`ssoProtection` reads `all_except_custom_domains`, which sounds like it should
+cover the alias and does not: the project's own `.vercel.app` production domain
+counts as an assigned domain and is excluded.
+
+`X-Robots-Tag: noindex, nofollow, noarchive` is set on every path. **That is not
+access control** and is not a substitute for it — it only keeps an unreleased
+product's screens out of search results.
+
+No password was set. The `passwordProtection` call failed, so the generated
+value was never applied to anything.

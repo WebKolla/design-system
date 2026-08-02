@@ -9,7 +9,6 @@
   },
   "headers": [
     {
-      "//": "Vercel Authentication covers preview and deployment URLs on this plan but NOT the production alias, which is public. This does not restrict access — it only keeps an unreleased product's design system out of search results. Remove it if the plan is upgraded and SSO is set to 'all'.",
       "source": "/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
