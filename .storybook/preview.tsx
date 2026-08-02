@@ -74,7 +74,17 @@ const preview: Preview = {
     },
     options: {
       storySort: {
-        order: ['Foundations', 'Atoms', 'Molecules', 'Organisms'],
+        order: [
+          'Introduction',
+          'Getting started',
+          'For designers',
+          'Conventions',
+          'Foundations',
+          'Atoms',
+          'Molecules',
+          'Organisms',
+          'Pages',
+        ],
       },
     },
   },

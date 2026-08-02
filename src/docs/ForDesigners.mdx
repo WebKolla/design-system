@@ -1,0 +1,121 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="For designers" />
+
+# For designers
+
+How the Figma file and this library stay in step, and what happens when you
+change something.
+
+**File:** `TimeSubmit Design System`, key `gK7SDHmNwdB9ac0a3miBZ2`
+
+---
+
+## Which way changes flow
+
+Figma is the source of truth for tokens and components. Code follows.
+
+```
+Figma variables  →  src/tokens/globals.css  →  Tailwind utilities  →  components
+```
+
+When sources disagree, the order is **Figma variables > SPEC.md > the marketing
+HTML**. The marketing HTML has known drift and is never a source of a value.
+
+The one exception is anything Figma cannot express. Font fallback stacks,
+motion durations, breakpoints, z-index and focus-ring geometry live in code
+because there is nowhere in Figma to put them. Each is tagged `[code]` in the
+token file with the reason.
+
+## What you can change safely
+
+**Re-point a semantic token at a different primitive.** This is the cheap,
+intended edit. `color/primary` moving from `accent/600` to `accent/700` reaches
+every button, focus ring and active nav marker at once, and code picks it up on
+the next regeneration.
+
+**Change a primitive's value.** Same, one level deeper. Check what depends on it
+first, because primitives are shared.
+
+**Edit a component description.** These are read and carried into the code. If
+a rule matters, put it in the description rather than a comment on the canvas,
+because the description is what survives into the docs.
+
+## What needs a conversation first
+
+**Renaming a variable.** Names map directly to CSS custom properties:
+`color/primary-soft` becomes `--color-primary-soft`. A rename is a breaking
+change to every consumer.
+
+**Adding a new text style.** The 24 styles are Tailwind utilities. A 25th is
+fine, but eight sizes currently used by components sit *outside* the ramp
+already, so we should probably close that gap before widening it.
+
+**Changing a spacing or radius value.** These are used everywhere and a small
+shift is very visible in aggregate.
+
+---
+
+## Things the code will reject
+
+**A colour that fails contrast.** The
+[Foundations/Colour](/docs/foundations-colour--all-tokens) page measures every
+token live against the background it is actually intended to sit on, and marks
+anything below its WCAG threshold. Four tokens have already been changed for
+this reason:
+
+- `color/input` was `neutral/250`, measuring 1.25:1 against background. Form
+  borders are non-text UI and need 3:1. Now `neutral/500`.
+- `color/success`, `color/info` and `color/danger` in **dark mode** used the
+  500 step, measuring 3.94, 3.43 and 3.17 on their tinted backgrounds against a
+  4.5 minimum. They now use a 400 step, computed by keeping the hue and
+  saturation and raising lightness to 5.05, which is what `warn/500` already
+  measured.
+
+**A focus indicator that cannot be seen.** `color/ring` measures 1.17:1 and
+fails as a sole indicator. It is still correct as the soft halo *behind* a
+primary border on a focused field. The visible indicator is `color/focus-ring`,
+which aliases `color/primary`.
+
+**Two tokens holding the same value.** `ink/850` and `ink/900` were both
+`#131e20`, which made `color/ink-raised` and dark-mode `color/surface`
+indistinguishable. `ink/900` is now `#111a1c`.
+
+## Layout rules that keep breaking
+
+Each of these caused a real shipped bug during the Figma build, so the code
+enforces them and there is a story proving each one.
+
+**Max-width, not fixed width.** Centred copy is `width: 100%` with a
+`max-width`. A fixed width overflows at 390. This broke the CTA band and seven
+section-header instances.
+
+**Do not clip overhanging children.** The pricing card's Recommended badge sits
+at `top: -10px`. Any ancestor with `overflow: hidden` eats it, and grid wrappers
+routinely get `overflow: hidden` for rounded corners. If you need clipping for
+radius, clip the card, not the grid. There is a story showing both.
+
+**Hairline grids.** Cells are square-cornered and borderless. The container
+owns the radius, the border and the clipping, and the 1px gaps let the border
+show through.
+
+**Contrast on ink is not automatic.** `muted-foreground` on `ink` is about 2:1.
+Use `ink-muted`. This shipped once as an invisible arrow on the dark CTA band,
+and the Foundations page now renders that failure live so it stays visible.
+
+---
+
+## A Figma pitfall worth knowing
+
+Binding a paint to a variable does not update the paint's own colour. The
+plugin API returns a *new* paint object that has to be reassigned, and if it is
+not, you get a binding sitting over a stale colour. Figma then paints the stale
+colour.
+
+Eleven paints in this file were in that state, which is why Button rendered
+black at Medium and Small while Large was fine, and why three footer headings
+rendered white instead of faint grey. All are repaired, and the audit that
+found them can be re-run at any time.
+
+Variable *changes* propagate correctly. This was only ever about bindings that
+were broken at the moment they were created.

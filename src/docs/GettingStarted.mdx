@@ -1,0 +1,185 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Getting started" />
+
+# Getting started
+
+For engineers. How to run the library, use it in a screen, and add to it.
+
+---
+
+## Running it
+
+```bash
+nvm use            # Node 26.5.0, pinned in .nvmrc
+npm install
+npm run storybook  # http://localhost:6006
+```
+
+| Command | What it does |
+|---|---|
+| `npm run storybook` | Dev server with hot reload |
+| `npm test` | Mounts every story in headless Chromium and runs axe against it |
+| `npm run typecheck` | `tsc --noEmit`, strict |
+| `npm run lint` | ESLint, including the two custom rules below |
+| `npm run build-storybook` | Static build |
+
+`npm test` is the real gate. A green `tsc` and a green build tell you the code
+compiles, not that it renders. That distinction has already cost this project
+once: a component shipped with a passing build, a passing lint, five registered
+stories, and a runtime crash on every one of them.
+
+---
+
+## Using a component
+
+```tsx
+import { Button } from '@/components/atoms/Button/Button'
+import { StatusPill } from '@/components/atoms/StatusPill/StatusPill'
+
+export function InvoiceActions() {
+  return (
+    <div className="flex items-center gap-3">
+      <StatusPill tone="danger">Overdue</StatusPill>
+      <Button variant="secondary" size="sm">Chase</Button>
+    </div>
+  )
+}
+```
+
+Three things that are true of every component:
+
+- **It forwards `className` and `...rest`, and forwards its ref.** You can
+  always style around it and always reach the DOM node.
+- **It has no external margin.** Spacing between components is the parent's
+  job. A component may have internal padding, never an outside margin. There is
+  a lint rule enforcing this.
+- **Variants are union-typed props, not booleans.** `variant="destructive"`,
+  never `destructive={true}`.
+
+### Polymorphism
+
+`Button` and `ButtonInk` take `asChild`, so they can render as a link without
+duplicating their styling:
+
+```tsx
+<Button asChild>
+  <a href="/pricing">See pricing</a>
+</Button>
+```
+
+Navigation atoms work differently. `NavItem`, `NavRailItem`, `SubNavItem` and
+`TabBarItemMobile` take an `href` instead, and render an `<a>` when it is
+present and a `<button>` otherwise. They render their own icon and label, so
+they cannot satisfy Radix `Slot`'s single-child requirement. An earlier version
+exposed `asChild` on them anyway and it never worked.
+
+---
+
+## Using the tokens
+
+Reference semantic tokens through Tailwind utilities. Never a hex code, and
+never a primitive.
+
+```tsx
+// Yes
+<div className="bg-surface text-foreground border-border rounded-card">
+
+// No: a hardcoded colour. Lint will fail the build.
+<div style={{ background: '#ffffff' }}>
+
+// No: a primitive. They are internal and may be re-pointed at any time.
+<div className="bg-[var(--p-neutral-50)]">
+```
+
+The full palette with live contrast ratios is on the
+[Foundations/Colour](/docs/foundations-colour--all-tokens) page.
+
+### Typography
+
+The 24 Figma text styles are Tailwind utilities:
+
+```tsx
+<h1 className="text-heading-page-title">Invoices</h1>
+<p className="text-body">Northgate Advisory submitted 38 hours.</p>
+<span className="font-mono text-mono-amount tabular-nums">£11,400.00</span>
+```
+
+**The mono rule is load-bearing.** Geist Mono is for every hour, rate, amount,
+date and identifier, and only those. Overlines, kickers and labels are Geist
+even where older marketing HTML shows them in mono. Every figure is also
+`tabular-nums`, so a column of amounts lines up its decimal points.
+
+### Dark mode
+
+Put `.dark` on an ancestor. Nothing else changes:
+
+```tsx
+<div className="dark">
+  <div className="bg-background text-foreground">…</div>
+</div>
+```
+
+Use the **Theme** toolbar in Storybook to switch, or pick "Side by side" to see
+both at once.
+
+---
+
+## Tables
+
+Tables are real `<table>` elements, not CSS grid. A grid is not announced as a
+table by assistive technology, and fixed pixel columns overflow rather than
+reflow.
+
+Ownership is split so header and rows cannot drift apart:
+
+- `_tables/columns.ts` holds the single column definition
+- header molecules render `<thead><tr>` with `<th scope="col">`
+- row molecules render `<tr>` with `<td>`
+- `DataTable` supplies the `<table>`, the required `<caption>` and `<colgroup>`
+
+```tsx
+<DataTable
+  columns={INVOICE_COLUMNS}
+  caption="Invoices"
+  header={<TableHeaderInvoices />}
+  pagination={<Pagination page={1} pageCount={5} range="Showing 1–10 of 47" />}
+>
+  {rows.map((r) => <TableRowInvoice key={r.invoice} {...r} />)}
+</DataTable>
+```
+
+Below 768 do not shrink the table. Swap to the list-card molecules, which is
+what the screens do.
+
+---
+
+## Adding a component
+
+1. **Read the Figma node first**, including its `description`. Several
+   components carry constraints in the description that are invisible in the
+   pixels. `StatusPill`'s dot is mandatory because colour alone fails a
+   monochrome print. `WeekGridCell` shows a mid-dot and never a zero, because
+   zero is a claim and blank is an absence.
+2. **Put shared constants in a `.ts` file, never `.tsx`.** The docgen plugin
+   annotates every exported binding in a `.tsx` file, which silently adds keys
+   to any exported object and corrupts `Object.keys()` over it.
+3. **Wrap Radix for anything interactive.** Do not hand-roll focus management,
+   keyboard handling or ARIA.
+4. **Write the stories**: a default, a matrix of every variant, interactive
+   states, and edge content with the longest realistic string.
+5. **Run `npm test`.** Every story is mounted and checked by axe.
+6. **Look at it.** A passing test is not a rendered component.
+
+### Test what behaves, look at what renders
+
+Play functions assert behaviour: clicks, focus, ARIA, text, attributes.
+
+They cannot reliably assert layout. Inside a play function
+`getBoundingClientRect` returns pre-layout values, and anything behind a
+`md:hidden` is `display: none` at test width, so its computed padding reads
+`0px` whatever you declared. Both have produced tests that failed for the wrong
+reason and would never have passed. Verify layout by looking at it.
+
+The exception that does work is a *relative* comparison between two elements in
+the same layout pass, which is how column alignment is checked.

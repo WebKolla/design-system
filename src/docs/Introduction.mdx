@@ -1,0 +1,86 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Introduction" />
+
+# TimeSubmit design system
+
+The component library behind TimeSubmit, a B2B product for consultancy
+timesheets, approvals and invoicing.
+
+Everything here is generated from or checked against one Figma file. If a value
+in this library disagrees with that file, the library is wrong.
+
+---
+
+## What this is
+
+Three things, in dependency order.
+
+**A token layer.** One CSS file, `src/tokens/globals.css`, generated from the
+four Figma variable collections. It carries every colour, radius, spacing step,
+text style and shadow the product uses, in light and dark. It is self-contained
+and drops into the product app unchanged.
+
+**A component library.** 52 React components in three tiers: 17 atoms,
+27 molecules, 8 organisms. Every one is built from tokens, has a story per
+variant and state, and passes an accessibility check in both colour modes.
+
+**Twelve assembled screens.** Five app screens and seven marketing pages, built
+only from the library. They exist to prove the library actually composes into
+the product, and as a reference for how the pieces fit together.
+
+## What this is not
+
+It holds no data fetching, no routing, no auth and no business logic. Components
+take props and render. State lives with whatever renders them.
+
+It is also deliberately not a general-purpose UI kit. Components encode
+TimeSubmit's rules, and several of them will look over-specified if you have
+not read why. The `Approve` button variant, for example, is documented as being
+for one action on one screen.
+
+## Who it is for
+
+**Product engineers** building TimeSubmit screens. Start at
+[Getting started](/docs/getting-started--docs). You should not need to write
+CSS, and you should never need a hex code.
+
+**Designers** working in the Figma file. Start at
+[For designers](/docs/for-designers--docs). It explains which direction changes
+flow and what is safe to change without breaking code.
+
+**Anyone reviewing accessibility or visual quality.** The
+[Foundations](/docs/foundations-colour--all-tokens) pages show every colour with
+its measured contrast ratio, computed live from the rendered page rather than
+transcribed.
+
+---
+
+## How it is organised
+
+| Section | What is in it |
+|---|---|
+| **Foundations** | Colour with live contrast ratios, the type ramp, the shadcn compatibility proof |
+| **Atoms** | Single-purpose primitives that contain no other project component |
+| **Molecules** | Small functional groups: a field, a table row, a toast |
+| **Organisms** | Standalone regions and composites: header, footer, sidebar, tables |
+| **Pages** | The twelve screens, desktop and mobile |
+
+The tier of a component is decided by composition, not size. A `Toast` is a
+molecule despite being small, because it groups several atoms. A `WeekGridCell`
+is an atom despite being fiddly, because it contains nothing else.
+
+## Three ideas worth knowing before you read the code
+
+**Light first, dark equal.** Dark is a real theme with its own ramp, not an
+inversion. It is applied by a `.dark` class on an ancestor, never by a second
+set of Tailwind classes.
+
+**`ink/*` is mode-invariant.** Eight tokens form a self-contained dark palette
+for the CTA band, the sign-in panel and the rate-blind band. They are identical
+in light and dark. Ink is ink in both. The ordinary `muted-foreground` measures
+about 2:1 on ink and must never be used there.
+
+**Approvers never see money.** No rate, day rate or invoice value may render in
+an approver-scoped view. This is enforced by tests at both component and page
+level, not by convention.

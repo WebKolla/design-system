@@ -1,0 +1,125 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Conventions" />
+
+# Conventions
+
+The rules this library holds itself to, and which of them are enforced
+automatically rather than by review.
+
+---
+
+## Enforced by lint
+
+Both rules are verified to fire, not merely configured. A rule that never fires
+is worse than no rule.
+
+**No raw hex outside `src/tokens/`.** Covers string literals, template literals
+and JSX attributes. The regex is word-boundary anchored so it does not
+false-positive on Figma node IDs or `href="#pricing"`.
+
+The one exemption is `*.fixtures.ts`, which holds placeholder imagery for
+stories. An SVG data URI cannot reference a CSS custom property. **Do not widen
+this to `*.stories.tsx`.** Stories must stay token-only.
+
+**No external margin in `src/components/**`.** Bans `m-*`, `mt-*`, `-mx-*` and
+friends. Spacing between components belongs to the parent. Stories are exempt,
+since a story legitimately spaces its own demo layout.
+
+Note this fires on internal child margins too. That is not a false positive
+worth suppressing: the fix is flex `gap`, which is better layout anyway.
+
+**Gap:** ESLint does not lint CSS, so neither rule covers a `.css` file. The
+only stylesheet is the generated token file. If component-level CSS ever
+appears, add stylelint.
+
+## Enforced by test
+
+`npm test` mounts every story in headless Chromium and runs axe with
+`a11y.test: 'error'`, so a violation fails the run rather than reporting
+quietly. 252 tests across 68 files at the time of writing.
+
+Product rules are asserted, not trusted:
+
+| Rule | Where it is checked |
+|---|---|
+| Approvers never see money | Approval row, mobile approval card, and the whole approver-queue page |
+| The week grid never renders a zero | `WeekGridCell`, `WeekGridTotalRow`, and the timesheet page |
+| Table columns align | Header vs first row, by comparing their right edges |
+| The rate-blind banner cannot be dismissed | Banner, and the approver-queue page |
+| Every rail item has an accessible name | `NavRailItem` |
+
+---
+
+## File conventions
+
+**Shared constants go in `.ts`, never `.tsx`.** The docgen plugin annotates
+every exported binding in a `.tsx` file with `displayName` and `__docgenInfo`.
+An exported object silently gains two enumerable keys, which corrupts any
+`Object.keys()` over it. This produced a component that crashed on every story
+while the build stayed green.
+
+**One story file per component, colocated.** `Button/Button.tsx` and
+`Button/Button.stories.tsx`.
+
+**Optional props that a consumer may clear are typed `?: T | undefined`.**
+`exactOptionalPropertyTypes` is on, so `prop?: T` cannot receive an explicit
+`undefined`, which stories routinely need to do.
+
+## Story conventions
+
+Every component needs a default, every variant (a matrix is better than
+separate stories for review), interactive states, and edge content with the
+longest realistic string.
+
+**Copy in stories is real product copy.** Consultancy names, timesheet periods,
+invoice numbers. No lorem ipsum, no "Button button button". It is British
+English and should stay that way. Placeholder copy hides real layout problems,
+which is the entire reason edge-content stories exist.
+
+**Docs text is seeded from the Figma component description.** Those
+descriptions carry constraints that are invisible in the pixels, and they are
+the reason several components look over-specified.
+
+---
+
+## Known limits
+
+Worth knowing before you trust a green run.
+
+**Play functions cannot assert layout.** `getBoundingClientRect` returns
+pre-layout values inside one, and anything behind a `md:hidden` is
+`display: none` at test width so its computed padding reads `0px` regardless of
+what is declared. Both have produced tests that failed for the wrong reason and
+could never have passed. Relative comparison between two elements in the same
+pass does work, and is how column alignment is checked.
+
+**Side-by-side theme stories break landmark components.** Rendering a
+`SiteHeader` twice creates two `banner` landmarks and fails `landmark-unique`.
+That is a flaw in the comparison, not the component, so those two components
+have no side-by-side story. Use the Theme toolbar instead.
+
+**Second-order aliases cannot live in `@theme static`.** A token pointing at
+another semantic token, rather than at a primitive, gets resolved at build time
+and frozen at its light value. `chart-grid`, `chart-axis` and the shadcn
+mapping block use `@theme inline`; `--color-focus-ring` is a plain property
+declared in both `:root` and `.dark`, because the base layer reads it through
+`var()` and `inline` emits no variable.
+
+---
+
+## Open questions
+
+Design decisions, not defects. All are recorded in `NOTES.md` with measurements.
+
+- **Eight font sizes sit outside the 24-style ramp** (8.5, 10, 10.5, 11, 12,
+  16), used by Avatar, Chip, Tab, SubNavItem and two mobile atoms. Every value
+  is read from Figma, but none is token-backed, so a ramp change will not reach
+  them.
+- **`chart-3` at 2.58:1 and `chart-6` at 1.73:1** against surface in light
+  mode, below the 3:1 for graphical objects. Two of six series are hard to
+  separate from the background.
+- **`subtle-foreground` at 4.32:1**, just under AA for body text.
+- **Button Large is 42px** against a 44px minimum touch target on mobile. The
+  height is explicit in both Figma and SPEC, so this needs either an exception
+  or a mobile-specific size.
