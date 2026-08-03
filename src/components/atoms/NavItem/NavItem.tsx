@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Slot } from 'radix-ui'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
@@ -12,6 +13,24 @@ export interface NavItemProps
   badge?: string | number
   /** Render as a link. Omit for a button. */
   href?: string | undefined
+  /**
+   * Render as the child element instead of an `<a>` or `<button>` — the same
+   * escape hatch `Button` has, and for the same reason: a framework's router
+   * link needs the styling without the element.
+   *
+   * In a Next.js app this is the difference between a client-side transition
+   * and a full document load on every sidebar click.
+   *
+   * The child owns its own `href`; `href` and `type` are not injected. The
+   * icon, label and badge are still composed by this component and become the
+   * child's children, so pass a childless element:
+   * `<NavItem asChild label="Clients" icon={Building2}><Link href="/clients" /></NavItem>`
+   *
+   * @default false
+   */
+  asChild?: boolean
+  /** The element to render into when `asChild` is set. Ignored otherwise. */
+  children?: React.ReactNode
 }
 
 /**
@@ -26,24 +45,36 @@ export interface NavItemProps
  */
 export const NavItem = React.forwardRef<HTMLElement, NavItemProps>(
   function NavItem(
-    { label, icon: Glyph, active = false, badge, href, className, type, ...rest },
+    {
+      label,
+      icon: Glyph,
+      active = false,
+      badge,
+      href,
+      asChild = false,
+      className,
+      type,
+      children,
+      ...rest
+    },
     ref,
   ) {
     /*
-   * Renders an <a> when href is given, a <button> otherwise.
+   * Renders the consumer's element under asChild, an <a> when href is given,
+   * a <button> otherwise.
    *
-   * TypeScript cannot union the two elements' prop and ref types without a
+   * TypeScript cannot union the elements' prop and ref types without a
    * full polymorphic-component generic, which is a lot of machinery for a
    * two-case switch. One cast here, at the boundary, keeps the public props
    * fully typed for consumers.
    */
-  const Comp = (href ? 'a' : 'button') as React.ElementType
+  const Comp = (asChild ? Slot.Root : href ? 'a' : 'button') as React.ElementType
 
     return (
       <Comp
         {...rest}
         ref={ref as never}
-        {...(href ? { href } : { type: type ?? 'button' })}
+        {...(asChild ? {} : href ? { href } : { type: type ?? 'button' })}
         aria-current={active ? 'page' : undefined}
         className={cn(
           'flex h-8 w-full items-center gap-[9px] rounded-pip pr-[9px] text-ui-sm transition-colors',
@@ -53,6 +84,9 @@ export const NavItem = React.forwardRef<HTMLElement, NavItemProps>(
           className,
         )}
       >
+        {/* Slottable is what lets the composed icon/label/badge become the
+            consumer element's children rather than being discarded. */}
+        {asChild ? <Slot.Slottable>{children}</Slot.Slottable> : null}
         {active ? (
           <span aria-hidden className="bg-primary h-4 w-0.5 shrink-0 rounded-full" />
         ) : null}
