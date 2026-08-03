@@ -1356,3 +1356,82 @@ check quietly passing against browser defaults.
 - **A `Field` that wraps a `Textarea`.** `Field` is typed to `Input` and has no
   control slot, so the Dialog form story hand-rolls its label. Small, and a
   change to a shipped component's API, so it was left alone and recorded here.
+  **Done in FEAT-DSR2-015 — see below.**
+
+---
+
+## The `Field` control slot (FEAT-DSR2-015, 2026-08-03)
+
+`Field` now takes a `control` element and clones it with the wiring. Nine routes
+in the product need a labelled textarea, and the Dialog form story's hand-rolled
+label was the first instance of the drift.
+
+### The API, and the four things it is not
+
+`control?: React.ReactElement`, cloned with `id`, `aria-describedby`,
+`aria-invalid` and `invalid`. Omit it and `Field` renders its own `Input` from
+the remaining props, exactly as before.
+
+- **Not a render prop.** `control={(wiring) => <Textarea {...wiring} />}` hands
+  the a11y wiring back to the caller, and one forgotten spread on one screen
+  silently stops the error being announced — across nine routes, with nothing to
+  catch it. A slot the caller has to wire up has not solved the problem the task
+  set out to solve.
+- **Not `asChild` + `children`, despite that being the in-house idiom.** On
+  `Button`, `asChild` means "replace the element I render". `Field` renders a
+  wrapper, a label, a control and a message, so "replace which one?" has no
+  obvious answer, and reusing the word would make it mean two different things
+  in one library. `control` names the slot it fills.
+- **Not Radix `Slot`, even though the mechanism fits.** `Slot` lets the *child's*
+  props win. A caller-supplied `id` would then override `Field`'s and break the
+  `htmlFor` association the component exists to create — a hole in exactly the
+  place this change was meant to close. `cloneElement` puts `Field` last, so it
+  wins, and `Field.test.tsx` asserts it for both `id` and `aria-describedby`.
+- **Not a polymorphic `as`, and not a sibling `TextareaField`.** The first drags
+  every control's props through `Field`'s own type; the second is two components
+  to keep in step forever.
+
+`invalid` is a prop of this library's controls rather than an attribute, so a
+host element (`control={<textarea />}`) gets `aria-invalid` only and no React
+unknown-prop warning. The ARIA half is what is announced either way.
+
+### Ref typing, without `any`
+
+`forwardRef` is gone. The ref's element type depends on a sibling prop —
+`HTMLInputElement` when `Field` renders the input, and nothing at all when the
+caller owns the control and can put a ref on it directly — and `forwardRef`
+fixes one element type for the whole component. The props are a discriminated
+union instead (`FieldWithInputProps` | `FieldWithControlProps`), `ref` is a
+plain prop as React 19 allows, and `<Field control={…} ref={…} />` is a type
+error rather than a ref that silently goes nowhere.
+
+**Nothing existing broke.** Every current call site — `Contact`, `SignIn`,
+`ConsultantRecord`, and all five original stories — is the input variant and
+compiles unchanged; `control?: never` on that variant is what keeps it exact.
+The one cost is Storybook: `Meta<typeof Field>` collapses a union to `never`, so
+`Field.stories.tsx` types its meta as `Meta<FieldWithInputProps>`. That is a
+story-file annotation, not a consumer-facing break.
+
+### Proving the contrast run was real, not merely configured
+
+`Molecules/Field → IsActuallyStyled` reads computed styles off a rendered
+`Field`+`Textarea` inside the browser run: `--radius-button` resolves to `8px`,
+control padding is `8px 12px`, radius `8px`, border 1px, background not
+transparent, and the errored field's border colour differs from the healthy
+one's — which can only be true if `border-danger` and `border-input` were both
+generated.
+
+Then the negative control, which is the part that actually proves it:
+`tailwindcss()` was removed from `vitest.config.ts` and the Field stories rerun.
+`IsActuallyStyled` failed on the first assertion (`expected '' to be '8px'`) and
+**the other six Field stories, axe colour-contrast included, still passed**.
+That is the trap, reproduced on demand: without the plugin the a11y checks are
+green and meaningless. The plugin was restored and the full suite rerun.
+
+### Left undone
+
+`Field` has no **required marker**. `COMPONENTS.md` specifies a `*` in
+`--color-danger`, and the Dialog form story previously drew one by hand. It now
+passes `required` to the control instead, which is the half that is announced.
+The visible marker is a small, separate addition to `Field`'s API and was not
+smuggled into a change about control slots.

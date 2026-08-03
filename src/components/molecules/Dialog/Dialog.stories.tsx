@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
 import { Button } from '@/components/atoms/Button/Button'
 import { Textarea } from '@/components/atoms/Textarea/Textarea'
+import { Field } from '@/components/molecules/Field/Field'
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from './Dialog'
 
 const meta = {
@@ -88,14 +89,14 @@ export const FormSize: Story = {
           </>
         }
       >
-        {/* Not `Field`: it wraps an `Input` and has no slot for another
-            control. Noted as a follow-up rather than changed here. */}
-        <div className="flex w-full flex-col gap-1.5">
-          <label htmlFor="reject-reason" className="text-ui-sm text-muted-foreground">
-            Reason <span className="text-danger">*</span>
-          </label>
-          <Textarea id="reject-reason" placeholder="Say what needs changing." />
-        </div>
+        {/* `required` on the control, not a hand-drawn `*`: `Field` has no
+            required marker yet, and the attribute is the half that is
+            announced. The visible marker is recorded in NOTES.md. */}
+        <Field
+          label="Reason"
+          helper="Callum can resubmit, so say what needs changing."
+          control={<Textarea required placeholder="Say what needs changing." />}
+        />
       </DialogContent>
     </Dialog>
   ),

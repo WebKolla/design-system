@@ -68,6 +68,15 @@ height comes from `rows` rather than the 38px control height, padding is
 `resize="none"` for a fixed box in a dense form. Nothing else about it is its
 own.
 
+**`Field` is the label, the message and the wiring; the control is a slot.**
+It renders an `Input` by default, or clones whatever element is passed as
+`control` — a `Textarea` above all. Measured on a `Field` wrapping a `Textarea`
+in the browser run: label 12.5 / 500 in `--color-muted-foreground`, `gap: 6px`
+to the control, control padding `8px 12px` on `border-radius: 8px` with a 1px
+border, message 12.5 below. Identical to the `Input` case, which is the point:
+`aria-describedby`, `aria-invalid` and the `htmlFor`/`id` pair are computed in
+`Field` and never by the control.
+
 Currency, rate and hour inputs use `--font-mono` with a prefix glyph in
 `--color-subtle-foreground`.
 
