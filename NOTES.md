@@ -1356,3 +1356,166 @@ check quietly passing against browser defaults.
 - **A `Field` that wraps a `Textarea`.** `Field` is typed to `Input` and has no
   control slot, so the Dialog form story hand-rolls its label. Small, and a
   change to a shipped component's API, so it was left alone and recorded here.
+
+---
+
+## Shell slots, nav `asChild`, marketing content props — 2026-08-03
+
+Four additive changes so the application's layouts can be rebuilt on the
+library. Three landed. The fourth stopped, and the reason is the most useful
+thing in this section.
+
+The governing constraint for all four: **every change is additive and defaults
+to exactly today's rendering.** Nothing in this batch may move a story, a page
+composition or a measurement. Derive from what exists; nothing gets a new
+token. Test baseline before: **305 tests across 77 story files**, plus 5 unit
+tests in 1 file. After: **313 across 77**, plus 20 unit tests in 3 files. No
+existing test changed.
+
+`src/docs/ForDesigners.mdx` says Figma leads and code follows. The consuming
+project has deliberately suspended that for the duration of the rebuild, which
+is why props are being added here ahead of a Figma review. It is a suspension,
+not a repeal.
+
+### Slots replace, they never wrap
+
+`AppShell.headerActions`, `PortalShell.headerActions`,
+`SidebarExpanded.orgSlot`, `SidebarExpanded.accountSlot`.
+
+Each renders the static element when the slot is absent and the slot's content
+when present, and **each replaces the static element rather than wrapping it.**
+The statics are substitutes with nothing behind them: an org button with no
+handler, an avatar with no menu, a bell with no notifications. Wrapping would
+put a dead control beside a live one, and the user has no way to tell which is
+which.
+
+That matters more than it sounds. In the consuming app the Clerk `<UserButton>`
+these slots carry is **the only sign-out affordance in the entire product** —
+there is no `SignOutButton` and no `signOut()` call anywhere in it. Wrap rather
+than replace and you ship two things that look like the account control, one of
+which signs you out.
+
+The props feeding the statics — `org`, `orgInitials`, `user`, `role`,
+`userInitials` — stay required. `org` also feeds the `AppShell` breadcrumb, and
+making the set optional is a wider type change than this needs. They are simply
+not rendered when the slot is set, which is documented on each prop.
+
+`AppShell`'s period control is deliberately outside `headerActions`. It is
+gated by its own `period` prop and driven entirely by library state, so a
+caller who wants it gone can already say so.
+
+### `notifications` stays a number
+
+It was offered a node form (`number | React.ReactNode`) and refused, because
+`headerActions` already covers that case and two ways to say one thing is how
+a prop surface rots. The specific tell: `notifications` drives the button's
+`aria-label` — "Notifications, 3 unread" — which is meaningless for a node. The
+union would have carried a prop that is only ever correct on one of its two
+branches.
+
+### `asChild` on the nav atoms
+
+`NavItem`, `NavRailItem` and `TabBarItemMobile` all computed
+`Comp = href ? 'a' : 'button'`, forcing a real anchor. In a Next.js app that
+makes every sidebar, rail and tab-bar click a full document load, re-running
+Clerk bootstrapping and the app's sync effects on each navigation. Not
+incorrect; uniformly regressive.
+
+They now follow `Button`: same `Slot.Root` from `radix-ui`, same prop name,
+same default, same rule that the child owns its own `href` and `type`.
+
+**One forced difference from `Button`, worth knowing before copying the
+pattern again.** `Button`'s content under `asChild` is the consumer's own
+subtree, so it renders `children` and is done. These three compose their
+content from `label`, `icon` and `badge` props, so doing the same would
+silently discard the icon and the label — the component would still render, the
+test would still pass, and the sidebar would be blank. `Slot.Slottable` is what
+makes the composed content become the consumer element's children, so the
+caller passes a **childless** element:
+
+    <NavItem asChild label="Clients" icon={Building2}>
+      <Link href="/clients" />
+    </NavItem>
+
+### Marketing chrome takes its content as props
+
+`MarketingShell` imported `MARKETING_NAV` and `FOOTER` and accepted only
+`current`, so the app could not use it at all. It now takes `nav`, `footer`,
+`signIn` and `cta`, each defaulting to exactly what was hardcoded.
+
+`signIn` and `cta` were not in the brief and were added anyway: the app's
+"Get started" is an analytics-instrumented client component, and without those
+two props it cannot be reached. A prop that cannot be reached is the same
+blocker as a slot that does not exist.
+
+A string href could not express what the app has, so `NavLink` gains an
+optional `element` and `href` becomes optional in its place. Checked against
+the app before fixing the shape, the three cases are: framework router links
+(everywhere), an instrumented CTA, and a cookie-settings control that is a real
+`<button>` with no href at all. The last one is why `{label, href}` was not
+enough.
+
+The mechanism is the library's existing one — `Slot.Root` merges the computed
+className and `aria-current` onto the caller's element, `Slot.Slottable` makes
+the label its children. `SiteHeader` and `SiteFooter` share one internal
+`NavAnchor` so the two cannot drift on it. It is deliberately not in the
+organisms barrel, so it is not public API.
+
+Without `element`, `NavAnchor` emits the identical `<a href>` both components
+always rendered, **including emitting no `aria-current` attribute at all** when
+the entry is not current, which is what the footer relied on.
+
+### The logo asset — stopped, and why
+
+The task was to derive one SVG asset from what the three inline lockups already
+render, ship it, and convert all three. **The instruction was also to stop and
+report if the three do not agree. They do not agree, and there are five of them,
+not three.**
+
+| Call site | Tile | Mark type | Gap | Wordmark colour | Wrapper |
+|---|---|---|---|---|---|
+| `SidebarExpanded` | `size-5` · 20px | `text-[9.5px]` literal | `gap-2` · 8 | `text-foreground` | `<span>` |
+| `PortalShell` | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-foreground` | `<a href="/">` |
+| `SiteHeader` | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-foreground` | `<a href="/">` |
+| `SiteFooter` | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-ink-foreground` | `<span>` |
+| `SignIn` page | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-ink-foreground` | `<div>` |
+
+All five share the tile fill (`bg-primary`), the mark colour
+(`text-primary-foreground`), the radius (`rounded-control`, 7px), the mono
+family, the literal glyphs `TS`, and `text-heading-block` on the wordmark.
+
+The blocker is arithmetic, not taste. **The 20px lockup is not a uniform
+scaling of the 24px one**, so no single scalable asset reproduces both at
+today's rendering:
+
+- mark-to-tile ratio — 9.5 / 20 = **0.475**, against 10.5 / 24 = **0.4375**
+- gap-to-tile ratio — 8 / 20 = **0.400**, against 10 / 24 = **0.4167**
+
+An SVG scales uniformly. Shipping one means choosing a ratio, and choosing a
+ratio moves at least one of the five call sites. That is a design decision, and
+`ForDesigners.mdx` already records the 20px sidebar mark as a deliberate
+literal — one of five sizes held outside the type ramp precisely because it is a
+function of its container. Overriding that from a refactor would be exactly the
+wrong direction.
+
+There is a second, softer blocker: the wordmark colour is `text-foreground` on
+three surfaces and `text-ink-foreground` on two. That one is correct as it
+stands — the footer and the sign-in panel sit on ink — but it does mean the
+asset cannot own its own colour and must inherit, which constrains the shape of
+whatever gets built.
+
+**Not attempted, on purpose.** A `Logo` component with a two-entry lookup table
+would preserve all five call sites exactly, and it would only be the same two
+inline lockups behind one import. The first person to ask "which of these two is
+right" is asking a design question, and the honest answer today is that nobody
+has decided.
+
+**What is needed to unblock it:** a decision on one lockup ratio, or an explicit
+ruling that 20px and 24px are two separate sizes of one asset with different
+optical corrections — which is a normal thing for a logo to be, and is a design
+call, not a refactor. Either answer makes this a half-hour job.
+
+### Verification
+
+`vitest run` 333 passed in 80 files · `tsc --noEmit` clean · `eslint .` clean ·
+`storybook build` clean.
