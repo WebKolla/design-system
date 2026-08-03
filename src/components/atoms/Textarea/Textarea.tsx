@@ -41,16 +41,28 @@ export interface TextareaProps
  */
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   function Textarea(
-    { invalid = false, rows = 4, resize = 'vertical', className, disabled, ...rest },
+    {
+      invalid = false,
+      rows = 4,
+      resize = 'vertical',
+      className,
+      disabled,
+      'aria-invalid': ariaInvalid,
+      ...rest
+    },
     ref,
   ) {
+    // The prop or the attribute, as in `Input` and for the same reason:
+    // `Field` sends only the standard attribute.
+    const isInvalid = invalid || ariaInvalid === true || ariaInvalid === 'true'
+
     return (
       <textarea
         {...rest}
         ref={ref}
         rows={rows}
         disabled={disabled}
-        aria-invalid={invalid || undefined}
+        aria-invalid={isInvalid || undefined}
         className={cn(
           'w-full rounded-button border px-3 py-2 transition-colors',
           'bg-surface border-input',
@@ -59,7 +71,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           // faint-foreground survives here on purpose, as in Input: WCAG 1.4.3
           // exempts inactive controls, and looking unavailable is the point.
           'disabled:cursor-not-allowed disabled:bg-control disabled:text-faint-foreground',
-          invalid && 'border-danger',
+          isInvalid && 'border-danger',
           resize === 'vertical' ? 'resize-y' : 'resize-none',
           className,
         )}

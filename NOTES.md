@@ -1356,6 +1356,7 @@ check quietly passing against browser defaults.
 - **A `Field` that wraps a `Textarea`.** `Field` is typed to `Input` and has no
   control slot, so the Dialog form story hand-rolls its label. Small, and a
   change to a shipped component's API, so it was left alone and recorded here.
+  **Done in FEAT-DSR2-015 — see below.**
 
 ---
 
@@ -1575,3 +1576,156 @@ Before: `vitest run` 333 passed in 80 files.
 
 After: `vitest run` **347 passed in 82 files** (+9 stories, +5 call-site parity
 tests) · `tsc --noEmit` clean · `eslint .` clean · `storybook build` clean.
+
+---
+
+## The `Field` control slot (FEAT-DSR2-015, 2026-08-03)
+
+`Field` now takes a `control` element and clones it with the wiring. Nine routes
+in the product need a labelled textarea, and the Dialog form story's hand-rolled
+label was the first instance of the drift.
+
+### The API, and the four things it is not
+
+`control?: React.ReactElement`, cloned with `id`, `aria-describedby`,
+`aria-invalid` and `invalid`. Omit it and `Field` renders its own `Input` from
+the remaining props, exactly as before.
+
+- **Not a render prop.** `control={(wiring) => <Textarea {...wiring} />}` hands
+  the a11y wiring back to the caller, and one forgotten spread on one screen
+  silently stops the error being announced — across nine routes, with nothing to
+  catch it. A slot the caller has to wire up has not solved the problem the task
+  set out to solve.
+- **Not `asChild` + `children`, despite that being the in-house idiom.** On
+  `Button`, `asChild` means "replace the element I render". `Field` renders a
+  wrapper, a label, a control and a message, so "replace which one?" has no
+  obvious answer, and reusing the word would make it mean two different things
+  in one library. `control` names the slot it fills.
+- **Not Radix `Slot`, even though the mechanism fits.** `Slot` lets the *child's*
+  props win. A caller-supplied `id` would then override `Field`'s and break the
+  `htmlFor` association the component exists to create — a hole in exactly the
+  place this change was meant to close. `cloneElement` puts `Field` last, so it
+  wins, and `Field.test.tsx` asserts it for both `id` and `aria-describedby`.
+- **Not a polymorphic `as`, and not a sibling `TextareaField`.** The first drags
+  every control's props through `Field`'s own type; the second is two components
+  to keep in step forever.
+
+`invalid` is a prop of this library's controls rather than an attribute, so a
+host element (`control={<textarea />}`) gets `aria-invalid` only and no React
+unknown-prop warning. The ARIA half is what is announced either way.
+
+### Ref typing, without `any`
+
+`forwardRef` is gone. The ref's element type depends on a sibling prop —
+`HTMLInputElement` when `Field` renders the input, and nothing at all when the
+caller owns the control and can put a ref on it directly — and `forwardRef`
+fixes one element type for the whole component. The props are a discriminated
+union instead (`FieldWithInputProps` | `FieldWithControlProps`), `ref` is a
+plain prop as React 19 allows, and `<Field control={…} ref={…} />` is a type
+error rather than a ref that silently goes nowhere.
+
+**Nothing existing broke.** Every current call site — `Contact`, `SignIn`,
+`ConsultantRecord`, and all five original stories — is the input variant and
+compiles unchanged; `control?: never` on that variant is what keeps it exact.
+The one cost is Storybook: `Meta<typeof Field>` collapses a union to `never`, so
+`Field.stories.tsx` types its meta as `Meta<FieldWithInputProps>`. That is a
+story-file annotation, not a consumer-facing break.
+
+### Proving the contrast run was real, not merely configured
+
+`Molecules/Field → IsActuallyStyled` reads computed styles off a rendered
+`Field`+`Textarea` inside the browser run: `--radius-button` resolves to `8px`,
+control padding is `8px 12px`, radius `8px`, border 1px, background not
+transparent, and the errored field's border colour differs from the healthy
+one's — which can only be true if `border-danger` and `border-input` were both
+generated.
+
+Then the negative control, which is the part that actually proves it:
+`tailwindcss()` was removed from `vitest.config.ts` and the Field stories rerun.
+`IsActuallyStyled` failed on the first assertion (`expected '' to be '8px'`) and
+**the other six Field stories, axe colour-contrast included, still passed**.
+That is the trap, reproduced on demand: without the plugin the a11y checks are
+green and meaningless. The plugin was restored and the full suite rerun.
+
+### The accessibility audit, and the five things it found
+
+The control-slot design survived review — label association, `aria-invalid` on
+the control, `Field` winning over a caller's `id`, and the `cloneElement`-beats-
+`Slot` reasoning were all verified by execution. Five defects around it did not.
+
+**1. The error message had no live region (WCAG 4.1.3).** Swapping `helper` for
+`error` changed exactly one attribute on the control — `aria-invalid` — while
+`aria-describedby` kept pointing at the *same id*, because the error reuses the
+helper's id and only the text underneath changes. Nothing an AT watches changed.
+A screen reader user submitting with focus on the submit button heard silence,
+and `COMPONENTS.md:57` bans the usual fallback, so inline was the only channel
+and it was mute.
+
+`role="alert"` when `error` is set, and only then: an always-on alert announces
+helper text on mount. The `key` on that paragraph is load-bearing rather than a
+list key — an alert fires on *insertion*, and helper→error would otherwise
+update the existing node in place and announce nothing (Safari/VoiceOver in
+particular). Keying on the state forces the remount. A permanently-mounted
+`aria-live` wrapper was the alternative and would announce twice here, once for
+the region's contents and once for the alert inside it; `Toast` uses that form
+because it has no second channel to collide with.
+
+**2. A caller's `aria-describedby` was destroyed, on both paths.** Worst with no
+helper and no error, where a caller's value was overwritten with `undefined` —
+which made a `Field` with no helper text strictly worse than a bare `<input>`.
+It is merged now, caller first. "Field wins" is right for `id`, where there is
+one element and `htmlFor` depends on it, and wrong for a space-separated list
+that exists precisely so it can accumulate: a character counter, a password
+rules block, a shared date-format note.
+
+The test that claimed to cover this pointed at an id that did not exist in the
+DOM, so `toHaveAccessibleDescription` returned the helper text whether the
+implementation merged or overwrote. It proved nothing. The referenced element
+now exists and the assertion is the merged string.
+
+**3. The required marker, restored — a regression this branch introduced.** The
+gap was **symmetric**, which the first pass missed: `<Field label="A" required />`
+on the built-in `Input` path passed `required` through `...rest` and drew no
+marker either. So it was a missing `Field` prop, not a control-slot limitation.
+`required` now does both halves from one prop. Screen reader users were always
+fine; **sighted** users had lost the only pre-submission signal and fell back to
+the native validation bubble, which is transient and at 400% zoom can render
+outside the viewport — the after-the-fact validation `COMPONENTS.md:57` rules
+out. No existing screen passed `required` to a `Field`, so nothing changed
+visually outside the Dialog story, which is back to the specified `*`.
+
+**4. The slot no-opped silently for a Fragment.** `control={<><Textarea /></>}`
+produced `textarea id=""`, a label pointing at nothing and a control with no
+accessible name — and the type accepted it. `Children.only` plus a dev-only
+Fragment check now throw. The Fragment check has to be separate: a Fragment *is*
+a single valid child and swallows every prop cloned onto it. A composite that
+spreads onto a wrapper `<div>` has the same failure mode and cannot be detected
+from outside, so `FieldWithControlProps` documents the contract — forward `id`,
+`aria-describedby`, `aria-invalid` and `required` to the focusable element. The
+library's own `Input` is wrapper-plus-input and satisfies it only because it
+spreads onto the inner element. A regression net asserts the label's target
+matches `input, textarea, select, [tabindex]` for both controls.
+
+**5. `invalid` leaked to the DOM.** The guard tested `typeof control.type ===
+'string'`, which is the element's *type* rather than whether it supports the
+prop, so a composite forwarding unknown props triggered React's "Received
+`false` for a non-boolean attribute" warning.
+
+Of the two offered routes, `Field` now sends **no `invalid` at all** and
+`Input`/`Textarea` read `aria-invalid` for the danger border. The alternative —
+passing `invalid` only to this library's own controls — needs either a
+hard-coded allowlist or an opt-in static flag, and both make `Field` know which
+components are family. Driving from the standard attribute means `Field` emits
+only things any control can accept, there is no type sniffing left, and the
+border and the announced state come from one value. Both atoms keep their
+`invalid` prop for direct callers; it is now one of two inputs to the same
+boolean.
+
+**Also found while fixing.** `message = error ?? helper` meant `error=""` — what
+a form library hands back for "no error" — suppressed the helper text, since
+`??` only falls back on nullish. It is `||` now, which is how `invalid` already
+read the same value.
+
+**What is still not proven.** The live region has tests for the role and for the
+remount. Neither proves the *announcement*. That needs a real screen reader
+pass — VoiceOver/Safari and NVDA/Firefox — and has not been done.
