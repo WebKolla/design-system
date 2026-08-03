@@ -7,7 +7,23 @@ import { cn } from '@/lib/cn'
 export interface PortalShellProps
   extends React.ComponentPropsWithoutRef<'div'> {
   links: Array<{ label: string; href: string; current?: boolean }>
+  /**
+   * Still required. It is the fallback avatar, and it is ignored when
+   * `headerActions` is set.
+   */
   user: { name: string; initials: string }
+  /**
+   * Replaces the account avatar at the right of the header.
+   *
+   * **Replaces, does not wrap.** The avatar is a static substitute with no
+   * menu behind it. Wrapping would put a dead avatar next to a live account
+   * control and leave two things that look like the same affordance.
+   *
+   * In the consuming app this carries Clerk's `<UserButton>`, which is the
+   * only sign-out affordance in the product — without this prop these two
+   * portals are a place the user cannot leave.
+   */
+  headerActions?: React.ReactNode | undefined
   /** Bottom tab bar below 834 — these portals otherwise have no mobile nav. */
   mobileTabs: Array<{
     label: string
@@ -32,6 +48,7 @@ export interface PortalShellProps
 export function PortalShell({
   links,
   user,
+  headerActions,
   mobileTabs,
   children,
   className,
@@ -76,7 +93,9 @@ export function PortalShell({
           </nav>
         </div>
 
-        <Avatar initials={user.initials} size={26} tone="primary" label={user.name} />
+        {headerActions ?? (
+          <Avatar initials={user.initials} size={26} tone="primary" label={user.name} />
+        )}
       </header>
 
       <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>

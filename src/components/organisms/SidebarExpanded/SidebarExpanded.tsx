@@ -34,6 +34,32 @@ export interface SidebarExpandedProps
   plan?:
     | { name: string; seatsUsed: number; seatsTotal: number; note: string }
     | undefined
+  /**
+   * Replaces the org switcher button.
+   *
+   * **Replaces, does not wrap.** The button this stands in for is a static
+   * substitute with no handler — it looks like an org switcher and does
+   * nothing. Wrapping would render the placeholder next to the real control
+   * and leave two things that look like the same affordance, one of them dead.
+   * The rule is the same for every slot here: a slot replaces the static
+   * element it stands in for.
+   *
+   * `org` and `orgInitials` are still required and still feed the breadcrumb in
+   * `AppShell`; they are simply not rendered here when this is set.
+   */
+  orgSlot?: React.ReactNode | undefined
+  /**
+   * Replaces the avatar, name and role block at the foot of the sidebar.
+   *
+   * **Replaces, does not wrap** — see `orgSlot`. In the consuming app this
+   * carries Clerk's `<UserButton>`, which is the only sign-out affordance in
+   * the product, so rendering it *beside* a static avatar would give two user
+   * controls where only one signs you out.
+   *
+   * `user`, `role` and `userInitials` stay required and are simply not
+   * rendered when this is set.
+   */
+  accountSlot?: React.ReactNode | undefined
 }
 
 /**
@@ -54,7 +80,20 @@ export const SidebarExpanded = React.forwardRef<
   HTMLElement,
   SidebarExpandedProps
 >(function SidebarExpanded(
-  { org, orgInitials, user, role, userInitials, overview, groups, plan, className, ...rest },
+  {
+    org,
+    orgInitials,
+    user,
+    role,
+    userInitials,
+    overview,
+    groups,
+    plan,
+    orgSlot,
+    accountSlot,
+    className,
+    ...rest
+  },
   ref,
 ) {
   return (
@@ -78,13 +117,15 @@ export const SidebarExpanded = React.forwardRef<
           <span className="text-heading-block text-foreground">TimeSubmit</span>
         </span>
 
-        <button
-          type="button"
-          className="hover:bg-control flex items-center gap-2 rounded-control px-1.5 py-1.5 text-left transition-colors"
-        >
-          <Avatar initials={orgInitials} size={20} tone="primary" label={org} />
-          <span className="text-ui-sm text-foreground truncate">{org}</span>
-        </button>
+        {orgSlot ?? (
+          <button
+            type="button"
+            className="hover:bg-control flex items-center gap-2 rounded-control px-1.5 py-1.5 text-left transition-colors"
+          >
+            <Avatar initials={orgInitials} size={20} tone="primary" label={org} />
+            <span className="text-ui-sm text-foreground truncate">{org}</span>
+          </button>
+        )}
 
         <button
           type="button"
@@ -137,15 +178,17 @@ export const SidebarExpanded = React.forwardRef<
           />
         ) : null}
 
-        <div className="flex items-center gap-2.5">
-          <Avatar initials={userInitials} size={26} tone="primary" label={user} />
-          <span className="flex min-w-0 flex-col">
-            <span className="text-ui-sm text-foreground truncate">{user}</span>
-            <span className="text-body-micro text-subtle-foreground truncate">
-              {role}
+        {accountSlot ?? (
+          <div className="flex items-center gap-2.5">
+            <Avatar initials={userInitials} size={26} tone="primary" label={user} />
+            <span className="flex min-w-0 flex-col">
+              <span className="text-ui-sm text-foreground truncate">{user}</span>
+              <span className="text-body-micro text-subtle-foreground truncate">
+                {role}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
+        )}
       </div>
     </aside>
   )

@@ -129,3 +129,58 @@ export const StructureIsSound: Story = {
     )
   },
 }
+
+/**
+ * Both slots absent — the default. The static org switcher and the static
+ * account block still render exactly as they always have. This is the guard
+ * for every existing page composition.
+ */
+export const StaticAccountAndOrgByDefault: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(
+      canvas.getByRole('button', { name: /Meridian Partners/ }),
+    ).toBeInTheDocument()
+    await expect(canvas.getByText('Diane Rowe')).toBeInTheDocument()
+    await expect(canvas.getByText('Consultancy admin')).toBeInTheDocument()
+  },
+}
+
+/**
+ * `orgSlot` and `accountSlot` carry the consuming app's real controls —
+ * Clerk's `<OrganizationSwitcher>` and `<UserButton>`.
+ *
+ * **They replace the static elements, they do not wrap them.** The statics are
+ * substitutes with no behaviour behind them; rendering both would leave a dead
+ * avatar beside the live one, and only one of them signs you out.
+ */
+export const WithSlots: Story = {
+  args: {
+    orgSlot: (
+      <button type="button" className="text-ui-sm text-foreground px-1.5 py-1.5 text-left">
+        Organisation switcher
+      </button>
+    ),
+    accountSlot: (
+      <button type="button" className="text-ui-sm text-foreground text-left">
+        Account menu
+      </button>
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(
+      canvas.getByRole('button', { name: 'Organisation switcher' }),
+    ).toBeInTheDocument()
+    await expect(
+      canvas.getByRole('button', { name: 'Account menu' }),
+    ).toBeInTheDocument()
+
+    // Replaced, not wrapped.
+    await expect(
+      canvas.queryByRole('button', { name: /Meridian Partners/ }),
+    ).toBeNull()
+    await expect(canvas.queryByText('Diane Rowe')).toBeNull()
+    await expect(canvas.queryByText('Consultancy admin')).toBeNull()
+  },
+}
