@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { cn } from '@/lib/cn'
 import type { NavLink } from '../SiteHeader/SiteHeader'
 import { NavAnchor, navKey } from '../SiteHeader/NavAnchor'
@@ -41,15 +42,9 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
       >
         <div className="flex flex-wrap gap-10">
           <div className="flex min-w-[260px] flex-1 flex-col gap-3">
-            <span className="flex items-center gap-2.5">
-              <span
-                aria-hidden
-                className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-control font-mono text-mono-count"
-              >
-                TS
-              </span>
-              <span className="text-heading-block text-ink-foreground">{brand}</span>
-            </span>
+            {/* `tone="ink"`: the wordmark sits on the ink surface, so it takes
+                the mode-invariant `ink-foreground` rather than `foreground`. */}
+            <Logo brand={brand} tone="ink" />
             <p className="text-body-cell text-ink-subtle max-w-[36ch]">{blurb}</p>
             <ul className="flex items-center gap-4">
               {social.map((s) => (

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Search } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { NavItem } from '@/components/atoms/NavItem/NavItem'
 import { CompletenessCard } from '@/components/molecules/CompletenessCard/CompletenessCard'
 import { cn } from '@/lib/cn'
@@ -106,16 +107,8 @@ export const SidebarExpanded = React.forwardRef<
       )}
     >
       <div className="flex flex-col gap-2.5">
-        <span className="flex items-center gap-2">
-          {/* 9.5px is a literal: the mark is sized to the 20px tile. */}
-          <span
-            aria-hidden
-            className="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-control font-mono text-[9.5px]"
-          >
-            TS
-          </span>
-          <span className="text-heading-block text-foreground">TimeSubmit</span>
-        </span>
+        {/* `sm` is the 20px lockup, and it is not the 24px one scaled — see Logo. */}
+        <Logo size="sm" />
 
         {orgSlot ?? (
           <button

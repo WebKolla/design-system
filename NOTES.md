@@ -1465,12 +1465,21 @@ Without `element`, `NavAnchor` emits the identical `<a href>` both components
 always rendered, **including emitting no `aria-current` attribute at all** when
 the entry is not current, which is what the footer relied on.
 
-### The logo asset — stopped, and why
+### The `Logo` component — shipped, as two lockups behind one import
 
-The task was to derive one SVG asset from what the three inline lockups already
-render, ship it, and convert all three. **The instruction was also to stop and
-report if the three do not agree. They do not agree, and there are five of them,
-not three.**
+This entry previously read "stopped, and why". The blocker was a design decision
+nobody had taken; it has now been taken, and the ruling was the second of the two
+options this entry asked for: **20px and 24px are two separate sizes of one mark,
+with different optical corrections.** So `Logo` ships with `size="sm"` and
+`size="md"`, each reproducing its call sites exactly as they rendered before, and
+all five call sites now consume it.
+
+The original finding stands and is kept below, because it is the reason the
+component looks the way it does.
+
+The task had been to derive one SVG asset from what the three inline lockups
+already render. **The instruction was also to stop and report if the three do not
+agree. They did not agree, and there were five of them, not three.**
 
 | Call site | Tile | Mark type | Gap | Wordmark colour | Wrapper |
 |---|---|---|---|---|---|
@@ -1504,18 +1513,65 @@ stands — the footer and the sign-in panel sit on ink — but it does mean the
 asset cannot own its own colour and must inherit, which constrains the shape of
 whatever gets built.
 
-**Not attempted, on purpose.** A `Logo` component with a two-entry lookup table
-would preserve all five call sites exactly, and it would only be the same two
-inline lockups behind one import. The first person to ask "which of these two is
-right" is asking a design question, and the honest answer today is that nobody
-has decided.
+**No SVG asset was shipped, and that has not changed.** An SVG scales uniformly,
+so one file still cannot be both lockups. What shipped is a React component that
+composes the same two lockups from the same utilities.
 
-**What is needed to unblock it:** a decision on one lockup ratio, or an explicit
-ruling that 20px and 24px are two separate sizes of one asset with different
-optical corrections — which is a normal thing for a logo to be, and is a design
-call, not a refactor. Either answer makes this a half-hour job.
+#### What was decided, and why two geometries behind one component is right
+
+The point of the change is **one source for the mark, not one geometry.** Before
+it, a change to the tile meant finding five inline copies and getting all five
+right. That was the actual cost. The ratio disagreement was never the cost; it
+was a fact about the mark that the refactor kept tripping over.
+
+Holding both sizes is therefore not a compromise, it is the correct reading:
+optical correction at small sizes is ordinary for a wordmark, `ForDesigners.mdx`
+already records the 20px sidebar mark as one of five deliberate literals held
+outside the type ramp, and unifying the ratio would have moved a rendered screen
+to make a component tidier. The two sizes are drawn, not computed. `Logo.tsx`
+says so above `logoVariants`, and `SmGeometry` / `MdGeometry` in the story file
+assert both numbers so that the next person to "fix" the ratio fails a test
+rather than shipping it.
+
+#### The API, and why
+
+- **`size: 'sm' | 'md'`** — named for the lockup, not for a pixel value, because
+  the pixel value is two numbers (tile and mark) that do not scale together.
+- **`tone: 'default' | 'ink'`** — the wordmark colour difference. This is a
+  *surface* question, not a palette one: `ink/*` is the mode-invariant set, and
+  on the ink footer and sign-in panel `foreground` flips with the theme and lands
+  near 2:1. A closed two-value `tone` matches `Avatar` and `Chip`; an open
+  `color` prop, or leaving it to `className`, would invite a third answer for a
+  surface the design system has not defined. **No new token was introduced.** The
+  tile keeps `bg-primary` in both tones, which is what all five call sites
+  already rendered.
+- **`href`** for the two anchor call sites, **`asChild`** for everything else —
+  the same escape hatch `Button` and `NavItem` already have, mirroring `NavItem`
+  down to the `Slot.Slottable`. `SignIn` needs it for a positioned `<div>` it
+  cannot otherwise keep; an application needs it for a router link.
+- **`brand`** defaults to `TimeSubmit`. The tile stays the literal `TS` and does
+  *not* follow it — that is existing behaviour of `SiteHeader` and `SiteFooter`,
+  preserved rather than improved.
+
+#### How "identical to before" was proved
+
+`src/components/atoms/Logo/logo-call-sites.test.tsx` holds the pre-change markup
+of all five call sites, transcribed verbatim, and asserts each converted call
+site still serialises to it. **It was written and run green against the
+unconverted call sites first**, so the baselines are transcriptions rather than
+descriptions of whatever the new component happens to emit. Without that ordering
+the file proves nothing, which is the trap it exists to avoid.
+
+One normalisation: class tokens are sorted before comparison, because `cva` plus
+`cn` emits the same set of utilities in a different order and attribute order has
+no effect on what Tailwind applies. Tag names, nesting, text and every other
+attribute are compared exactly. All five behaved exactly as the table above
+predicted — no sixth call site, and no pair that was expected to match and did
+not.
 
 ### Verification
 
-`vitest run` 333 passed in 80 files · `tsc --noEmit` clean · `eslint .` clean ·
-`storybook build` clean.
+Before: `vitest run` 333 passed in 80 files.
+
+After: `vitest run` **347 passed in 82 files** (+9 stories, +5 call-site parity
+tests) · `tsc --noEmit` clean · `eslint .` clean · `storybook build` clean.

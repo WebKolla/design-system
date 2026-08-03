@@ -283,6 +283,44 @@ Clerk holds.
 
 ---
 
+## Logo
+
+The `TS` tile and the wordmark. **Two sizes, and they are not scalings of each
+other.**
+
+| Size | Tile | Mark | Gap | Used by |
+|---|---|---|---|---|
+| sm | 20 | 9.5 | 8 | Expanded sidebar |
+| md | 24 | 10.5 (`mono/count`) | 10 | Site header, portal header, site footer, sign in |
+
+20/24 × 10.5 = 8.75, not 9.5 — the sidebar mark is 8.6% larger than the ratio.
+That is optical correction, not drift: a mark set to the arithmetic ratio reads
+thin and recessive at 20px, and `ForDesigners` already holds the 20px sidebar
+mark as one of five literals deliberately outside the type ramp. The two lockups
+are drawn, not computed. `Logo.stories.tsx` asserts both sets of numbers in the
+browser, so unifying the ratio fails a test.
+
+Shared by both sizes: tile fill `bg-primary`, mark `text-primary-foreground`,
+radius `rounded-control` (7), mono family, the literal glyphs `TS`, and
+`text-heading-block` on the wordmark.
+
+**`tone`** is `default` (`text-foreground`) or `ink` (`text-ink-foreground`).
+Ink is for the two ink surfaces — the site footer and the sign-in panel — where
+`foreground` flips with the theme and measures around 2:1. It is a surface
+choice, not a colour override; there is no third value and no new token. The
+tile keeps `bg-primary` in both.
+
+**`href`** renders the lockup as one link home. **`asChild`** renders it into an
+element you supply, for a router link or a positioned wrapper. **`brand`**
+defaults to `TimeSubmit` and drives the wordmark only — the tile stays `TS`.
+
+Built on 3 August 2026 by deriving all five inline lockups it replaces, with a
+test per call site asserting the rendered output is unchanged. No new token, no
+new geometry. **Unreviewed by design**, on the same terms as the ten primitives
+above.
+
+---
+
 ## Toast
 
 Bottom right · radius 10 · `e2` · max-width 380 · 13.5 text.

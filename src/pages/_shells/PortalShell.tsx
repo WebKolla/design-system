@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { MobileTabBar } from './MobileTabBar'
 import type { SidebarExpandedProps } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
 import { cn } from '@/lib/cn'
@@ -61,15 +62,7 @@ export function PortalShell({
     >
       <header className="border-hairline bg-surface flex h-13 shrink-0 items-center justify-between gap-6 border-b px-7">
         <div className="flex min-w-0 items-center gap-8">
-          <a href="/" className="flex shrink-0 items-center gap-2.5">
-            <span
-              aria-hidden
-              className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-control font-mono text-mono-count"
-            >
-              TS
-            </span>
-            <span className="text-heading-block text-foreground">TimeSubmit</span>
-          </a>
+          <Logo href="/" className="shrink-0" />
 
           <nav aria-label="Main" className="hidden md:block">
             <ul className="flex items-center gap-6">

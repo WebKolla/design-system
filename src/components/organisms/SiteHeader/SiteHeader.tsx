@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Button } from '@/components/atoms/Button/Button'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { NavAnchor, navKey } from './NavAnchor'
 import { cn } from '@/lib/cn'
 
@@ -63,15 +64,7 @@ export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
         )}
       >
         <div className="flex items-center gap-8">
-          <a href="/" className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-control font-mono text-mono-count"
-            >
-              TS
-            </span>
-            <span className="text-heading-block text-foreground">{brand}</span>
-          </a>
+          <Logo href="/" brand={brand} />
 
           <nav aria-label="Main">
             <ul className="flex items-center gap-6">
