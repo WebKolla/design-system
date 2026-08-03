@@ -1,31 +1,28 @@
 import * as React from 'react'
 import { Button } from '@/components/atoms/Button/Button'
 import { Logo } from '@/components/atoms/Logo/Logo'
-import { NavAnchor, navKey } from './NavAnchor'
+import { NavAnchor } from './NavAnchor'
+import { navKey, type NavTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
-export interface NavLink {
+/**
+ * One marketing chrome entry.
+ *
+ * Extends `NavTarget`, the same `href`-or-`element` pair the shells' navigation
+ * destinations use, so the library has one answer to "how do I hand this a
+ * router link" rather than two that drift.
+ *
+ * `element` receives the chrome's className and `aria-current`, and `label`
+ * becomes its children, so **pass a childless element** — see `NavElement`.
+ * This is what lets an entry be a framework router link, an
+ * analytics-instrumented CTA, or a real `<button>` such as a cookie-settings
+ * control, none of which a string href can express.
+ *
+ * Omit it and the output is exactly the `<a href>` this has always rendered.
+ */
+export interface NavLink extends NavTarget {
   label: string
-  /**
-   * Optional only because an entry may instead supply `element` — a
-   * cookie-settings control is a `<button>` with no href. Supply one or the
-   * other.
-   */
-  href?: string | undefined
   current?: boolean
-  /**
-   * Render this element instead of the generated `<a>`, using the same
-   * `asChild` mechanism as `Button` and the nav atoms.
-   *
-   * It receives the chrome's className and `aria-current`, and `label` becomes
-   * its children, so pass a childless element. This is what lets an entry be a
-   * framework router link, an analytics-instrumented CTA, or a real `<button>`
-   * such as a cookie-settings control — none of which a string href can
-   * express.
-   *
-   * Omit it and the output is exactly the `<a href>` this has always rendered.
-   */
-  element?: React.ReactElement | undefined
 }
 
 export interface SiteHeaderProps

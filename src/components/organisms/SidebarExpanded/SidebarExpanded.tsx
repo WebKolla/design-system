@@ -5,12 +5,25 @@ import { Avatar } from '@/components/atoms/Avatar/Avatar'
 import { Logo } from '@/components/atoms/Logo/Logo'
 import { NavItem } from '@/components/atoms/NavItem/NavItem'
 import { CompletenessCard } from '@/components/molecules/CompletenessCard/CompletenessCard'
+import { navKey, navTarget, type NavTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
-export interface SidebarDestination {
+export interface SidebarDestination extends NavTarget {
   label: string
   icon: LucideIcon
-  href: string
+  /**
+   * The destination.
+   *
+   * Optional only because `element` is the alternative — supply one or the
+   * other. In a Next.js application `element` is the difference between a
+   * client-side transition and a full document load on every sidebar click:
+   * `element={<Link href="/clients" />}`.
+   *
+   * **Pass a childless element.** This component composes the icon, label and
+   * badge, and under `asChild` they become the element's children. See
+   * `NavElement`.
+   */
+  href?: string | undefined
   current?: boolean
   badge?: string | number
 }
@@ -134,7 +147,7 @@ export const SidebarExpanded = React.forwardRef<
         <NavItem
           label={overview.label}
           icon={overview.icon}
-          href={overview.href}
+          {...navTarget(overview)}
           {...(overview.current ? { active: true } : {})}
           {...(overview.badge !== undefined ? { badge: overview.badge } : {})}
         />
@@ -146,10 +159,10 @@ export const SidebarExpanded = React.forwardRef<
             </span>
             {group.items.map((item) => (
               <NavItem
-                key={item.href}
+                key={navKey(item)}
                 label={item.label}
                 icon={item.icon}
-                href={item.href}
+                {...navTarget(item)}
                 {...(item.current ? { active: true } : {})}
                 {...(item.badge !== undefined ? { badge: item.badge } : {})}
               />

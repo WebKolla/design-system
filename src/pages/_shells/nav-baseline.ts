@@ -1,0 +1,32 @@
+/**
+ * Default-render baselines for the shell navigation, **captured from this
+ * branch immediately before `element` reached the shells** (commit 0aced5,
+ * FEAT-DSR2-015) by rendering the real shells and serialising the result.
+ *
+ * They are transcriptions of what the shells emitted, not descriptions of what
+ * they now emit — the capture ran against the unchanged code, exactly as
+ * `logo-call-sites.test.tsx` did for the `Logo` conversion. That ordering is
+ * the whole point: a baseline written after the change proves nothing.
+ *
+ * `nav-defaults.test.tsx` asserts the shells still emit these byte for byte
+ * when only `href` is supplied. That is what protects existing consumers, the
+ * twelve page compositions and every measurement taken against them.
+ *
+ * Do not regenerate these to make a test pass. A diff here is a real change to
+ * what every existing consumer renders.
+ */
+
+export const SIDEBAR_NAV =
+  "<nav aria-label=\"Sidebar\" class=\"flex flex-col gap-0.5\"><a href=\"/dashboard\" aria-current=\"page\" class=\"flex h-8 w-full items-center gap-[9px] rounded-pip pr-[9px] text-ui-sm transition-colors bg-primary-soft text-primary pl-[5px]\"><span aria-hidden=\"true\" class=\"bg-primary h-4 w-0.5 shrink-0 rounded-full\"></span><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-layout-dashboard size-4 shrink-0\" aria-hidden=\"true\"><rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"></rect><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"></rect><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"></rect><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"></rect></svg><span class=\"flex-1 truncate text-left\">Overview</span></a><div class=\"flex flex-col gap-0.5 pt-3\"><span class=\"text-ui-nav-section text-subtle-foreground px-2 uppercase\">Work</span><a href=\"/timesheets\" class=\"flex h-8 w-full items-center gap-[9px] rounded-pip pr-[9px] text-ui-sm transition-colors text-muted-foreground hover:bg-control pl-[9px]\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock size-4 shrink-0\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg><span class=\"flex-1 truncate text-left\">Timesheets</span><span class=\"text-muted-foreground font-mono text-mono-count tabular-nums\">4</span></a></div></nav>"
+
+export const APP_RAIL =
+  "<nav aria-label=\"Main\" class=\"border-border bg-surface-raised hidden w-[52px] shrink-0 flex-col items-center gap-1 border-r py-3 md:flex xl:hidden\"><a href=\"/dashboard\" aria-label=\"Overview\" title=\"Overview\" aria-current=\"page\" class=\"inline-flex size-9 items-center justify-center rounded-button transition-colors bg-primary-soft text-primary\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-layout-dashboard size-4 shrink-0\" aria-hidden=\"true\"><rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"></rect><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"></rect><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"></rect><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"></rect></svg></a><a href=\"/timesheets\" aria-label=\"Timesheets\" title=\"Timesheets\" class=\"inline-flex size-9 items-center justify-center rounded-button transition-colors text-muted-foreground hover:bg-control\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock size-4 shrink-0\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg></a></nav>"
+
+export const TAB_BAR =
+  "<nav aria-label=\"Primary\" class=\"border-border bg-surface fixed inset-x-0 bottom-0 flex items-stretch border-t md:hidden pt-3 pb-[env(safe-area-inset-bottom)]\"><a href=\"/dashboard\" aria-current=\"page\" class=\"inline-flex h-[52px] flex-1 flex-col items-center justify-center gap-1 transition-colors text-primary\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-layout-dashboard size-5 shrink-0\" aria-hidden=\"true\"><rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"></rect><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"></rect><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"></rect><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"></rect></svg><span class=\"text-ui-micro\">Overview</span></a><a href=\"/timesheets\" class=\"inline-flex h-[52px] flex-1 flex-col items-center justify-center gap-1 transition-colors text-subtle-foreground\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock size-5 shrink-0\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg><span class=\"text-ui-micro\">Timesheets</span></a></nav>"
+
+export const PORTAL_NAV =
+  "<nav aria-label=\"Main\" class=\"hidden md:block\"><ul class=\"flex items-center gap-6\"><li><a href=\"/timesheets\" aria-current=\"page\" class=\"text-ui-md transition-colors text-foreground\">Timesheets</a></li><li><a href=\"/invoices\" class=\"text-ui-md transition-colors text-muted-foreground hover:text-foreground\">Invoices</a></li></ul></nav>"
+
+export const PORTAL_LOGO =
+  "<a href=\"/\" class=\"flex items-center gap-2.5 shrink-0\"><span aria-hidden=\"true\" class=\"bg-primary text-primary-foreground flex items-center justify-center rounded-control font-mono size-6 text-mono-count\">TS</span><span class=\"text-heading-block text-foreground\">TimeSubmit</span></a>"

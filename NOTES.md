@@ -1729,3 +1729,73 @@ read the same value.
 **What is still not proven.** The live region has tests for the role and for the
 remount. Neither proves the *announcement*. That needs a real screen reader
 pass — VoiceOver/Safari and NVDA/Firefox — and has not been done.
+
+## Making the nav atoms' `asChild` reachable (BUG-DSR2-009, 2026-08-03)
+
+`asChild` landed on `NavItem`, `NavRailItem` and `TabBarItemMobile` in the
+earlier shell-slots work and **closed nothing**, because no shell exposed a way
+to reach it. Each took a `string` href and built the element itself, so a
+consumer holding a `next/link` had nowhere to put it. The measured consequence
+in the consuming app: every sidebar, rail, tab-bar and portal-nav click became a
+full document load, re-running Clerk bootstrapping and four sync effects on
+every navigation, where those had been client-side transitions before the shells
+landed. A prop that cannot be reached is the same blocker as a prop that does
+not exist — which is the lesson from `MarketingShell.signIn`, recorded above,
+arrived at twice now.
+
+**One mechanism, not four.** `src/lib/nav-slot.ts` holds `NavTarget` (the
+`href`-or-`element` pair), `navTarget()` (the branch), `navKey()` (the React key,
+since an element destination hides its href inside the consumer's element) and
+the childless guard. `SidebarDestination`, `MobileTab` and `NavLink` all extend
+`NavTarget`, and `SiteHeader`'s local `navKey` is now a re-export, so marketing
+chrome and application chrome cannot drift on what identifies a destination.
+
+**`PortalShell`'s top nav uses `NavAnchor`, not `NavItem`** — the brief asked
+for the atom "unless there is a reason". There is. `NavItem` is the 236px
+sidebar row: it *requires* an `icon` and draws a 32px full-width pill with an
+active bar and a badge slot. The portal nav is a horizontal text link with no
+icon, and its className was already character-for-character the one `SiteHeader`
+gives its entries. Routing it through `NavItem` would change every portal header
+in the product and demand an invented icon per link; routing it through
+`NavAnchor` — the renderer `SiteHeader` and `SiteFooter` already share — changes
+nothing and gains `element`. That is also the brief's "reuse `NavAnchor` where it
+fits" satisfied by the same edit.
+
+**Two structural copies removed.** `AppShell.mobileTabs` and
+`PortalShell.mobileTabs` each declared their own inline copy of `MobileTab`.
+They were identical and fed straight into `MobileTabBar`, and they drifted the
+instant `MobileTab` gained `element`, leaving the tab bar's escape hatch
+unreachable through both shells that render it. Both now reference `MobileTab`.
+
+**The childless contract cannot be typed, so it is enforced at runtime.**
+`asChild` on these atoms takes a childless element: they compose from
+`label`/`icon`/`badge`, and under `Slot.Slottable` that content becomes *the
+consumer's element's* children, so an element bringing its own children discards
+the icon and label with no error at all. `ReactElement<{children?: never}>` looks
+like the answer and was tried and rejected against this repo's TypeScript: a JSX
+literal is `JSX.Element` = `ReactElement<any, any>`, so `<a href="/x">Text</a>`
+satisfies it, while a correctly childless element held in a `React.ReactElement`
+variable widens to `ReactElement<unknown>` and is *rejected*. It accepts the
+mistake and rejects the correct code — exactly backwards. So `warnIfNotChildless`
+logs a development warning at the one chokepoint every path already goes
+through. A warning and not a throw: the mistake costs an icon, and taking the
+application down over it would be the larger fault.
+
+**How "unchanged" was proved.** Not by spot assertions. `nav-baseline.ts` holds
+the `outerHTML` of the sidebar nav, the rail, the tab bar, the portal nav and
+the portal logo, **captured by rendering the shells before the change** and
+frozen; `nav-defaults.test.tsx` asserts byte equality after it. Attribute order,
+class token order, element order and the icon SVGs are all in scope, which is
+what a spot assertion misses and a measurement notices. Same ordering discipline
+as `logo-call-sites.test.tsx`, and for the same reason: a baseline written after
+the change proves nothing.
+
+384 tests in 83 files before, 410 in 86 after. `tsc --noEmit` and `eslint .`
+both clean, `storybook build` succeeds. No story, page composition or
+measurement moved.
+
+**Not done.** No story was added for `element`. The shells have no story files —
+they are exercised through the twelve page compositions — and adding one for a
+prop whose correct render is *identical to the default* would be a story that
+looks like a duplicate. It is documented in `COMPONENTS.md` under Navigation
+instead.

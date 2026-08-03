@@ -5,7 +5,8 @@ import {
   type SidebarExpandedProps,
 } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
 import { NavRailItem } from '@/components/atoms/NavRailItem/NavRailItem'
-import { MobileTabBar } from './MobileTabBar'
+import { MobileTabBar, type MobileTab } from './MobileTabBar'
+import { navKey, navTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
 export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -44,8 +45,15 @@ export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
    * without this prop the dashboard has no exit.
    */
   headerActions?: React.ReactNode | undefined
-  /** Five plus More. Populated from the sidebar's daily destinations. */
-  mobileTabs: Array<{ label: string; icon: SidebarExpandedProps['overview']['icon']; href: string; current?: boolean }>
+  /**
+   * Five plus More. Populated from the sidebar's daily destinations.
+   *
+   * `MobileTab` rather than the structural copy this used to declare inline.
+   * The copy was identical, went straight to `MobileTabBar`, and drifted the
+   * moment `MobileTab` gained `element` — leaving a prop the shell could not
+   * pass on. One type, so it cannot happen again.
+   */
+  mobileTabs: MobileTab[]
   /**
    * Force the 52px rail at every width. The invoices list is designed this way
    * at 1440 — a wide table wants the horizontal space more than the sidebar
@@ -103,10 +111,10 @@ export function AppShell({
       >
         {railItems.map((item) => (
           <NavRailItem
-            key={item.href}
+            key={navKey(item)}
             icon={item.icon}
             label={item.label}
-            href={item.href}
+            {...navTarget(item)}
             {...(item.current ? { active: true } : {})}
           />
         ))}

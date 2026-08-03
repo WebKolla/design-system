@@ -200,6 +200,46 @@ the active item. It **must** have a mobile fallback below 768px — today it is
 `hidden md:flex` with nothing behind it, so a consultant on a phone has a logo,
 a bell, an avatar and no way to navigate.
 
+### Giving a destination your own element
+
+Every navigation destination takes **either `href` or `element`**. `href` is a
+plain anchor. `element` renders your element instead, through the atom's
+`asChild`, and is how a framework router link is expressed — in a Next.js
+application that is the difference between a client-side transition and a full
+document load on every click.
+
+| Prop | On | Feeds |
+|---|---|---|
+| `SidebarDestination.element` | `SidebarExpanded`, and the `AppShell` rail | `NavItem` / `NavRailItem` `asChild` |
+| `MobileTab.element` | `MobileTabBar`, `AppShell`, `PortalShell` | `TabBarItemMobile` `asChild` |
+| `NavLink.element` | `SiteHeader`, `SiteFooter`, `PortalShell.links` | `NavAnchor` |
+| `PortalLogo.element` | `PortalShell.logo` | `Logo` `asChild` |
+
+```tsx
+<AppShell
+  sidebar={{
+    …,
+    overview: { label: 'Overview', icon: LayoutDashboard, element: <Link href="/dashboard" /> },
+  }}
+  mobileTabs={[{ label: 'Timesheets', icon: Clock, element: <Link href="/timesheets" /> }]}
+/>
+```
+
+**The element must be childless.** These components compose their own icon,
+label and badge, and under `asChild` that composed content becomes *your
+element's* children. An element that brings its own children replaces the icon
+and the label with them, silently — no error, no type error, just a nav of blank
+links. So `<Link href="/x" />`, never `<Link href="/x">Clients</Link>`; the text
+comes from `label`.
+
+This cannot be caught by the type system — a JSX literal is `JSX.Element`, which
+is `ReactElement<any, any>`, so no annotation rejects the children — so it is
+caught at runtime instead: passing a child-bearing element logs a development
+warning naming the mistake. Details in `src/lib/nav-slot.ts`.
+
+Omit `element` and every shell renders exactly what it rendered before it
+existed, asserted byte for byte in `nav-defaults.test.tsx`.
+
 ---
 
 ## Dialog
@@ -342,6 +382,12 @@ Built on 3 August 2026 by deriving all five inline lockups it replaces, with a
 test per call site asserting the rendered output is unchanged. No new token, no
 new geometry. **Unreviewed by design**, on the same terms as the ten primitives
 above.
+
+**In `PortalShell` the lockup's destination is a prop**, `logo`, taking `href`,
+`element` and `brand`. It was hardcoded to `/` — the marketing home — so the
+consultant and approver logo navigated out of the product. The default is still
+`/` because changing it would move every existing composition; portals should
+pass their own root.
 
 ---
 

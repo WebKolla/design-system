@@ -1,5 +1,6 @@
 import { Slot } from 'radix-ui'
 import type { NavLink } from './SiteHeader'
+import { warnIfNotChildless } from '@/lib/nav-slot'
 
 /**
  * Renders one marketing chrome entry.
@@ -28,6 +29,7 @@ export function NavAnchor({
   const current = link.current ? ('page' as const) : undefined
 
   if (link.element) {
+    warnIfNotChildless(link.element, 'a navigation entry')
     return (
       <Slot.Root className={className} aria-current={current}>
         <Slot.Slottable>{link.element}</Slot.Slottable>
@@ -43,7 +45,11 @@ export function NavAnchor({
   )
 }
 
-/** Stable React key for an entry, which may have no href. */
-export function navKey(link: NavLink): string {
-  return link.href ?? link.label
-}
+/**
+ * Stable React key for an entry, which may have no href.
+ *
+ * Re-exported from `@/lib/nav-slot`, where the shells' navigation also keys
+ * from, so marketing chrome and application chrome cannot disagree about what
+ * identifies a destination.
+ */
+export { navKey } from '@/lib/nav-slot'
