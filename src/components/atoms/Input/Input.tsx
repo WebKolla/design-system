@@ -29,16 +29,33 @@ export interface InputProps
  */
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   function Input(
-    { invalid = false, prefix, trailingIcon: TrailingIcon, className, disabled, ...rest },
+    {
+      invalid = false,
+      prefix,
+      trailingIcon: TrailingIcon,
+      className,
+      disabled,
+      'aria-invalid': ariaInvalid,
+      ...rest
+    },
     ref,
   ) {
+    /**
+     * The prop or the attribute. `Field` sends only `aria-invalid`, because
+     * `invalid` is private to this library and a composite control would emit
+     * it as an unknown DOM attribute. Reading both keeps the prop working for
+     * direct callers and means the border and the attribute cannot disagree.
+     */
+    const isInvalid =
+      invalid || ariaInvalid === true || ariaInvalid === 'true'
+
     return (
       <div
         className={cn(
           'flex h-[38px] w-full items-center gap-[7px] rounded-button border px-3 transition-colors',
           'bg-surface border-input',
           'focus-within:border-primary focus-within:ring-ring focus-within:ring-[3px]',
-          invalid && 'border-danger',
+          isInvalid && 'border-danger',
           disabled && 'bg-control',
           className,
         )}
@@ -52,7 +69,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...rest}
           ref={ref}
           disabled={disabled}
-          aria-invalid={invalid || undefined}
+          aria-invalid={isInvalid || undefined}
           className={cn(
             'text-body-cell text-foreground placeholder:text-subtle-foreground',
             'min-w-0 flex-1 bg-transparent outline-none',

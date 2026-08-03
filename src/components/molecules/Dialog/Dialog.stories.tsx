@@ -89,13 +89,11 @@ export const FormSize: Story = {
           </>
         }
       >
-        {/* `required` on the control, not a hand-drawn `*`: `Field` has no
-            required marker yet, and the attribute is the half that is
-            announced. The visible marker is recorded in NOTES.md. */}
         <Field
           label="Reason"
+          required
           helper="Callum can resubmit, so say what needs changing."
-          control={<Textarea required placeholder="Say what needs changing." />}
+          control={<Textarea placeholder="Say what needs changing." />}
         />
       </DialogContent>
     </Dialog>

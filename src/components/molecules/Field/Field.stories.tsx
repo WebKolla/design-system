@@ -200,6 +200,68 @@ export const IsActuallyStyled: Story = {
   },
 }
 
+/**
+ * `required` draws the `*` marker `COMPONENTS.md` specifies **and** sets the
+ * attribute, from one prop, so the two cannot disagree. The marker is
+ * `aria-hidden`: the accessible name stays "Reason", not "Reason asterisk".
+ */
+export const Required: Story = {
+  args: { label: 'Reason', required: true },
+  render: (args) => (
+    <div className="flex flex-col gap-5">
+      <Field {...args} />
+      <Field
+        label="Rejection reason"
+        required
+        helper="Callum can resubmit, so say what needs changing."
+        control={<Textarea rows={3} />}
+      />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const [input, textarea] = canvas.getAllByRole('textbox')
+
+    await expect(input).toBeRequired()
+    await expect(input).toHaveAccessibleName('Reason')
+    await expect(textarea).toBeRequired()
+    await expect(textarea).toHaveAccessibleName('Rejection reason')
+  },
+}
+
+/**
+ * The error message is a live region. Without it, submitting with focus on the
+ * submit button changes `aria-invalid` on a control the user is not on and
+ * swaps text under an id that was already referenced — nothing an assistive
+ * technology is watching changes, and the user hears nothing.
+ *
+ * `COMPONENTS.md:57` bans the usual fallback ("Toast-only validation after
+ * submit is not acceptable"), so this is the only channel there is.
+ */
+export const ErrorIsALiveRegion: Story = {
+  args: { label: 'Reason' },
+  render: (args) => (
+    <div className="flex flex-col gap-5">
+      <Field {...args} helper="Say what needs changing." />
+      <Field
+        label="Rejection reason"
+        error="Say what needs changing, not just that something is wrong."
+        control={<Textarea rows={3} />}
+      />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Exactly one alert: the error's. Helper text is not an announcement.
+    const alerts = canvas.getAllByRole('alert')
+    await expect(alerts).toHaveLength(1)
+    await expect(alerts[0]).toHaveTextContent(
+      'Say what needs changing, not just that something is wrong.',
+    )
+  },
+}
+
 export const EdgeContent: Story = {
   render: (args) => (
     <div className="flex flex-col gap-5">

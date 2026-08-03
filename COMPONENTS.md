@@ -74,8 +74,23 @@ It renders an `Input` by default, or clones whatever element is passed as
 in the browser run: label 12.5 / 500 in `--color-muted-foreground`, `gap: 6px`
 to the control, control padding `8px 12px` on `border-radius: 8px` with a 1px
 border, message 12.5 below. Identical to the `Input` case, which is the point:
-`aria-describedby`, `aria-invalid` and the `htmlFor`/`id` pair are computed in
-`Field` and never by the control.
+`aria-describedby`, `aria-invalid`, `required` and the `htmlFor`/`id` pair are
+computed in `Field` and never by the control.
+
+`required` on `Field` draws the `*` **and** sets the attribute, from one prop,
+so the marker and the announcement cannot disagree. The `*` is `aria-hidden` —
+the accessible name stays "Reason", not "Reason asterisk".
+
+**The error message is a live region** (`role="alert"` when `error` is set, and
+only then). Without it the error is silent for a screen reader user submitting
+from the submit button: `aria-invalid` changes on a control they are not on, and
+the message text swaps under an id that was already referenced. Since
+toast-only validation is ruled out above, this is the only channel there is.
+
+The control gets standard attributes only. `Input` and `Textarea` take an
+`invalid` prop for direct callers, but both read `aria-invalid` for the danger
+border, so `Field` sends the attribute and nothing library-private reaches a
+control it does not belong to.
 
 Currency, rate and hour inputs use `--font-mono` with a prefix glyph in
 `--color-subtle-foreground`.
