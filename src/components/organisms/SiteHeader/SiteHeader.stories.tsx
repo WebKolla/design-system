@@ -64,3 +64,55 @@ export const LandmarksAreCorrect: Story = {
  * the comparison, not in the component. Use the Theme toolbar to switch modes
  * on any of the stories above instead.
  */
+
+/**
+ * Entries default to a plain `<a href>` — unchanged, and this is the guard for
+ * every existing consumer.
+ */
+export const PlainAnchorsByDefault: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const home = canvas.getByRole('link', { name: 'Home' })
+    await expect(home.tagName).toBe('A')
+    await expect(home).toHaveAttribute('href', '/')
+    await expect(home).toHaveAttribute('aria-current', 'page')
+
+    const features = canvas.getByRole('link', { name: 'Features' })
+    await expect(features).toHaveAttribute('href', '/features')
+    await expect(features).not.toHaveAttribute('aria-current')
+  },
+}
+
+/**
+ * An entry can carry `element` instead of `href`.
+ *
+ * That is what lets the consuming app supply a framework router link, an
+ * analytics-instrumented CTA, or a control with no href at all — none of which
+ * a string href can express. The element receives the same classes the
+ * generated anchor would have had, and `label` becomes its children.
+ */
+export const EntriesCanCarryAnElement: Story = {
+  args: {
+    nav: [
+      { label: 'Home', href: '/', current: true },
+      { label: 'Pricing', element: <a href="/pricing" data-router-link /> },
+      { label: 'Cookie settings', element: <button type="button" /> },
+      { label: 'About', href: '/about' },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const routed = canvas.getByRole('link', { name: 'Pricing' })
+    await expect(routed).toHaveAttribute('data-router-link')
+    await expect(routed).toHaveAttribute('href', '/pricing')
+
+    // A real button, which no `{label, href}` shape could have produced.
+    const cookies = canvas.getByRole('button', { name: 'Cookie settings' })
+    await expect(cookies.tagName).toBe('BUTTON')
+
+    // Same styling as the generated anchor in the same state.
+    const plain = canvas.getByRole('link', { name: 'About' })
+    await expect(cookies.getAttribute('class')).toBe(plain.getAttribute('class'))
+  },
+}

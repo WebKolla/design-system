@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/cn'
 import type { NavLink } from '../SiteHeader/SiteHeader'
+import { NavAnchor, navKey } from '../SiteHeader/NavAnchor'
 
 export interface FooterColumn {
   heading: string
@@ -52,13 +53,11 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
             <p className="text-body-cell text-ink-subtle max-w-[36ch]">{blurb}</p>
             <ul className="flex items-center gap-4">
               {social.map((s) => (
-                <li key={s.href}>
-                  <a
-                    href={s.href}
+                <li key={navKey(s)}>
+                  <NavAnchor
+                    link={s}
                     className="text-ui-xs text-ink-subtle hover:text-ink-foreground transition-colors"
-                  >
-                    {s.label}
-                  </a>
+                  />
                 </li>
               ))}
             </ul>
@@ -71,13 +70,11 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
               </h2>
               <ul className="flex flex-col gap-2 pt-3">
                 {col.links.map((link) => (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
+                  <li key={navKey(link)}>
+                    <NavAnchor
+                      link={link}
                       className="text-body-cell text-ink-muted hover:text-ink-foreground transition-colors"
-                    >
-                      {link.label}
-                    </a>
+                    />
                   </li>
                 ))}
               </ul>
