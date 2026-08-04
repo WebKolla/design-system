@@ -114,3 +114,59 @@ export const EdgeContent: Story = {
     </>
   ),
 }
+
+/**
+ * The consultant name is the route to the timesheet, and the row header at
+ * the same time. Both, on one cell — a link that replaced the `th` would undo
+ * the row header, and a row header with no link leaves the table with no way
+ * in. Mirrors `TableRowInvoice`'s `InvoiceNumberIsALink`.
+ */
+export const NameIsALink: Story = {
+  args: { nameElement: <a href="/timesheets/ts_callum_byrne" /> },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const header = canvas.getByRole('rowheader', { name: 'Callum Byrne' })
+    await expect(header).toBeInTheDocument()
+
+    const link = canvas.getByRole('link', { name: 'Callum Byrne' })
+    await expect(link).toHaveAttribute('href', '/timesheets/ts_callum_byrne')
+    // The link is inside the header cell, not instead of it.
+    await expect(header).toContainElement(link)
+  },
+}
+
+/**
+ * A name too long for the column is clipped, never wrapped. Wrapping breaks
+ * the name across two lines inside a fixed-height row, and a name split in
+ * half cannot be matched at a glance against the row below it. Mirrors
+ * `TableRowInvoice`'s `LongInvoiceNumberDoesNotWrap`.
+ */
+export const LongNameDoesNotWrap: Story = {
+  args: { name: 'Persephone Okonkwo-Fitzgerald-Thistlewood' },
+  play: async ({ canvasElement }) => {
+    const header = within(canvasElement).getByRole('rowheader', {
+      name: 'Persephone Okonkwo-Fitzgerald-Thistlewood',
+    })
+    await expect(getComputedStyle(header).whiteSpace).toBe('nowrap')
+    // One line box, whatever the column does to it.
+    await expect(header.getClientRects()).toHaveLength(1)
+    // And the full name stays recoverable.
+    await expect(header).toHaveAttribute(
+      'title',
+      'Persephone Okonkwo-Fitzgerald-Thistlewood',
+    )
+  },
+}
+
+/**
+ * No rate, day rate or invoice value may render in an approver-scoped view.
+ * Copied from `ListCardApprovalMobile`'s `ShowsNoMoney` — this is the one
+ * approver component that had no money invariant of its own.
+ */
+export const ShowsNoMoney: Story = {
+  play: async ({ canvasElement }) => {
+    const text = canvasElement.textContent ?? ''
+    await expect(text).not.toMatch(/[£$€]/)
+  },
+}

@@ -1,11 +1,34 @@
 import * as React from 'react'
 import { Check, X } from 'lucide-react'
+import { Slot } from 'radix-ui'
 import { Checkbox } from '@/components/atoms/Checkbox/Checkbox'
 import { cn } from '@/lib/cn'
+import { warnIfNotChildless, type NavElement } from '@/lib/nav-slot'
 
 export interface TableRowApprovalProps
   extends React.ComponentPropsWithoutRef<'tr'> {
+  /**
+   * The consultant's name. Required even alongside `nameElement`, because it
+   * is also the accessible name of the row's checkbox, approve and reject
+   * controls: "Select timesheet for ${name}", "Approve timesheet for
+   * ${name}" and "Reject timesheet for ${name}".
+   */
   name: string
+  /**
+   * Childless element the consultant name renders as, e.g.
+   * `nameElement={<Link href={`/timesheets/${id}`} />}`. Omit for plain text.
+   *
+   * A `string` href would only ever become a plain `<a>`, which is a full
+   * document load in a framework application. That regression has already
+   * been shipped once here, so this follows `TableRowInvoice`'s
+   * `invoiceElement` and `SidebarDestination.element` instead: pass the
+   * router's own link component.
+   *
+   * **Pass a childless element** — see `NavElement`. The name is supplied
+   * through `name` and becomes this element's children under `asChild`, so
+   * an element bringing its own children replaces it.
+   */
+  nameElement?: NavElement | undefined
   email: string
   dates: string
   cadence: string
@@ -45,6 +68,7 @@ export const TableRowApproval = React.forwardRef<
 >(function TableRowApproval(
   {
     name,
+    nameElement,
     email,
     dates,
     cadence,
@@ -62,6 +86,8 @@ export const TableRowApproval = React.forwardRef<
   },
   ref,
 ) {
+  if (nameElement) warnIfNotChildless(nameElement, 'the consultant name')
+
   return (
     <tr
       {...rest}
@@ -81,12 +107,58 @@ export const TableRowApproval = React.forwardRef<
         />
       </td>
 
-      <td className={cell}>
-        <span className="text-body-cell text-foreground block truncate">{name}</span>
-        <span className="text-body-micro text-subtle-foreground block truncate">
+      {/*
+        `th scope="row"`, not `td`. The consultant's name is the row's name,
+        and marking it as the row header is what lets a screen reader
+        announce "Callum Byrne, Period, 27 Jul to 2 Aug" as you move across a
+        row rather than "Period, 27 Jul to 2 Aug" with no way to tell which
+        consultant it belongs to. This mirrors `TableRowInvoice`'s `th` fix.
+
+        `font-normal` and `text-left` cancel the `th` user-agent defaults
+        (bold, centred), which is what keeps this visually inert with
+        `nameElement` unset. `truncate` matches the other cells in this row
+        and `TableRowInvoice`'s row header (PR #6): an identifier that
+        wraps mid-token cannot be scanned, and truncation degrades more
+        predictably than a wrap.
+      */}
+      <th
+        scope="row"
+        title={name}
+        className={cn(cell, 'text-left font-normal truncate')}
+      >
+        <span className="text-body-cell text-foreground block truncate">
+          {/*
+            The element renders *inside* the name's own line, never as the
+            `th`. Replacing the `th` would take the row header with it; the
+            `rowheader` and the link have to be the same cell, not the same
+            node. `Slot.Slottable` is what makes `{name}` the consumer
+            element's children, so this line's text stays exactly the name.
+          */}
+          {nameElement ? (
+            <Slot.Root>
+              <Slot.Slottable>{nameElement}</Slot.Slottable>
+              {name}
+            </Slot.Root>
+          ) : (
+            name
+          )}
+        </span>
+        {/*
+          The email is a second line in the same cell, not a second `td` —
+          `APPROVAL_COLUMNS` has one "Consultant" column, and splitting it
+          would change the grid every consumer pays for. It is excluded from
+          the row header's accessible name with `aria-hidden`, so
+          `getByRole('rowheader', { name })` still resolves against the name
+          alone rather than "Callum Byrne callum.byrne@meridian.co.uk". See
+          the PR body for the two-line accessible-name decision.
+        */}
+        <span
+          aria-hidden="true"
+          className="text-body-micro text-subtle-foreground block truncate"
+        >
           {email}
         </span>
-      </td>
+      </th>
 
       <td className={cell}>
         <span className="text-body-cell text-muted-foreground block truncate">
