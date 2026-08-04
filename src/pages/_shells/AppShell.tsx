@@ -5,7 +5,8 @@ import {
   type SidebarExpandedProps,
 } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
 import { NavRailItem } from '@/components/atoms/NavRailItem/NavRailItem'
-import { MobileTabBar } from './MobileTabBar'
+import { MobileTabBar, type MobileTab } from './MobileTabBar'
+import { navKey, navTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
 export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -14,9 +15,45 @@ export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
   page: string
   /** e.g. "July 2026". */
   period?: string | undefined
+  /**
+   * Unread count on the static notification button.
+   *
+   * **Stays a number.** It was tempting to widen this to
+   * `number | React.ReactNode` so a live bell could be passed here, and that
+   * was rejected: it would give two ways to express the same thing, and the
+   * `aria-label` this drives ("Notifications, 3 unread") is meaningless for a
+   * node, so the union would carry a prop that is only correct for one of its
+   * two branches. `headerActions` covers the node case, and covers it better,
+   * because a live bell is rarely the only live control in that cluster.
+   */
   notifications?: number | undefined
-  /** Five plus More. Populated from the sidebar's daily destinations. */
-  mobileTabs: Array<{ label: string; icon: SidebarExpandedProps['overview']['icon']; href: string; current?: boolean }>
+  /**
+   * Replaces the static notification button in the header's right-hand
+   * cluster.
+   *
+   * **Replaces, does not wrap.** That button has no handler — it is a
+   * substitute for a real notification control. Appending to it would leave a
+   * dead bell sitting next to a live one. Slots in this library replace the
+   * static element they stand in for; they never wrap it.
+   *
+   * The period control is *not* replaced. It is gated by its own `period`
+   * prop, is driven entirely by library state, and a caller that wants it gone
+   * already has a way to say so.
+   *
+   * In the consuming app this carries the live `NotificationBell` and Clerk's
+   * `<UserButton>` — which is the only sign-out affordance in the product, so
+   * without this prop the dashboard has no exit.
+   */
+  headerActions?: React.ReactNode | undefined
+  /**
+   * Five plus More. Populated from the sidebar's daily destinations.
+   *
+   * `MobileTab` rather than the structural copy this used to declare inline.
+   * The copy was identical, went straight to `MobileTabBar`, and drifted the
+   * moment `MobileTab` gained `element` — leaving a prop the shell could not
+   * pass on. One type, so it cannot happen again.
+   */
+  mobileTabs: MobileTab[]
   /**
    * Force the 52px rail at every width. The invoices list is designed this way
    * at 1440 — a wide table wants the horizontal space more than the sidebar
@@ -43,6 +80,7 @@ export function AppShell({
   page,
   period,
   notifications,
+  headerActions,
   mobileTabs,
   collapsed = false,
   children,
@@ -73,10 +111,10 @@ export function AppShell({
       >
         {railItems.map((item) => (
           <NavRailItem
-            key={item.href}
+            key={navKey(item)}
             icon={item.icon}
             label={item.label}
-            href={item.href}
+            {...navTarget(item)}
             {...(item.current ? { active: true } : {})}
           />
         ))}
@@ -118,24 +156,26 @@ export function AppShell({
               </button>
             ) : null}
 
-            <button
-              type="button"
-              aria-label={
-                notifications
-                  ? `Notifications, ${notifications} unread`
-                  : 'Notifications'
-              }
-              className="border-border bg-surface text-muted-foreground relative flex size-[30px] items-center justify-center rounded-control border"
-            >
-              <Bell className="size-3.5" strokeWidth={1.75} aria-hidden />
-              {notifications ? (
-                // 9px is a literal: the count is sized to fit a 16px pip, not
-                // to a ramp step.
-                <span className="bg-danger text-primary-foreground absolute -top-1 -right-1 flex min-w-4 items-center justify-center rounded-full px-1 font-mono text-[9px]">
-                  {notifications}
-                </span>
-              ) : null}
-            </button>
+            {headerActions ?? (
+              <button
+                type="button"
+                aria-label={
+                  notifications
+                    ? `Notifications, ${notifications} unread`
+                    : 'Notifications'
+                }
+                className="border-border bg-surface text-muted-foreground relative flex size-[30px] items-center justify-center rounded-control border"
+              >
+                <Bell className="size-3.5" strokeWidth={1.75} aria-hidden />
+                {notifications ? (
+                  // 9px is a literal: the count is sized to fit a 16px pip, not
+                  // to a ramp step.
+                  <span className="bg-danger text-primary-foreground absolute -top-1 -right-1 flex min-w-4 items-center justify-center rounded-full px-1 font-mono text-[9px]">
+                    {notifications}
+                  </span>
+                ) : null}
+              </button>
+            )}
           </div>
         </header>
 

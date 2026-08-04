@@ -1,10 +1,27 @@
 import * as React from 'react'
 import { Button } from '@/components/atoms/Button/Button'
+import { Logo } from '@/components/atoms/Logo/Logo'
+import { NavAnchor } from './NavAnchor'
+import { navKey, type NavTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
-export interface NavLink {
+/**
+ * One marketing chrome entry.
+ *
+ * Extends `NavTarget`, the same `href`-or-`element` pair the shells' navigation
+ * destinations use, so the library has one answer to "how do I hand this a
+ * router link" rather than two that drift.
+ *
+ * `element` receives the chrome's className and `aria-current`, and `label`
+ * becomes its children, so **pass a childless element** — see `NavElement`.
+ * This is what lets an entry be a framework router link, an
+ * analytics-instrumented CTA, or a real `<button>` such as a cookie-settings
+ * control, none of which a string href can express.
+ *
+ * Omit it and the output is exactly the `<a href>` this has always rendered.
+ */
+export interface NavLink extends NavTarget {
   label: string
-  href: string
   current?: boolean
 }
 
@@ -14,8 +31,10 @@ export interface SiteHeaderProps
   brand?: string
   /** Seven items on the marketing site. */
   nav: NavLink[]
-  signIn: { label: string; href: string }
-  cta: { label: string; href: string }
+  /** Widened to `NavLink` so it can carry an `element`. `{label, href}` still fits. */
+  signIn: NavLink
+  /** Widened to `NavLink` so an analytics-instrumented CTA can be passed. */
+  cta: NavLink
 }
 
 /**
@@ -42,32 +61,21 @@ export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
         )}
       >
         <div className="flex items-center gap-8">
-          <a href="/" className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-control font-mono text-mono-count"
-            >
-              TS
-            </span>
-            <span className="text-heading-block text-foreground">{brand}</span>
-          </a>
+          <Logo href="/" brand={brand} />
 
           <nav aria-label="Main">
             <ul className="flex items-center gap-6">
               {nav.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    aria-current={item.current ? 'page' : undefined}
+                <li key={navKey(item)}>
+                  <NavAnchor
+                    link={item}
                     className={cn(
                       'text-ui-md transition-colors',
                       item.current
                         ? 'text-foreground'
                         : 'text-muted-foreground hover:text-foreground',
                     )}
-                  >
-                    {item.label}
-                  </a>
+                  />
                 </li>
               ))}
             </ul>
@@ -75,14 +83,16 @@ export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href={signIn.href}
+          <NavAnchor
+            link={signIn}
             className="text-ui-md text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {signIn.label}
-          </a>
+          />
           <Button size="md" asChild>
-            <a href={cta.href}>{cta.label}</a>
+            {cta.element ? (
+              React.cloneElement(cta.element, undefined, cta.label)
+            ) : (
+              <a href={cta.href}>{cta.label}</a>
+            )}
           </Button>
         </div>
       </header>

@@ -2,14 +2,28 @@ import * as React from 'react'
 import { Search } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { NavItem } from '@/components/atoms/NavItem/NavItem'
 import { CompletenessCard } from '@/components/molecules/CompletenessCard/CompletenessCard'
+import { navKey, navTarget, type NavTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
-export interface SidebarDestination {
+export interface SidebarDestination extends NavTarget {
   label: string
   icon: LucideIcon
-  href: string
+  /**
+   * The destination.
+   *
+   * Optional only because `element` is the alternative — supply one or the
+   * other. In a Next.js application `element` is the difference between a
+   * client-side transition and a full document load on every sidebar click:
+   * `element={<Link href="/clients" />}`.
+   *
+   * **Pass a childless element.** This component composes the icon, label and
+   * badge, and under `asChild` they become the element's children. See
+   * `NavElement`.
+   */
+  href?: string | undefined
   current?: boolean
   badge?: string | number
 }
@@ -34,6 +48,32 @@ export interface SidebarExpandedProps
   plan?:
     | { name: string; seatsUsed: number; seatsTotal: number; note: string }
     | undefined
+  /**
+   * Replaces the org switcher button.
+   *
+   * **Replaces, does not wrap.** The button this stands in for is a static
+   * substitute with no handler — it looks like an org switcher and does
+   * nothing. Wrapping would render the placeholder next to the real control
+   * and leave two things that look like the same affordance, one of them dead.
+   * The rule is the same for every slot here: a slot replaces the static
+   * element it stands in for.
+   *
+   * `org` and `orgInitials` are still required and still feed the breadcrumb in
+   * `AppShell`; they are simply not rendered here when this is set.
+   */
+  orgSlot?: React.ReactNode | undefined
+  /**
+   * Replaces the avatar, name and role block at the foot of the sidebar.
+   *
+   * **Replaces, does not wrap** — see `orgSlot`. In the consuming app this
+   * carries Clerk's `<UserButton>`, which is the only sign-out affordance in
+   * the product, so rendering it *beside* a static avatar would give two user
+   * controls where only one signs you out.
+   *
+   * `user`, `role` and `userInitials` stay required and are simply not
+   * rendered when this is set.
+   */
+  accountSlot?: React.ReactNode | undefined
 }
 
 /**
@@ -54,7 +94,20 @@ export const SidebarExpanded = React.forwardRef<
   HTMLElement,
   SidebarExpandedProps
 >(function SidebarExpanded(
-  { org, orgInitials, user, role, userInitials, overview, groups, plan, className, ...rest },
+  {
+    org,
+    orgInitials,
+    user,
+    role,
+    userInitials,
+    overview,
+    groups,
+    plan,
+    orgSlot,
+    accountSlot,
+    className,
+    ...rest
+  },
   ref,
 ) {
   return (
@@ -67,24 +120,18 @@ export const SidebarExpanded = React.forwardRef<
       )}
     >
       <div className="flex flex-col gap-2.5">
-        <span className="flex items-center gap-2">
-          {/* 9.5px is a literal: the mark is sized to the 20px tile. */}
-          <span
-            aria-hidden
-            className="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-control font-mono text-[9.5px]"
-          >
-            TS
-          </span>
-          <span className="text-heading-block text-foreground">TimeSubmit</span>
-        </span>
+        {/* `sm` is the 20px lockup, and it is not the 24px one scaled — see Logo. */}
+        <Logo size="sm" />
 
-        <button
-          type="button"
-          className="hover:bg-control flex items-center gap-2 rounded-control px-1.5 py-1.5 text-left transition-colors"
-        >
-          <Avatar initials={orgInitials} size={20} tone="primary" label={org} />
-          <span className="text-ui-sm text-foreground truncate">{org}</span>
-        </button>
+        {orgSlot ?? (
+          <button
+            type="button"
+            className="hover:bg-control flex items-center gap-2 rounded-control px-1.5 py-1.5 text-left transition-colors"
+          >
+            <Avatar initials={orgInitials} size={20} tone="primary" label={org} />
+            <span className="text-ui-sm text-foreground truncate">{org}</span>
+          </button>
+        )}
 
         <button
           type="button"
@@ -100,7 +147,7 @@ export const SidebarExpanded = React.forwardRef<
         <NavItem
           label={overview.label}
           icon={overview.icon}
-          href={overview.href}
+          {...navTarget(overview)}
           {...(overview.current ? { active: true } : {})}
           {...(overview.badge !== undefined ? { badge: overview.badge } : {})}
         />
@@ -112,10 +159,10 @@ export const SidebarExpanded = React.forwardRef<
             </span>
             {group.items.map((item) => (
               <NavItem
-                key={item.href}
+                key={navKey(item)}
                 label={item.label}
                 icon={item.icon}
-                href={item.href}
+                {...navTarget(item)}
                 {...(item.current ? { active: true } : {})}
                 {...(item.badge !== undefined ? { badge: item.badge } : {})}
               />
@@ -137,15 +184,17 @@ export const SidebarExpanded = React.forwardRef<
           />
         ) : null}
 
-        <div className="flex items-center gap-2.5">
-          <Avatar initials={userInitials} size={26} tone="primary" label={user} />
-          <span className="flex min-w-0 flex-col">
-            <span className="text-ui-sm text-foreground truncate">{user}</span>
-            <span className="text-body-micro text-subtle-foreground truncate">
-              {role}
+        {accountSlot ?? (
+          <div className="flex items-center gap-2.5">
+            <Avatar initials={userInitials} size={26} tone="primary" label={user} />
+            <span className="flex min-w-0 flex-col">
+              <span className="text-ui-sm text-foreground truncate">{user}</span>
+              <span className="text-body-micro text-subtle-foreground truncate">
+                {role}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
+        )}
       </div>
     </aside>
   )

@@ -68,6 +68,30 @@ height comes from `rows` rather than the 38px control height, padding is
 `resize="none"` for a fixed box in a dense form. Nothing else about it is its
 own.
 
+**`Field` is the label, the message and the wiring; the control is a slot.**
+It renders an `Input` by default, or clones whatever element is passed as
+`control` — a `Textarea` above all. Measured on a `Field` wrapping a `Textarea`
+in the browser run: label 12.5 / 500 in `--color-muted-foreground`, `gap: 6px`
+to the control, control padding `8px 12px` on `border-radius: 8px` with a 1px
+border, message 12.5 below. Identical to the `Input` case, which is the point:
+`aria-describedby`, `aria-invalid`, `required` and the `htmlFor`/`id` pair are
+computed in `Field` and never by the control.
+
+`required` on `Field` draws the `*` **and** sets the attribute, from one prop,
+so the marker and the announcement cannot disagree. The `*` is `aria-hidden` —
+the accessible name stays "Reason", not "Reason asterisk".
+
+**The error message is a live region** (`role="alert"` when `error` is set, and
+only then). Without it the error is silent for a screen reader user submitting
+from the submit button: `aria-invalid` changes on a control they are not on, and
+the message text swaps under an id that was already referenced. Since
+toast-only validation is ruled out above, this is the only channel there is.
+
+The control gets standard attributes only. `Input` and `Textarea` take an
+`invalid` prop for direct callers, but both read `aria-invalid` for the danger
+border, so `Field` sends the attribute and nothing library-private reaches a
+control it does not belong to.
+
 Currency, rate and hour inputs use `--font-mono` with a prefix glyph in
 `--color-subtle-foreground`.
 
@@ -176,6 +200,46 @@ the active item. It **must** have a mobile fallback below 768px — today it is
 `hidden md:flex` with nothing behind it, so a consultant on a phone has a logo,
 a bell, an avatar and no way to navigate.
 
+### Giving a destination your own element
+
+Every navigation destination takes **either `href` or `element`**. `href` is a
+plain anchor. `element` renders your element instead, through the atom's
+`asChild`, and is how a framework router link is expressed — in a Next.js
+application that is the difference between a client-side transition and a full
+document load on every click.
+
+| Prop | On | Feeds |
+|---|---|---|
+| `SidebarDestination.element` | `SidebarExpanded`, and the `AppShell` rail | `NavItem` / `NavRailItem` `asChild` |
+| `MobileTab.element` | `MobileTabBar`, `AppShell`, `PortalShell` | `TabBarItemMobile` `asChild` |
+| `NavLink.element` | `SiteHeader`, `SiteFooter`, `PortalShell.links` | `NavAnchor` |
+| `PortalLogo.element` | `PortalShell.logo` | `Logo` `asChild` |
+
+```tsx
+<AppShell
+  sidebar={{
+    …,
+    overview: { label: 'Overview', icon: LayoutDashboard, element: <Link href="/dashboard" /> },
+  }}
+  mobileTabs={[{ label: 'Timesheets', icon: Clock, element: <Link href="/timesheets" /> }]}
+/>
+```
+
+**The element must be childless.** These components compose their own icon,
+label and badge, and under `asChild` that composed content becomes *your
+element's* children. An element that brings its own children replaces the icon
+and the label with them, silently — no error, no type error, just a nav of blank
+links. So `<Link href="/x" />`, never `<Link href="/x">Clients</Link>`; the text
+comes from `label`.
+
+This cannot be caught by the type system — a JSX literal is `JSX.Element`, which
+is `ReactElement<any, any>`, so no annotation rejects the children — so it is
+caught at runtime instead: passing a child-bearing element logs a development
+warning naming the mistake. Details in `src/lib/nav-slot.ts`.
+
+Omit `element` and every shell renders exactly what it rendered before it
+existed, asserted byte for byte in `nav-defaults.test.tsx`.
+
 ---
 
 ## Dialog
@@ -280,6 +344,50 @@ required and is the fallback — an expired signed URL, a failed load and a user
 who never uploaded one all land back on it, rather than on a broken-image glyph
 in a 20px circle. The only real photograph in the product is the account picture
 Clerk holds.
+
+---
+
+## Logo
+
+The `TS` tile and the wordmark. **Two sizes, and they are not scalings of each
+other.**
+
+| Size | Tile | Mark | Gap | Used by |
+|---|---|---|---|---|
+| sm | 20 | 9.5 | 8 | Expanded sidebar |
+| md | 24 | 10.5 (`mono/count`) | 10 | Site header, portal header, site footer, sign in |
+
+20/24 × 10.5 = 8.75, not 9.5 — the sidebar mark is 8.6% larger than the ratio.
+That is optical correction, not drift: a mark set to the arithmetic ratio reads
+thin and recessive at 20px, and `ForDesigners` already holds the 20px sidebar
+mark as one of five literals deliberately outside the type ramp. The two lockups
+are drawn, not computed. `Logo.stories.tsx` asserts both sets of numbers in the
+browser, so unifying the ratio fails a test.
+
+Shared by both sizes: tile fill `bg-primary`, mark `text-primary-foreground`,
+radius `rounded-control` (7), mono family, the literal glyphs `TS`, and
+`text-heading-block` on the wordmark.
+
+**`tone`** is `default` (`text-foreground`) or `ink` (`text-ink-foreground`).
+Ink is for the two ink surfaces — the site footer and the sign-in panel — where
+`foreground` flips with the theme and measures around 2:1. It is a surface
+choice, not a colour override; there is no third value and no new token. The
+tile keeps `bg-primary` in both.
+
+**`href`** renders the lockup as one link home. **`asChild`** renders it into an
+element you supply, for a router link or a positioned wrapper. **`brand`**
+defaults to `TimeSubmit` and drives the wordmark only — the tile stays `TS`.
+
+Built on 3 August 2026 by deriving all five inline lockups it replaces, with a
+test per call site asserting the rendered output is unchanged. No new token, no
+new geometry. **Unreviewed by design**, on the same terms as the ten primitives
+above.
+
+**In `PortalShell` the lockup's destination is a prop**, `logo`, taking `href`,
+`element` and `brand`. It was hardcoded to `/` — the marketing home — so the
+consultant and approver logo navigated out of the product. The default is still
+`/` because changing it would move every existing composition; portals should
+pass their own root.
 
 ---
 

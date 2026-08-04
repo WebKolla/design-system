@@ -1356,3 +1356,446 @@ check quietly passing against browser defaults.
 - **A `Field` that wraps a `Textarea`.** `Field` is typed to `Input` and has no
   control slot, so the Dialog form story hand-rolls its label. Small, and a
   change to a shipped component's API, so it was left alone and recorded here.
+  **Done in FEAT-DSR2-015 — see below.**
+
+---
+
+## Shell slots, nav `asChild`, marketing content props — 2026-08-03
+
+Four additive changes so the application's layouts can be rebuilt on the
+library. Three landed. The fourth stopped, and the reason is the most useful
+thing in this section.
+
+The governing constraint for all four: **every change is additive and defaults
+to exactly today's rendering.** Nothing in this batch may move a story, a page
+composition or a measurement. Derive from what exists; nothing gets a new
+token. Test baseline before: **305 tests across 77 story files**, plus 5 unit
+tests in 1 file. After: **313 across 77**, plus 20 unit tests in 3 files. No
+existing test changed.
+
+`src/docs/ForDesigners.mdx` says Figma leads and code follows. The consuming
+project has deliberately suspended that for the duration of the rebuild, which
+is why props are being added here ahead of a Figma review. It is a suspension,
+not a repeal.
+
+### Slots replace, they never wrap
+
+`AppShell.headerActions`, `PortalShell.headerActions`,
+`SidebarExpanded.orgSlot`, `SidebarExpanded.accountSlot`.
+
+Each renders the static element when the slot is absent and the slot's content
+when present, and **each replaces the static element rather than wrapping it.**
+The statics are substitutes with nothing behind them: an org button with no
+handler, an avatar with no menu, a bell with no notifications. Wrapping would
+put a dead control beside a live one, and the user has no way to tell which is
+which.
+
+That matters more than it sounds. In the consuming app the Clerk `<UserButton>`
+these slots carry is **the only sign-out affordance in the entire product** —
+there is no `SignOutButton` and no `signOut()` call anywhere in it. Wrap rather
+than replace and you ship two things that look like the account control, one of
+which signs you out.
+
+The props feeding the statics — `org`, `orgInitials`, `user`, `role`,
+`userInitials` — stay required. `org` also feeds the `AppShell` breadcrumb, and
+making the set optional is a wider type change than this needs. They are simply
+not rendered when the slot is set, which is documented on each prop.
+
+`AppShell`'s period control is deliberately outside `headerActions`. It is
+gated by its own `period` prop and driven entirely by library state, so a
+caller who wants it gone can already say so.
+
+### `notifications` stays a number
+
+It was offered a node form (`number | React.ReactNode`) and refused, because
+`headerActions` already covers that case and two ways to say one thing is how
+a prop surface rots. The specific tell: `notifications` drives the button's
+`aria-label` — "Notifications, 3 unread" — which is meaningless for a node. The
+union would have carried a prop that is only ever correct on one of its two
+branches.
+
+### `asChild` on the nav atoms
+
+`NavItem`, `NavRailItem` and `TabBarItemMobile` all computed
+`Comp = href ? 'a' : 'button'`, forcing a real anchor. In a Next.js app that
+makes every sidebar, rail and tab-bar click a full document load, re-running
+Clerk bootstrapping and the app's sync effects on each navigation. Not
+incorrect; uniformly regressive.
+
+They now follow `Button`: same `Slot.Root` from `radix-ui`, same prop name,
+same default, same rule that the child owns its own `href` and `type`.
+
+**One forced difference from `Button`, worth knowing before copying the
+pattern again.** `Button`'s content under `asChild` is the consumer's own
+subtree, so it renders `children` and is done. These three compose their
+content from `label`, `icon` and `badge` props, so doing the same would
+silently discard the icon and the label — the component would still render, the
+test would still pass, and the sidebar would be blank. `Slot.Slottable` is what
+makes the composed content become the consumer element's children, so the
+caller passes a **childless** element:
+
+    <NavItem asChild label="Clients" icon={Building2}>
+      <Link href="/clients" />
+    </NavItem>
+
+### Marketing chrome takes its content as props
+
+`MarketingShell` imported `MARKETING_NAV` and `FOOTER` and accepted only
+`current`, so the app could not use it at all. It now takes `nav`, `footer`,
+`signIn` and `cta`, each defaulting to exactly what was hardcoded.
+
+`signIn` and `cta` were not in the brief and were added anyway: the app's
+"Get started" is an analytics-instrumented client component, and without those
+two props it cannot be reached. A prop that cannot be reached is the same
+blocker as a slot that does not exist.
+
+A string href could not express what the app has, so `NavLink` gains an
+optional `element` and `href` becomes optional in its place. Checked against
+the app before fixing the shape, the three cases are: framework router links
+(everywhere), an instrumented CTA, and a cookie-settings control that is a real
+`<button>` with no href at all. The last one is why `{label, href}` was not
+enough.
+
+The mechanism is the library's existing one — `Slot.Root` merges the computed
+className and `aria-current` onto the caller's element, `Slot.Slottable` makes
+the label its children. `SiteHeader` and `SiteFooter` share one internal
+`NavAnchor` so the two cannot drift on it. It is deliberately not in the
+organisms barrel, so it is not public API.
+
+Without `element`, `NavAnchor` emits the identical `<a href>` both components
+always rendered, **including emitting no `aria-current` attribute at all** when
+the entry is not current, which is what the footer relied on.
+
+### The `Logo` component — shipped, as two lockups behind one import
+
+This entry previously read "stopped, and why". The blocker was a design decision
+nobody had taken; it has now been taken, and the ruling was the second of the two
+options this entry asked for: **20px and 24px are two separate sizes of one mark,
+with different optical corrections.** So `Logo` ships with `size="sm"` and
+`size="md"`, each reproducing its call sites exactly as they rendered before, and
+all five call sites now consume it.
+
+The original finding stands and is kept below, because it is the reason the
+component looks the way it does.
+
+The task had been to derive one SVG asset from what the three inline lockups
+already render. **The instruction was also to stop and report if the three do not
+agree. They did not agree, and there were five of them, not three.**
+
+| Call site | Tile | Mark type | Gap | Wordmark colour | Wrapper |
+|---|---|---|---|---|---|
+| `SidebarExpanded` | `size-5` · 20px | `text-[9.5px]` literal | `gap-2` · 8 | `text-foreground` | `<span>` |
+| `PortalShell` | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-foreground` | `<a href="/">` |
+| `SiteHeader` | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-foreground` | `<a href="/">` |
+| `SiteFooter` | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-ink-foreground` | `<span>` |
+| `SignIn` page | `size-6` · 24px | `text-mono-count` · 10.5px | `gap-2.5` · 10 | `text-ink-foreground` | `<div>` |
+
+All five share the tile fill (`bg-primary`), the mark colour
+(`text-primary-foreground`), the radius (`rounded-control`, 7px), the mono
+family, the literal glyphs `TS`, and `text-heading-block` on the wordmark.
+
+The blocker is arithmetic, not taste. **The 20px lockup is not a uniform
+scaling of the 24px one**, so no single scalable asset reproduces both at
+today's rendering:
+
+- mark-to-tile ratio — 9.5 / 20 = **0.475**, against 10.5 / 24 = **0.4375**
+- gap-to-tile ratio — 8 / 20 = **0.400**, against 10 / 24 = **0.4167**
+
+An SVG scales uniformly. Shipping one means choosing a ratio, and choosing a
+ratio moves at least one of the five call sites. That is a design decision, and
+`ForDesigners.mdx` already records the 20px sidebar mark as a deliberate
+literal — one of five sizes held outside the type ramp precisely because it is a
+function of its container. Overriding that from a refactor would be exactly the
+wrong direction.
+
+There is a second, softer blocker: the wordmark colour is `text-foreground` on
+three surfaces and `text-ink-foreground` on two. That one is correct as it
+stands — the footer and the sign-in panel sit on ink — but it does mean the
+asset cannot own its own colour and must inherit, which constrains the shape of
+whatever gets built.
+
+**No SVG asset was shipped, and that has not changed.** An SVG scales uniformly,
+so one file still cannot be both lockups. What shipped is a React component that
+composes the same two lockups from the same utilities.
+
+#### What was decided, and why two geometries behind one component is right
+
+The point of the change is **one source for the mark, not one geometry.** Before
+it, a change to the tile meant finding five inline copies and getting all five
+right. That was the actual cost. The ratio disagreement was never the cost; it
+was a fact about the mark that the refactor kept tripping over.
+
+Holding both sizes is therefore not a compromise, it is the correct reading:
+optical correction at small sizes is ordinary for a wordmark, `ForDesigners.mdx`
+already records the 20px sidebar mark as one of five deliberate literals held
+outside the type ramp, and unifying the ratio would have moved a rendered screen
+to make a component tidier. The two sizes are drawn, not computed. `Logo.tsx`
+says so above `logoVariants`, and `SmGeometry` / `MdGeometry` in the story file
+assert both numbers so that the next person to "fix" the ratio fails a test
+rather than shipping it.
+
+#### The API, and why
+
+- **`size: 'sm' | 'md'`** — named for the lockup, not for a pixel value, because
+  the pixel value is two numbers (tile and mark) that do not scale together.
+- **`tone: 'default' | 'ink'`** — the wordmark colour difference. This is a
+  *surface* question, not a palette one: `ink/*` is the mode-invariant set, and
+  on the ink footer and sign-in panel `foreground` flips with the theme and lands
+  near 2:1. A closed two-value `tone` matches `Avatar` and `Chip`; an open
+  `color` prop, or leaving it to `className`, would invite a third answer for a
+  surface the design system has not defined. **No new token was introduced.** The
+  tile keeps `bg-primary` in both tones, which is what all five call sites
+  already rendered.
+- **`href`** for the two anchor call sites, **`asChild`** for everything else —
+  the same escape hatch `Button` and `NavItem` already have, mirroring `NavItem`
+  down to the `Slot.Slottable`. `SignIn` needs it for a positioned `<div>` it
+  cannot otherwise keep; an application needs it for a router link.
+- **`brand`** defaults to `TimeSubmit`. The tile stays the literal `TS` and does
+  *not* follow it — that is existing behaviour of `SiteHeader` and `SiteFooter`,
+  preserved rather than improved.
+
+#### How "identical to before" was proved
+
+`src/components/atoms/Logo/logo-call-sites.test.tsx` holds the pre-change markup
+of all five call sites, transcribed verbatim, and asserts each converted call
+site still serialises to it. **It was written and run green against the
+unconverted call sites first**, so the baselines are transcriptions rather than
+descriptions of whatever the new component happens to emit. Without that ordering
+the file proves nothing, which is the trap it exists to avoid.
+
+One normalisation: class tokens are sorted before comparison, because `cva` plus
+`cn` emits the same set of utilities in a different order and attribute order has
+no effect on what Tailwind applies. Tag names, nesting, text and every other
+attribute are compared exactly. All five behaved exactly as the table above
+predicted — no sixth call site, and no pair that was expected to match and did
+not.
+
+### Verification
+
+Before: `vitest run` 333 passed in 80 files.
+
+After: `vitest run` **347 passed in 82 files** (+9 stories, +5 call-site parity
+tests) · `tsc --noEmit` clean · `eslint .` clean · `storybook build` clean.
+
+---
+
+## The `Field` control slot (FEAT-DSR2-015, 2026-08-03)
+
+`Field` now takes a `control` element and clones it with the wiring. Nine routes
+in the product need a labelled textarea, and the Dialog form story's hand-rolled
+label was the first instance of the drift.
+
+### The API, and the four things it is not
+
+`control?: React.ReactElement`, cloned with `id`, `aria-describedby`,
+`aria-invalid` and `invalid`. Omit it and `Field` renders its own `Input` from
+the remaining props, exactly as before.
+
+- **Not a render prop.** `control={(wiring) => <Textarea {...wiring} />}` hands
+  the a11y wiring back to the caller, and one forgotten spread on one screen
+  silently stops the error being announced — across nine routes, with nothing to
+  catch it. A slot the caller has to wire up has not solved the problem the task
+  set out to solve.
+- **Not `asChild` + `children`, despite that being the in-house idiom.** On
+  `Button`, `asChild` means "replace the element I render". `Field` renders a
+  wrapper, a label, a control and a message, so "replace which one?" has no
+  obvious answer, and reusing the word would make it mean two different things
+  in one library. `control` names the slot it fills.
+- **Not Radix `Slot`, even though the mechanism fits.** `Slot` lets the *child's*
+  props win. A caller-supplied `id` would then override `Field`'s and break the
+  `htmlFor` association the component exists to create — a hole in exactly the
+  place this change was meant to close. `cloneElement` puts `Field` last, so it
+  wins, and `Field.test.tsx` asserts it for both `id` and `aria-describedby`.
+- **Not a polymorphic `as`, and not a sibling `TextareaField`.** The first drags
+  every control's props through `Field`'s own type; the second is two components
+  to keep in step forever.
+
+`invalid` is a prop of this library's controls rather than an attribute, so a
+host element (`control={<textarea />}`) gets `aria-invalid` only and no React
+unknown-prop warning. The ARIA half is what is announced either way.
+
+### Ref typing, without `any`
+
+`forwardRef` is gone. The ref's element type depends on a sibling prop —
+`HTMLInputElement` when `Field` renders the input, and nothing at all when the
+caller owns the control and can put a ref on it directly — and `forwardRef`
+fixes one element type for the whole component. The props are a discriminated
+union instead (`FieldWithInputProps` | `FieldWithControlProps`), `ref` is a
+plain prop as React 19 allows, and `<Field control={…} ref={…} />` is a type
+error rather than a ref that silently goes nowhere.
+
+**Nothing existing broke.** Every current call site — `Contact`, `SignIn`,
+`ConsultantRecord`, and all five original stories — is the input variant and
+compiles unchanged; `control?: never` on that variant is what keeps it exact.
+The one cost is Storybook: `Meta<typeof Field>` collapses a union to `never`, so
+`Field.stories.tsx` types its meta as `Meta<FieldWithInputProps>`. That is a
+story-file annotation, not a consumer-facing break.
+
+### Proving the contrast run was real, not merely configured
+
+`Molecules/Field → IsActuallyStyled` reads computed styles off a rendered
+`Field`+`Textarea` inside the browser run: `--radius-button` resolves to `8px`,
+control padding is `8px 12px`, radius `8px`, border 1px, background not
+transparent, and the errored field's border colour differs from the healthy
+one's — which can only be true if `border-danger` and `border-input` were both
+generated.
+
+Then the negative control, which is the part that actually proves it:
+`tailwindcss()` was removed from `vitest.config.ts` and the Field stories rerun.
+`IsActuallyStyled` failed on the first assertion (`expected '' to be '8px'`) and
+**the other six Field stories, axe colour-contrast included, still passed**.
+That is the trap, reproduced on demand: without the plugin the a11y checks are
+green and meaningless. The plugin was restored and the full suite rerun.
+
+### The accessibility audit, and the five things it found
+
+The control-slot design survived review — label association, `aria-invalid` on
+the control, `Field` winning over a caller's `id`, and the `cloneElement`-beats-
+`Slot` reasoning were all verified by execution. Five defects around it did not.
+
+**1. The error message had no live region (WCAG 4.1.3).** Swapping `helper` for
+`error` changed exactly one attribute on the control — `aria-invalid` — while
+`aria-describedby` kept pointing at the *same id*, because the error reuses the
+helper's id and only the text underneath changes. Nothing an AT watches changed.
+A screen reader user submitting with focus on the submit button heard silence,
+and `COMPONENTS.md:57` bans the usual fallback, so inline was the only channel
+and it was mute.
+
+`role="alert"` when `error` is set, and only then: an always-on alert announces
+helper text on mount. The `key` on that paragraph is load-bearing rather than a
+list key — an alert fires on *insertion*, and helper→error would otherwise
+update the existing node in place and announce nothing (Safari/VoiceOver in
+particular). Keying on the state forces the remount. A permanently-mounted
+`aria-live` wrapper was the alternative and would announce twice here, once for
+the region's contents and once for the alert inside it; `Toast` uses that form
+because it has no second channel to collide with.
+
+**2. A caller's `aria-describedby` was destroyed, on both paths.** Worst with no
+helper and no error, where a caller's value was overwritten with `undefined` —
+which made a `Field` with no helper text strictly worse than a bare `<input>`.
+It is merged now, caller first. "Field wins" is right for `id`, where there is
+one element and `htmlFor` depends on it, and wrong for a space-separated list
+that exists precisely so it can accumulate: a character counter, a password
+rules block, a shared date-format note.
+
+The test that claimed to cover this pointed at an id that did not exist in the
+DOM, so `toHaveAccessibleDescription` returned the helper text whether the
+implementation merged or overwrote. It proved nothing. The referenced element
+now exists and the assertion is the merged string.
+
+**3. The required marker, restored — a regression this branch introduced.** The
+gap was **symmetric**, which the first pass missed: `<Field label="A" required />`
+on the built-in `Input` path passed `required` through `...rest` and drew no
+marker either. So it was a missing `Field` prop, not a control-slot limitation.
+`required` now does both halves from one prop. Screen reader users were always
+fine; **sighted** users had lost the only pre-submission signal and fell back to
+the native validation bubble, which is transient and at 400% zoom can render
+outside the viewport — the after-the-fact validation `COMPONENTS.md:57` rules
+out. No existing screen passed `required` to a `Field`, so nothing changed
+visually outside the Dialog story, which is back to the specified `*`.
+
+**4. The slot no-opped silently for a Fragment.** `control={<><Textarea /></>}`
+produced `textarea id=""`, a label pointing at nothing and a control with no
+accessible name — and the type accepted it. `Children.only` plus a dev-only
+Fragment check now throw. The Fragment check has to be separate: a Fragment *is*
+a single valid child and swallows every prop cloned onto it. A composite that
+spreads onto a wrapper `<div>` has the same failure mode and cannot be detected
+from outside, so `FieldWithControlProps` documents the contract — forward `id`,
+`aria-describedby`, `aria-invalid` and `required` to the focusable element. The
+library's own `Input` is wrapper-plus-input and satisfies it only because it
+spreads onto the inner element. A regression net asserts the label's target
+matches `input, textarea, select, [tabindex]` for both controls.
+
+**5. `invalid` leaked to the DOM.** The guard tested `typeof control.type ===
+'string'`, which is the element's *type* rather than whether it supports the
+prop, so a composite forwarding unknown props triggered React's "Received
+`false` for a non-boolean attribute" warning.
+
+Of the two offered routes, `Field` now sends **no `invalid` at all** and
+`Input`/`Textarea` read `aria-invalid` for the danger border. The alternative —
+passing `invalid` only to this library's own controls — needs either a
+hard-coded allowlist or an opt-in static flag, and both make `Field` know which
+components are family. Driving from the standard attribute means `Field` emits
+only things any control can accept, there is no type sniffing left, and the
+border and the announced state come from one value. Both atoms keep their
+`invalid` prop for direct callers; it is now one of two inputs to the same
+boolean.
+
+**Also found while fixing.** `message = error ?? helper` meant `error=""` — what
+a form library hands back for "no error" — suppressed the helper text, since
+`??` only falls back on nullish. It is `||` now, which is how `invalid` already
+read the same value.
+
+**What is still not proven.** The live region has tests for the role and for the
+remount. Neither proves the *announcement*. That needs a real screen reader
+pass — VoiceOver/Safari and NVDA/Firefox — and has not been done.
+
+## Making the nav atoms' `asChild` reachable (BUG-DSR2-009, 2026-08-03)
+
+`asChild` landed on `NavItem`, `NavRailItem` and `TabBarItemMobile` in the
+earlier shell-slots work and **closed nothing**, because no shell exposed a way
+to reach it. Each took a `string` href and built the element itself, so a
+consumer holding a `next/link` had nowhere to put it. The measured consequence
+in the consuming app: every sidebar, rail, tab-bar and portal-nav click became a
+full document load, re-running Clerk bootstrapping and four sync effects on
+every navigation, where those had been client-side transitions before the shells
+landed. A prop that cannot be reached is the same blocker as a prop that does
+not exist — which is the lesson from `MarketingShell.signIn`, recorded above,
+arrived at twice now.
+
+**One mechanism, not four.** `src/lib/nav-slot.ts` holds `NavTarget` (the
+`href`-or-`element` pair), `navTarget()` (the branch), `navKey()` (the React key,
+since an element destination hides its href inside the consumer's element) and
+the childless guard. `SidebarDestination`, `MobileTab` and `NavLink` all extend
+`NavTarget`, and `SiteHeader`'s local `navKey` is now a re-export, so marketing
+chrome and application chrome cannot drift on what identifies a destination.
+
+**`PortalShell`'s top nav uses `NavAnchor`, not `NavItem`** — the brief asked
+for the atom "unless there is a reason". There is. `NavItem` is the 236px
+sidebar row: it *requires* an `icon` and draws a 32px full-width pill with an
+active bar and a badge slot. The portal nav is a horizontal text link with no
+icon, and its className was already character-for-character the one `SiteHeader`
+gives its entries. Routing it through `NavItem` would change every portal header
+in the product and demand an invented icon per link; routing it through
+`NavAnchor` — the renderer `SiteHeader` and `SiteFooter` already share — changes
+nothing and gains `element`. That is also the brief's "reuse `NavAnchor` where it
+fits" satisfied by the same edit.
+
+**Two structural copies removed.** `AppShell.mobileTabs` and
+`PortalShell.mobileTabs` each declared their own inline copy of `MobileTab`.
+They were identical and fed straight into `MobileTabBar`, and they drifted the
+instant `MobileTab` gained `element`, leaving the tab bar's escape hatch
+unreachable through both shells that render it. Both now reference `MobileTab`.
+
+**The childless contract cannot be typed, so it is enforced at runtime.**
+`asChild` on these atoms takes a childless element: they compose from
+`label`/`icon`/`badge`, and under `Slot.Slottable` that content becomes *the
+consumer's element's* children, so an element bringing its own children discards
+the icon and label with no error at all. `ReactElement<{children?: never}>` looks
+like the answer and was tried and rejected against this repo's TypeScript: a JSX
+literal is `JSX.Element` = `ReactElement<any, any>`, so `<a href="/x">Text</a>`
+satisfies it, while a correctly childless element held in a `React.ReactElement`
+variable widens to `ReactElement<unknown>` and is *rejected*. It accepts the
+mistake and rejects the correct code — exactly backwards. So `warnIfNotChildless`
+logs a development warning at the one chokepoint every path already goes
+through. A warning and not a throw: the mistake costs an icon, and taking the
+application down over it would be the larger fault.
+
+**How "unchanged" was proved.** Not by spot assertions. `nav-baseline.ts` holds
+the `outerHTML` of the sidebar nav, the rail, the tab bar, the portal nav and
+the portal logo, **captured by rendering the shells before the change** and
+frozen; `nav-defaults.test.tsx` asserts byte equality after it. Attribute order,
+class token order, element order and the icon SVGs are all in scope, which is
+what a spot assertion misses and a measurement notices. Same ordering discipline
+as `logo-call-sites.test.tsx`, and for the same reason: a baseline written after
+the change proves nothing.
+
+384 tests in 83 files before, 410 in 86 after. `tsc --noEmit` and `eslint .`
+both clean, `storybook build` succeeds. No story, page composition or
+measurement moved.
+
+**Not done.** No story was added for `element`. The shells have no story files —
+they are exercised through the twelve page compositions — and adding one for a
+prop whose correct render is *identical to the default* would be a story that
+looks like a duplicate. It is documented in `COMPONENTS.md` under Navigation
+instead.

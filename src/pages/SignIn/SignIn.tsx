@@ -1,4 +1,5 @@
 import { Button } from '@/components/atoms/Button/Button'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { Field } from '@/components/molecules/Field/Field'
 import { PHOTOS } from '@/assets/photography'
 
@@ -24,15 +25,11 @@ export function SignIn() {
           className="absolute inset-0 size-full object-cover opacity-15"
         />
 
-        <div className="relative flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-control font-mono text-mono-count"
-          >
-            TS
-          </span>
-          <span className="text-heading-block text-ink-foreground">TimeSubmit</span>
-        </div>
+        {/* `asChild` keeps the positioned `<div>`: everything on this panel is
+            `relative` so it stacks above the absolutely-placed photograph. */}
+        <Logo asChild tone="ink">
+          <div className="relative" />
+        </Logo>
 
         <div className="relative flex max-w-[420px] flex-col gap-4">
           <p className="text-heading-section text-ink-foreground">

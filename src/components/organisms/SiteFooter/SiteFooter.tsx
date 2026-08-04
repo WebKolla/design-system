@@ -1,6 +1,8 @@
 import * as React from 'react'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { cn } from '@/lib/cn'
 import type { NavLink } from '../SiteHeader/SiteHeader'
+import { NavAnchor, navKey } from '../SiteHeader/NavAnchor'
 
 export interface FooterColumn {
   heading: string
@@ -40,25 +42,17 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
       >
         <div className="flex flex-wrap gap-10">
           <div className="flex min-w-[260px] flex-1 flex-col gap-3">
-            <span className="flex items-center gap-2.5">
-              <span
-                aria-hidden
-                className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-control font-mono text-mono-count"
-              >
-                TS
-              </span>
-              <span className="text-heading-block text-ink-foreground">{brand}</span>
-            </span>
+            {/* `tone="ink"`: the wordmark sits on the ink surface, so it takes
+                the mode-invariant `ink-foreground` rather than `foreground`. */}
+            <Logo brand={brand} tone="ink" />
             <p className="text-body-cell text-ink-subtle max-w-[36ch]">{blurb}</p>
             <ul className="flex items-center gap-4">
               {social.map((s) => (
-                <li key={s.href}>
-                  <a
-                    href={s.href}
+                <li key={navKey(s)}>
+                  <NavAnchor
+                    link={s}
                     className="text-ui-xs text-ink-subtle hover:text-ink-foreground transition-colors"
-                  >
-                    {s.label}
-                  </a>
+                  />
                 </li>
               ))}
             </ul>
@@ -71,13 +65,11 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
               </h2>
               <ul className="flex flex-col gap-2 pt-3">
                 {col.links.map((link) => (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
+                  <li key={navKey(link)}>
+                    <NavAnchor
+                      link={link}
                       className="text-body-cell text-ink-muted hover:text-ink-foreground transition-colors"
-                    >
-                      {link.label}
-                    </a>
+                    />
                   </li>
                 ))}
               </ul>

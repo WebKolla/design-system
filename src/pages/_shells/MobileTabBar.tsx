@@ -1,11 +1,22 @@
 import { TabBarItemMobile } from '@/components/atoms/TabBarItemMobile/TabBarItemMobile'
 import type { SidebarExpandedProps } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
+import { navKey, navTarget, type NavTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
-export interface MobileTab {
+export interface MobileTab extends NavTarget {
   label: string
   icon: SidebarExpandedProps['overview']['icon']
-  href: string
+  /**
+   * The destination.
+   *
+   * Optional only because `element` is the alternative — supply one or the
+   * other. `element={<Link href="/timesheets" />}` is what keeps a tab tap a
+   * client-side transition rather than a full document load.
+   *
+   * **Pass a childless element.** This bar's items compose their own icon and
+   * label. See `NavElement`.
+   */
+  href?: string | undefined
   current?: boolean
 }
 
@@ -38,10 +49,10 @@ export function MobileTabBar({ tabs, className }: MobileTabBarProps) {
     >
       {tabs.map((tab) => (
         <TabBarItemMobile
-          key={tab.href}
+          key={navKey(tab)}
           label={tab.label}
           icon={tab.icon}
-          href={tab.href}
+          {...navTarget(tab)}
           {...(tab.current ? { active: true } : {})}
         />
       ))}
