@@ -82,6 +82,25 @@ export const DecisionsAreReachable: Story = {
   },
 }
 
+/**
+ * The consultant name is the only route to the timesheet on a phone —
+ * there is no row header here, just the name's own line, so the link and the
+ * visible name share one cell rather than the link replacing it. Mirrors
+ * `TableRowApproval`'s `NameIsALink`.
+ */
+export const NameIsALink: Story = {
+  args: { nameElement: <a href="/timesheets/ts_callum_byrne" /> },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const link = canvas.getByRole('link', { name: 'Callum Byrne' })
+    await expect(link).toHaveAttribute('href', '/timesheets/ts_callum_byrne')
+    // The accessible name is the consultant's name alone, not concatenated
+    // with the period line beside it.
+    await expect(link).toHaveAccessibleName('Callum Byrne')
+  },
+}
+
 /** No rate, amount or invoice value may render in an approver-scoped view. */
 export const ShowsNoMoney: Story = {
   play: async ({ canvasElement }) => {

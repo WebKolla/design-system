@@ -99,6 +99,7 @@ export const DialogContent = React.forwardRef<
         className="bg-ink/60 fixed inset-0"
       />
       <RadixDialog.Content
+        aria-modal="true"
         {...rest}
         ref={ref}
         style={{ zIndex: 'var(--z-dialog)', ...rest.style }}
