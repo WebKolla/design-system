@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test'
+import * as React from 'react'
 import { Button } from '@/components/atoms/Button/Button'
 import { Textarea } from '@/components/atoms/Textarea/Textarea'
 import { Field } from '@/components/molecules/Field/Field'
@@ -152,6 +153,70 @@ export const EscapeCloses: Story = {
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await waitFor(() => expect(document.activeElement).toBe(trigger))
+  },
+}
+
+/**
+ * The shape every non-`Trigger` consumer in the product actually uses
+ * (`RejectDialog`, `ConfirmDialog`): `open` is driven by state a button sets,
+ * not by a rendered `DialogTrigger`. BUG-D1C-004 — `context.triggerRef` is
+ * `null` for the whole life of a dialog opened this way, so Radix's own
+ * close-focus restore is a guaranteed no-op and focus was landing on
+ * `<body>`. This asserts the wrapper's own restore covers exactly this
+ * shape, which `TrapsAndRestoresFocus` and `EscapeCloses` above do not: both
+ * of those render a real `DialogTrigger`, the one case that already worked.
+ */
+const StateDrivenDialog: Story['render'] = (args) => {
+  function Example() {
+    const [open, setOpen] = React.useState(false)
+    return (
+      <>
+        <Button variant="destructive" size="md" onClick={() => setOpen(true)}>
+          Deactivate consultant
+        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent
+            {...args}
+            footer={
+              <>
+                <DialogClose asChild>
+                  <Button variant="secondary" size="md">
+                    Keep active
+                  </Button>
+                </DialogClose>
+                <Button variant="destructive" size="md">
+                  Deactivate
+                </Button>
+              </>
+            }
+          />
+        </Dialog>
+      </>
+    )
+  }
+  return <Example />
+}
+
+export const RestoresFocusWithoutTrigger: Story = {
+  render: StateDrivenDialog,
+  play: async ({ canvasElement }) => {
+    const opener = within(canvasElement).getByRole('button', {
+      name: 'Deactivate consultant',
+    })
+    await userEvent.click(opener)
+
+    await screen.findByRole('dialog', { name: 'Deactivate Priya Raman?' })
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(opener))
+
+    // And again via the in-dialog Cancel control, not just Escape — the bug
+    // reproduced identically on both paths.
+    await userEvent.click(opener)
+    await screen.findByRole('dialog', { name: 'Deactivate Priya Raman?' })
+    await userEvent.click(screen.getByRole('button', { name: 'Keep active' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(opener))
   },
 }
 
