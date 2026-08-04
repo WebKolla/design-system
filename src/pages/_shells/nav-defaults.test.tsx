@@ -83,9 +83,15 @@ describe('shell navigation defaults are unchanged', () => {
       </AppShell>,
     )
 
-    expect(container.querySelector('nav[aria-label="Main"]')!.outerHTML).toBe(
-      APP_RAIL,
-    )
+    // The rail's wrapper, not its `nav`. The rail's width, border and surface
+    // moved onto a wrapping element when the mark was added above the nav, so
+    // asserting the `nav` alone would no longer see any of them — the test
+    // would keep passing while the thing it was written to protect went
+    // unwatched.
+    expect(
+      container.querySelector('nav[aria-label="Main"]')!.parentElement!
+        .outerHTML,
+    ).toBe(APP_RAIL)
   })
 
   it('MobileTabBar emits the same bar as before', () => {
