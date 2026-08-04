@@ -74,9 +74,25 @@ export const TableRowInvoice = React.forwardRef<
           aria-label={`Select invoice ${invoice}`}
         />
       </td>
-      <td className={cn(cell, 'text-primary font-mono text-mono-cell tabular-nums')}>
+      {/*
+        `th scope="row"`, not `td`. The invoice number is the row's name, and
+        marking it as the row header is what lets a screen reader announce
+        "INV-0231, Amount, £11,400.00" as you move across rather than
+        "Amount, £11,400.00" with no way to tell which invoice you are on.
+
+        Consuming applications were already doing this by hand — TimeSubmit's
+        own invoice table carried a `th scope="row"` with a comment saying why,
+        which is the tell that adopting this component was a regression.
+      */}
+      <th
+        scope="row"
+        className={cn(
+          cell,
+          'text-primary text-left font-mono text-mono-cell font-normal tabular-nums',
+        )}
+      >
         {invoice}
-      </td>
+      </th>
       <td className={cn(cell, 'text-body-cell text-foreground truncate')}>{client}</td>
       <td className={cn(cell, 'text-body-cell text-muted-foreground truncate')}>
         {consultant}
