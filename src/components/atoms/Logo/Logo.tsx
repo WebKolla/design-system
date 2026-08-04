@@ -93,6 +93,17 @@ export interface LogoProps
    * @default 'TimeSubmit'
    */
   brand?: string
+  /**
+   * Show the wordmark beside the tile. Set `false` for the 52px collapsed
+   * rail, where there is no room for it.
+   *
+   * The wordmark is not removed from the document, only visually hidden. It
+   * carries the lockup's accessible name — the tile is `aria-hidden`, because
+   * "TS" read aloud is noise — so deleting it would leave a link to the home
+   * page named nothing at all.
+   * @default true
+   */
+  wordmark?: boolean
   /** Render as a link home. Omit for a plain `<span>`. */
   href?: string | undefined
   /**
@@ -123,6 +134,7 @@ export const Logo = React.forwardRef<HTMLElement, LogoProps>(function Logo(
     size = 'md',
     tone = 'default',
     brand = 'TimeSubmit',
+  wordmark = true,
     href,
     asChild = false,
     className,
@@ -151,7 +163,9 @@ export const Logo = React.forwardRef<HTMLElement, LogoProps>(function Logo(
       <span aria-hidden className={markVariants({ size })}>
         TS
       </span>
-      <span className={wordmarkVariants({ tone })}>{brand}</span>
+      <span className={cn(wordmarkVariants({ tone }), wordmark ? '' : 'sr-only')}>
+        {brand}
+      </span>
     </Comp>
   )
 })

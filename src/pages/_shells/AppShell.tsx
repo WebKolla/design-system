@@ -4,6 +4,7 @@ import {
   SidebarExpanded,
   type SidebarExpandedProps,
 } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
+import { Logo } from '@/components/atoms/Logo/Logo'
 import { NavRailItem } from '@/components/atoms/NavRailItem/NavRailItem'
 import { MobileTabBar, type MobileTab } from './MobileTabBar'
 import { navKey, navTarget } from '@/lib/nav-slot'
@@ -60,6 +61,15 @@ export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
    * wants to be legible.
    */
   collapsed?: boolean
+  /**
+   * Destination for the rail's mark. Omit for a plain, unlinked lockup.
+   *
+   * `href` rather than the childless-element convention the nav uses: the
+   * mark is one node, not a list, and a full document load on the way to the
+   * dashboard root is a far smaller cost than one per navigation click. Ask
+   * for `logoElement` if that stops being true.
+   */
+  logoHref?: string | undefined
   children: React.ReactNode
 }
 
@@ -83,6 +93,7 @@ export function AppShell({
   headerActions,
   mobileTabs,
   collapsed = false,
+  logoHref,
   children,
   className,
   ...rest
@@ -102,13 +113,30 @@ export function AppShell({
       )}
 
       {/* 834–1279 */}
-      <nav
-        aria-label="Main"
+      <div
         className={cn(
           'border-border bg-surface-raised hidden w-[52px] shrink-0 flex-col items-center gap-1 border-r py-3 md:flex',
           collapsed ? '' : 'xl:hidden',
         )}
       >
+        {/*
+          The mark sits above the nav and outside it, because a link home is
+          not a navigation destination and announcing it as one inflates the
+          item count a screen reader reads out. `SidebarExpanded` renders the
+          same lockup in the same position at wider widths; without this the
+          rail was the one place the product had no mark at all, and every
+          icon sat 46px higher than the frame.
+        */}
+        <Logo
+          size="sm"
+          wordmark={false}
+          className="mb-2"
+          {...(logoHref === undefined ? {} : { href: logoHref })}
+        />
+        <nav
+          aria-label="Main"
+          className="flex flex-col items-center gap-1"
+        >
         {railItems.map((item) => (
           <NavRailItem
             key={navKey(item)}
@@ -118,7 +146,8 @@ export function AppShell({
             {...(item.current ? { active: true } : {})}
           />
         ))}
-      </nav>
+        </nav>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-hairline bg-surface flex h-13 shrink-0 items-center justify-between gap-4 border-b px-6">
