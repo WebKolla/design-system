@@ -43,6 +43,23 @@ export interface TableRowApprovalProps
   onSelectedChange?: (checked: boolean) => void
   onApprove?: () => void
   onReject?: () => void
+  /**
+   * Renders the leading selection cell. Default `true`, which is the shape
+   * `APPROVAL_COLUMNS` describes.
+   *
+   * Set `false` whenever the header above drops the `select` column — which
+   * means the generic `TableHeader` over `omitColumns(APPROVAL_COLUMNS,
+   * ['select'])`, since `TableHeaderApprovals` always renders all seven. The
+   * two go together: dropping the column from the header while the row still
+   * renders its cell leaves the body one cell wider than the header, so every
+   * value from that point on is announced against the wrong column heading.
+   * This is `TableRowInvoice`'s `showActions` at the other end of the row.
+   *
+   * A consumer with no bulk mutation behind the selection should drop both. A
+   * checkbox that selects rows nothing can act on is a dead control, and the
+   * product has removed that same control twice.
+   */
+  showSelect?: boolean | undefined
 }
 
 const cell = 'px-2.5 align-middle'
@@ -81,6 +98,7 @@ export const TableRowApproval = React.forwardRef<
     onSelectedChange,
     onApprove,
     onReject,
+    showSelect = true,
     className,
     ...rest
   },
@@ -99,13 +117,15 @@ export const TableRowApproval = React.forwardRef<
         className,
       )}
     >
-      <td className={cell}>
-        <Checkbox
-          checked={selected}
-          onCheckedChange={(v) => onSelectedChange?.(v === true)}
-          aria-label={`Select timesheet for ${name}`}
-        />
-      </td>
+      {showSelect ? (
+        <td className={cell}>
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(v) => onSelectedChange?.(v === true)}
+            aria-label={`Select timesheet for ${name}`}
+          />
+        </td>
+      ) : null}
 
       {/*
         `th scope="row"`, not `td`. The consultant's name is the row's name,

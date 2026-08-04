@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, fn, userEvent, within } from 'storybook/test'
 import { TableShell } from '../_tables/TableShell'
 import { APPROVAL_COLUMNS } from '../_tables/columns'
+import { TableHeader } from '../TableHeader/TableHeader'
 import { TableHeaderApprovals } from '../TableHeaderApprovals/TableHeaderApprovals'
 import { TableRowApproval } from './TableRowApproval'
 
@@ -34,16 +35,30 @@ const meta = {
     reminder: 'Reminder sent',
   },
   decorators: [
-    (Story) => (
-      <div className="bg-surface border-border w-[900px] overflow-hidden rounded-card border">
-        <TableShell columns={APPROVAL_COLUMNS} caption="Timesheets awaiting approval">
-          <TableHeaderApprovals />
-          <tbody>
-            <Story />
-          </tbody>
-        </TableShell>
-      </div>
-    ),
+    // The header is chosen from `showSelect` rather than overridden per story:
+    // a story-level decorator wraps *inside* this one, which nests a second
+    // table in the first one's `tbody`. The pairing is the point — the row and
+    // the header must drop the `select` column together or the body runs one
+    // cell wider than the headings.
+    (Story, { args }) => {
+      const columns = args.showSelect === false
+        ? APPROVAL_COLUMNS.filter((c) => c.key !== 'select')
+        : APPROVAL_COLUMNS
+      return (
+        <div className="bg-surface border-border w-[900px] overflow-hidden rounded-card border">
+          <TableShell columns={columns} caption="Timesheets awaiting approval">
+            {args.showSelect === false ? (
+              <TableHeader columns={columns} />
+            ) : (
+              <TableHeaderApprovals />
+            )}
+            <tbody>
+              <Story />
+            </tbody>
+          </TableShell>
+        </div>
+      )
+    },
   ],
 } satisfies Meta<typeof TableRowApproval>
 
@@ -168,5 +183,46 @@ export const ShowsNoMoney: Story = {
   play: async ({ canvasElement }) => {
     const text = canvasElement.textContent ?? ''
     await expect(text).not.toMatch(/[£$€]/)
+  },
+}
+
+/**
+ * `showSelect={false}`, for a consumer with no bulk mutation behind the
+ * selection.
+ *
+ * A checkbox that selects rows nothing can act on is a dead control, and the
+ * product has removed that same control twice. Dropping it has to happen at
+ * both ends or not at all: the header here is the generic `TableHeader` over
+ * `APPROVAL_COLUMNS` less `select`, and the assertion is that the body row and
+ * the heading row carry the same number of cells. A body one cell wider than
+ * its header announces every value against the wrong column heading.
+ *
+ * This is `TableRowInvoice`'s `showActions` at the other end of the row.
+ */
+export const NoSelectColumn: Story = {
+  args: { showSelect: false },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await expect(
+      canvas.queryByRole('checkbox', { name: /select timesheet for/i }),
+    ).not.toBeInTheDocument()
+
+    const [headerRow, bodyRow] = canvas.getAllByRole('row')
+    // Six columns at both ends: `APPROVAL_COLUMNS.length - 1`.
+    await expect(within(headerRow!).getAllByRole('columnheader')).toHaveLength(6)
+    await expect(
+      within(bodyRow!).getAllByRole('cell').length +
+        within(bodyRow!).getAllByRole('rowheader').length,
+    ).toBe(6)
+
+    // The row header and the two decisions all survive the drop.
+    await expect(canvas.getByRole('rowheader', { name: 'Callum Byrne' })).toBeInTheDocument()
+    await expect(
+      canvas.getByRole('button', { name: 'Approve timesheet for Callum Byrne' }),
+    ).toBeInTheDocument()
+    await expect(
+      canvas.getByRole('button', { name: 'Reject timesheet for Callum Byrne' }),
+    ).toBeInTheDocument()
   },
 }
