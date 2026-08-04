@@ -125,9 +125,28 @@ export const TableRowInvoice = React.forwardRef<
       */}
       <th
         scope="row"
+        // The full number, for when the column cannot show all of it. The
+        // accessible name still comes from the text content, so this adds a
+        // tooltip without changing what `rowheader` matches on.
+        title={invoice}
         className={cn(
           cell,
           'text-primary text-left font-mono text-mono-cell font-normal tabular-nums',
+          // `truncate`, matching the client and consultant cells beside it.
+          //
+          // Without it the number wraps mid-token: the column is 108px and a
+          // real number like `INV-20260226-587` measures 148px including
+          // padding, so it breaks across two lines inside a 42px row. An
+          // identifier split in half cannot be scanned, and scanning is the
+          // entire reason this screen is mono and tabular.
+          //
+          // An ellipsis is not a good outcome for an identifier either. It is
+          // only the better of the two failures, because it degrades
+          // predictably and keeps the row on its grid instead of bleeding into
+          // the client column. Whether 108px is the right width for the
+          // formats real consultancies use is a question about the shared
+          // grid, and is deliberately not answered here.
+          'truncate',
         )}
       >
         {/*

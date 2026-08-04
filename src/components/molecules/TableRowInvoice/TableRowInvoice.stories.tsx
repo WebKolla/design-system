@@ -131,6 +131,25 @@ export const ActionsCanBeOmitted: Story = {
   },
 }
 
+/**
+ * A number too long for the column is clipped, never wrapped. Wrapping breaks
+ * the identifier across two lines inside a 42px row, and a number you have to
+ * reassemble cannot be scanned.
+ */
+export const LongInvoiceNumberDoesNotWrap: Story = {
+  args: { invoice: 'INV-20260226-587' },
+  play: async ({ canvasElement }) => {
+    const header = within(canvasElement).getByRole('rowheader', {
+      name: 'INV-20260226-587',
+    })
+    await expect(getComputedStyle(header).whiteSpace).toBe('nowrap')
+    // One line box, whatever the column does to it.
+    await expect(header.getClientRects()).toHaveLength(1)
+    // And the full number stays recoverable.
+    await expect(header).toHaveAttribute('title', 'INV-20260226-587')
+  },
+}
+
 export const EdgeContent: Story = {
   render: (args) => (
     <>
