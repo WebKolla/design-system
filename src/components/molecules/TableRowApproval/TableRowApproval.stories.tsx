@@ -226,3 +226,33 @@ export const NoSelectColumn: Story = {
     ).toBeInTheDocument()
   },
 }
+
+/**
+ * `showDecisions={false}`, for a row there is no decision left to take on.
+ *
+ * **The cell stays, empty.** Unlike `showSelect`, this varies per row: an
+ * approver's full list holds approved, rejected and draft rows beside the
+ * submitted ones. Dropping the `<td>` on some rows and not others would give
+ * the body ragged cell counts and shift every heading association after it, so
+ * the assertion here is that the row still carries seven cells.
+ */
+export const NoDecisions: Story = {
+  args: { showDecisions: false },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await expect(
+      canvas.queryByRole('button', { name: /timesheet for Callum Byrne/ }),
+    ).not.toBeInTheDocument()
+
+    const bodyRow = canvas.getAllByRole('row')[1]!
+    await expect(
+      within(bodyRow).getAllByRole('cell').length +
+        within(bodyRow).getAllByRole('rowheader').length,
+    ).toBe(APPROVAL_COLUMNS.length)
+
+    // The row still identifies itself and still carries its facts.
+    await expect(canvas.getByRole('rowheader', { name: 'Callum Byrne' })).toBeInTheDocument()
+    await expect(canvas.getByText('40.00')).toBeInTheDocument()
+  },
+}

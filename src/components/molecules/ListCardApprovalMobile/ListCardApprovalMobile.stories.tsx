@@ -65,10 +65,20 @@ export const DecisionsAreReachable: Story = {
   args: { onApprove: fn(), onReject: fn() },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByRole('button', { name: 'Approve' }))
+    // The accessible names carry the consultant; the visible labels do not.
+    // Five cards would otherwise be ten controls called "Approve" and "Reject".
+    await userEvent.click(
+      canvas.getByRole('button', { name: 'Approve timesheet for Callum Byrne' }),
+    )
     await expect(args.onApprove).toHaveBeenCalled()
-    await userEvent.click(canvas.getByRole('button', { name: 'Reject' }))
+    await userEvent.click(
+      canvas.getByRole('button', { name: 'Reject timesheet for Callum Byrne' }),
+    )
     await expect(args.onReject).toHaveBeenCalled()
+    // The label a thumb reads is still two words.
+    await expect(
+      canvas.getByRole('button', { name: 'Approve timesheet for Callum Byrne' }),
+    ).toHaveTextContent('Approve')
   },
 }
 
@@ -87,5 +97,24 @@ export const EdgeContent: Story = {
     period: '27 Jul to 2 Aug · Fortnightly, carried over',
     project: 'Pemberton Clarke Consulting Group · Phase 2 assurance',
     hours: '164.75',
+  },
+}
+
+/**
+ * `showDecisions={false}`, for a card there is no decision left to take on.
+ *
+ * An approver's full timesheet list holds approved, rejected and draft rows
+ * beside the submitted ones, and the server refuses the rest with "Only
+ * submitted timesheets can be approved". A control whose only outcome is a
+ * refusal is a dead control.
+ */
+export const NoDecisions: Story = {
+  args: { showDecisions: false, onApprove: fn(), onReject: fn() },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(canvas.queryByRole('button')).not.toBeInTheDocument()
+    // Everything that identifies the card survives the drop.
+    await expect(canvas.getByText('Callum Byrne')).toBeInTheDocument()
+    await expect(canvas.getByText('40.00')).toBeInTheDocument()
   },
 }
