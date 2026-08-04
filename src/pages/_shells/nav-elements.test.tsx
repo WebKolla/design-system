@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Clock, LayoutDashboard } from 'lucide-react'
 import { AppShell } from './AppShell'
 import { PortalShell } from './PortalShell'
@@ -198,6 +199,59 @@ describe('AppShell logoElement', () => {
     const mark = screen.getByRole('link', { name: 'TimeSubmit' })
     expect(mark).toHaveAttribute('href', '/plain')
     expect(mark).not.toHaveAttribute('data-router-link')
+  })
+})
+
+describe('AppShell onCollapsedChange', () => {
+  const base = {
+    sidebar,
+    page: 'Overview',
+    mobileTabs: [{ label: 'Overview', icon: LayoutDashboard, href: '/dashboard' }],
+  }
+
+  it('renders a real button that reports and negates the collapsed state', async () => {
+    const onCollapsedChange = vi.fn()
+    render(
+      <AppShell {...base} onCollapsedChange={onCollapsedChange}>
+        <p>B</p>
+      </AppShell>,
+    )
+
+    const toggle = screen.getByRole('button', { name: 'Collapse sidebar' })
+    // Expanded is the default, so the control offers to close.
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+    await userEvent.click(toggle)
+    expect(onCollapsedChange).toHaveBeenCalledWith(true)
+  })
+
+  it('names the action and swaps the mark when the sidebar is collapsed', async () => {
+    const onCollapsedChange = vi.fn()
+    render(
+      <AppShell {...base} collapsed onCollapsedChange={onCollapsedChange}>
+        <p>B</p>
+      </AppShell>,
+    )
+
+    const toggle = screen.getByRole('button', { name: 'Expand sidebar' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    // The old defect: PanelLeftClose offering to shut a panel already shut.
+    expect(toggle.querySelector('svg')).toHaveClass('lucide-panel-left-open')
+
+    await userEvent.click(toggle)
+    expect(onCollapsedChange).toHaveBeenCalledWith(false)
+  })
+
+  it('leaves the decorative mark alone when no handler is given', () => {
+    render(
+      <AppShell {...base}>
+        <p>B</p>
+      </AppShell>,
+    )
+
+    // The default path every existing consumer takes, and the one
+    // `nav-defaults.test.tsx` pins byte for byte.
+    expect(screen.queryByRole('button', { name: /sidebar/i })).toBeNull()
   })
 })
 

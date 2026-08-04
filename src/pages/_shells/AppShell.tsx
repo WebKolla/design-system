@@ -1,5 +1,11 @@
 import * as React from 'react'
-import { Bell, CalendarDays, ChevronDown, PanelLeftClose } from 'lucide-react'
+import {
+  Bell,
+  CalendarDays,
+  ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react'
 import {
   SidebarExpanded,
   type SidebarExpandedProps,
@@ -62,6 +68,28 @@ export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
    */
   collapsed?: boolean
   /**
+   * Called with the state the header's drawer control is asking for. Supplying
+   * it turns that control into a real button; omitting it leaves the shell
+   * exactly as it renders today.
+   *
+   * **Controlled, with no internal fallback state.** `collapsed` is a
+   * route-scoped default in the consuming app — the invoices list opens
+   * collapsed because a wide table wants the horizontal space — and a default
+   * has to be re-applicable on every navigation. State held in here would
+   * either be seeded once on mount and then drift away from the route, or be
+   * re-seeded on every render and overwrite whatever the user just chose. The
+   * app already knows the route, so it is the only place that can tell a
+   * default from a lock.
+   *
+   * **No handler, no button.** A control that advertises itself and then
+   * ignores a click reads as broken rather than as absent, which is why the
+   * icon was decorative in the first place: with nothing behind it, a bare
+   * `aria-hidden` mark is the honest rendering. It is also why this is not a
+   * `showCollapseToggle` boolean. The button and the thing it does arrive
+   * together or not at all.
+   */
+  onCollapsedChange?: ((next: boolean) => void) | undefined
+  /**
    * Destination for the rail's mark, when a plain anchor will do. Omit both
    * this and `logoElement` for an unlinked lockup.
    */
@@ -108,6 +136,7 @@ export function AppShell({
   headerActions,
   mobileTabs,
   collapsed = false,
+  onCollapsedChange,
   logoHref,
   logoElement,
   children,
@@ -171,11 +200,42 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-hairline bg-surface flex h-13 shrink-0 items-center justify-between gap-4 border-b px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <PanelLeftClose
-              className="text-subtle-foreground size-4 shrink-0"
-              strokeWidth={1.75}
-              aria-hidden
-            />
+            {/*
+              Two renderings, and the decorative one is the default on purpose.
+              See `onCollapsedChange`: without a handler there is nothing behind
+              the control, and an inert button is worse than a mark that never
+              claimed to be pressable.
+
+              The live one is hidden below `md`, matching the rail's own
+              breakpoint. Below that the shell shows `MobileTabBar` and there is
+              no sidebar to collapse, so a toggle there would be the second
+              decorative control rather than the fix for the first.
+            */}
+            {onCollapsedChange ? (
+              <button
+                type="button"
+                // Names the action, not the state, and swaps with it, so the
+                // announcement says what pressing it will do.
+                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                aria-expanded={!collapsed}
+                onClick={() => onCollapsedChange(!collapsed)}
+                className="text-subtle-foreground hover:bg-control hover:text-foreground rounded-control hidden size-7 shrink-0 items-center justify-center transition-colors md:inline-flex"
+              >
+                {/* The mark stops asserting a direction it cannot deliver:
+                    closed offers to open. */}
+                {collapsed ? (
+                  <PanelLeftOpen className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                ) : (
+                  <PanelLeftClose className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                )}
+              </button>
+            ) : (
+              <PanelLeftClose
+                className="text-subtle-foreground size-4 shrink-0"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+            )}
             <span aria-hidden className="bg-border h-4 w-px" />
             <nav aria-label="Breadcrumb" className="min-w-0">
               <ol className="text-ui-sm flex min-w-0 items-center gap-2">
