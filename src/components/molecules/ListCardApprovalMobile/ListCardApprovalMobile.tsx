@@ -1,11 +1,26 @@
 import * as React from 'react'
+import { Slot } from 'radix-ui'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
 import { Button } from '@/components/atoms/Button/Button'
 import { cn } from '@/lib/cn'
+import { warnIfNotChildless, type NavElement } from '@/lib/nav-slot'
 
 export interface ListCardApprovalMobileProps
   extends React.ComponentPropsWithoutRef<'div'> {
   name: string
+  /**
+   * Childless element the consultant name renders as, e.g.
+   * `nameElement={<Link href={`/timesheets/${id}`} />}`. Omit for plain text.
+   *
+   * Mirrors `TableRowApproval`'s `nameElement` exactly — same childless-element
+   * contract via `NavElement`, same `Slot.Root`/`Slot.Slottable` mechanics, so
+   * the link's accessible name stays the consultant's name alone. A `string`
+   * href would only ever become a plain `<a>`, a full document load in a
+   * framework application; that regression has already shipped twice here.
+   *
+   * **Pass a childless element** — see `NavElement`.
+   */
+  nameElement?: NavElement | undefined
   initials: string
   /** e.g. "27 Jul to 2 Aug · Weekly". */
   period: string
@@ -46,6 +61,7 @@ export const ListCardApprovalMobile = React.forwardRef<
 >(function ListCardApprovalMobile(
   {
     name,
+    nameElement,
     initials,
     period,
     project,
@@ -58,6 +74,8 @@ export const ListCardApprovalMobile = React.forwardRef<
   },
   ref,
 ) {
+  if (nameElement) warnIfNotChildless(nameElement, 'the consultant name')
+
   return (
     <div
       {...rest}
@@ -71,7 +89,23 @@ export const ListCardApprovalMobile = React.forwardRef<
         <div className="flex min-w-0 items-center gap-2.5">
           <Avatar initials={initials} size={26} label={name} />
           <div className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-body-cell text-foreground truncate">{name}</span>
+            {/*
+              Mirrors `TableRowApproval`'s row header: the element renders
+              *inside* the name's own line, never as the wrapping `span`, so
+              `Slot.Slottable` keeps `{name}` as the consumer element's
+              children and the link's accessible name stays exactly the
+              consultant's name.
+            */}
+            <span className="text-body-cell text-foreground truncate">
+              {nameElement ? (
+                <Slot.Root>
+                  <Slot.Slottable>{nameElement}</Slot.Slottable>
+                  {name}
+                </Slot.Root>
+              ) : (
+                name
+              )}
+            </span>
             <span className="text-body-micro text-subtle-foreground truncate">
               {period}
             </span>

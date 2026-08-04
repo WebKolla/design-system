@@ -119,6 +119,26 @@ export const TrapsAndRestoresFocus: Story = {
   },
 }
 
+/**
+ * `role="dialog"` alone lets a screen reader's virtual cursor keep browsing
+ * content behind the overlay even though focus is trapped. `aria-modal="true"`
+ * is what tells assistive technology the rest of the document is inert while
+ * this is open, per the WAI-ARIA Dialog (Modal) pattern. Radix's own
+ * `DialogContentImpl` never sets it, so this wrapper adds it explicitly.
+ */
+export const IsAriaModal: Story = {
+  render: ConfirmDialog,
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByRole('button', {
+      name: 'Deactivate consultant',
+    })
+    await userEvent.click(trigger)
+
+    const dialog = await screen.findByRole('dialog', { name: 'Deactivate Priya Raman?' })
+    await expect(dialog).toHaveAttribute('aria-modal', 'true')
+  },
+}
+
 /** Escape closes it, and focus still comes back. */
 export const EscapeCloses: Story = {
   render: ConfirmDialog,
