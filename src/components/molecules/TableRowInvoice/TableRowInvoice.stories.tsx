@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { expect, within } from 'storybook/test'
 import { TableShell } from '../_tables/TableShell'
 import { INVOICE_COLUMNS } from '../_tables/columns'
 import { TableHeaderInvoices } from '../TableHeaderInvoices/TableHeaderInvoices'
@@ -76,6 +77,58 @@ export const AmountsAlign: Story = {
       <TableRowInvoice {...args} alt invoice="INV-0234" amount="£1,092.50" />
     </>
   ),
+}
+
+/**
+ * The invoice number is the route to the invoice, and the row header at the
+ * same time. Both, on one cell — a link that replaced the `th` would undo the
+ * row header, and a row header with no link leaves the table with no way in.
+ */
+export const InvoiceNumberIsALink: Story = {
+  args: { invoiceElement: <a href="/invoices/inv_231" /> },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const header = canvas.getByRole('rowheader', { name: 'INV-0231' })
+    await expect(header).toBeInTheDocument()
+
+    const link = canvas.getByRole('link', { name: 'INV-0231' })
+    await expect(link).toHaveAttribute('href', '/invoices/inv_231')
+    // The link is inside the header cell, not instead of it.
+    await expect(header).toContainElement(link)
+  },
+}
+
+/**
+ * `showActions={false}` drops the trailing cell, for a header that has dropped
+ * the column. Body and header must agree on the count or every value is
+ * announced against the wrong heading.
+ */
+export const ActionsCanBeOmitted: Story = {
+  args: { showActions: false },
+  decorators: [
+    (Story) => (
+      <div className="bg-surface border-border w-[900px] overflow-hidden rounded-card border">
+        <TableShell
+          columns={INVOICE_COLUMNS.filter((c) => c.key !== 'actions')}
+          caption="Invoices"
+        >
+          <tbody>
+            <Story />
+          </tbody>
+        </TableShell>
+      </div>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(
+      canvas.queryByRole('button', { name: /actions for invoice/i }),
+    ).toBeNull()
+    await expect(canvasElement.querySelectorAll('tbody td')).toHaveLength(
+      INVOICE_COLUMNS.filter((c) => c.key !== 'actions').length - 1,
+    )
+  },
 }
 
 export const EdgeContent: Story = {
