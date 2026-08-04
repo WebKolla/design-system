@@ -131,6 +131,76 @@ describe('AppShell rail element', () => {
   })
 })
 
+describe('AppShell logoElement', () => {
+  it('renders the consumer element and keeps the lockup as its children', () => {
+    const { container } = render(
+      <AppShell
+        sidebar={sidebar}
+        page="Overview"
+        logoElement={routerLink}
+        mobileTabs={[
+          { label: 'Overview', icon: LayoutDashboard, href: '/dashboard' },
+        ]}
+      >
+        <p>B</p>
+      </AppShell>,
+    )
+
+    // The mark sits above the nav and outside it: a link home is not a
+    // navigation destination.
+    const rail = container.querySelector('nav[aria-label="Main"]')!
+    const mark = screen.getByRole('link', { name: 'TimeSubmit' })
+
+    expect(mark).toHaveAttribute('data-router-link')
+    expect(mark).toHaveAttribute('href', '/routed')
+    expect(rail.contains(mark)).toBe(false)
+    // The composed lockup survived `asChild` — the silent failure this whole
+    // suite exists to catch. The wordmark is the accessible name, so losing it
+    // would leave a link named nothing at all.
+    expect(mark).toHaveTextContent('TimeSubmit')
+  })
+
+  it('prefers the element over href, as navTarget does everywhere else', () => {
+    render(
+      <AppShell
+        sidebar={sidebar}
+        page="Overview"
+        logoHref="/plain"
+        logoElement={routerLink}
+        mobileTabs={[
+          { label: 'Overview', icon: LayoutDashboard, href: '/dashboard' },
+        ]}
+      >
+        <p>B</p>
+      </AppShell>,
+    )
+
+    expect(screen.getByRole('link', { name: 'TimeSubmit' })).toHaveAttribute(
+      'href',
+      '/routed',
+    )
+  })
+
+  it('falls back to a plain anchor when only href is given', () => {
+    render(
+      <AppShell
+        sidebar={sidebar}
+        page="Overview"
+        logoHref="/plain"
+        mobileTabs={[
+          { label: 'Overview', icon: LayoutDashboard, href: '/dashboard' },
+        ]}
+      >
+        <p>B</p>
+      </AppShell>,
+    )
+
+    const mark = screen.getByRole('link', { name: 'TimeSubmit' })
+    expect(mark).toHaveAttribute('href', '/plain')
+    expect(mark).not.toHaveAttribute('data-router-link')
+  })
+})
+
 describe('MobileTab.element', () => {
   it('renders the consumer element and reaches TabBarItemMobile asChild', () => {
     const { container } = render(

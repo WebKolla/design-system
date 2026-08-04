@@ -7,7 +7,7 @@ import {
 import { Logo } from '@/components/atoms/Logo/Logo'
 import { NavRailItem } from '@/components/atoms/NavRailItem/NavRailItem'
 import { MobileTabBar, type MobileTab } from './MobileTabBar'
-import { navKey, navTarget } from '@/lib/nav-slot'
+import { navKey, navTarget, type NavElement } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
 export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -62,14 +62,29 @@ export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
    */
   collapsed?: boolean
   /**
-   * Destination for the rail's mark. Omit for a plain, unlinked lockup.
-   *
-   * `href` rather than the childless-element convention the nav uses: the
-   * mark is one node, not a list, and a full document load on the way to the
-   * dashboard root is a far smaller cost than one per navigation click. Ask
-   * for `logoElement` if that stops being true.
+   * Destination for the rail's mark, when a plain anchor will do. Omit both
+   * this and `logoElement` for an unlinked lockup.
    */
   logoHref?: string | undefined
+  /**
+   * Render the mark as this element instead of the generated `<a>`, via
+   * `Logo`'s `asChild` — `logoElement={<Link href="/dashboard" />}`.
+   *
+   * Added because shipping only `logoHref` was wrong. The argument for it was
+   * that the mark is one node rather than a list, so a full document load was
+   * a smaller cost than one per navigation click. That misread the cost: the
+   * rail is on every dashboard route, so the mark is one of the most reachable
+   * controls in the product, and a full document load there is the same defect
+   * as BUG-DSR2-009 rather than a lesser one. A string can only ever become a
+   * plain `<a>`.
+   *
+   * **Pass a childless element** — see `NavElement`. `Logo` composes the tile
+   * and wordmark, and under `asChild` they become this element's children.
+   *
+   * `element` wins when both are given, as it does everywhere `navTarget` is
+   * used.
+   */
+  logoElement?: NavElement | undefined
   children: React.ReactNode
 }
 
@@ -94,6 +109,7 @@ export function AppShell({
   mobileTabs,
   collapsed = false,
   logoHref,
+  logoElement,
   children,
   className,
   ...rest
@@ -131,7 +147,10 @@ export function AppShell({
           size="sm"
           wordmark={false}
           className="mb-2"
-          {...(logoHref === undefined ? {} : { href: logoHref })}
+          // `navTarget` returns either `{ asChild, children }` or `{ href }`,
+          // and `Logo` accepts both, so the one chokepoint every other
+          // destination in this library goes through works here unchanged.
+          {...navTarget({ href: logoHref, element: logoElement })}
         />
         <nav
           aria-label="Main"
