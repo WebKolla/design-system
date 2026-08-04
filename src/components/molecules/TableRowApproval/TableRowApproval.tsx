@@ -60,6 +60,23 @@ export interface TableRowApprovalProps
    * product has removed that same control twice.
    */
   showSelect?: boolean | undefined
+  /**
+   * Renders the approve and reject controls. Default `true`.
+   *
+   * **The cell stays either way** — unlike `showSelect`, which drops a column
+   * the whole table agrees to drop. This one varies per row, so removing the
+   * `<td>` would give that row one cell fewer than its neighbours and shift
+   * every heading association after it. `false` empties the cell, it does not
+   * delete it.
+   *
+   * Set `false` on a row there is no decision left to take on. An approver's
+   * "all timesheets" list holds approved, rejected and draft rows beside the
+   * submitted ones, and only the submitted ones can be acted on — the server
+   * refuses the rest with "Only submitted timesheets can be approved". A
+   * control whose only outcome is a refusal is the dead control this product
+   * has removed twice; the honest form is not to offer it.
+   */
+  showDecisions?: boolean | undefined
 }
 
 const cell = 'px-2.5 align-middle'
@@ -99,6 +116,7 @@ export const TableRowApproval = React.forwardRef<
     onApprove,
     onReject,
     showSelect = true,
+    showDecisions = true,
     className,
     ...rest
   },
@@ -212,24 +230,31 @@ export const TableRowApproval = React.forwardRef<
       </td>
 
       <td className={cn(cell, 'text-right')}>
-        <span className="inline-flex gap-1.5">
-          <button
-            type="button"
-            onClick={onApprove}
-            aria-label={`Approve timesheet for ${name}`}
-            className="bg-success-solid text-primary-foreground inline-flex size-7 items-center justify-center rounded-control transition-colors hover:bg-success"
-          >
-            <Check className="size-4" strokeWidth={2} aria-hidden />
-          </button>
-          <button
-            type="button"
-            onClick={onReject}
-            aria-label={`Reject timesheet for ${name}`}
-            className="border-input text-danger hover:bg-danger-bg inline-flex size-7 items-center justify-center rounded-control border transition-colors"
-          >
-            <X className="size-4" strokeWidth={2} aria-hidden />
-          </button>
-        </span>
+        {/*
+          Empty rather than absent when there is no decision to take: the cell
+          count has to match every other row in the body, or the headings stop
+          lining up from here to the end of the row.
+        */}
+        {showDecisions ? (
+          <span className="inline-flex gap-1.5">
+            <button
+              type="button"
+              onClick={onApprove}
+              aria-label={`Approve timesheet for ${name}`}
+              className="bg-success-solid text-primary-foreground inline-flex size-7 items-center justify-center rounded-control transition-colors hover:bg-success"
+            >
+              <Check className="size-4" strokeWidth={2} aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={onReject}
+              aria-label={`Reject timesheet for ${name}`}
+              className="border-input text-danger hover:bg-danger-bg inline-flex size-7 items-center justify-center rounded-control border transition-colors"
+            >
+              <X className="size-4" strokeWidth={2} aria-hidden />
+            </button>
+          </span>
+        ) : null}
       </td>
     </tr>
   )

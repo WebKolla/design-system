@@ -15,6 +15,16 @@ export interface ListCardApprovalMobileProps
   hours: string
   onApprove?: () => void
   onReject?: () => void
+  /**
+   * Renders the approve and reject buttons. Default `true`.
+   *
+   * Set `false` on a card there is no decision left to take on — an approved,
+   * rejected or draft timesheet in an approver's full list. The server refuses
+   * those with "Only submitted timesheets can be approved", and a control whose
+   * only outcome is a refusal is a dead control. `TableRowApproval` carries the
+   * same prop for the same rows.
+   */
+  showDecisions?: boolean | undefined
 }
 
 /**
@@ -34,7 +44,18 @@ export const ListCardApprovalMobile = React.forwardRef<
   HTMLDivElement,
   ListCardApprovalMobileProps
 >(function ListCardApprovalMobile(
-  { name, initials, period, project, hours, onApprove, onReject, className, ...rest },
+  {
+    name,
+    initials,
+    period,
+    project,
+    hours,
+    onApprove,
+    onReject,
+    showDecisions = true,
+    className,
+    ...rest
+  },
   ref,
 ) {
   return (
@@ -63,14 +84,32 @@ export const ListCardApprovalMobile = React.forwardRef<
 
       <p className="text-body-cell text-muted-foreground truncate">{project}</p>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Button variant="approve" onClick={onApprove}>
-          Approve
-        </Button>
-        <Button variant="destructive" onClick={onReject}>
-          Reject
-        </Button>
-      </div>
+      {/*
+        The visible labels stay "Approve" and "Reject" — two words, at the size
+        a thumb needs. The accessible names name the consultant, because a queue
+        of five cards is otherwise ten buttons called "Approve" and "Reject"
+        with nothing to tell them apart, and a screen reader user moving by
+        control has no card boundary to orient against. Same names
+        `TableRowApproval` gives its icon buttons, deliberately.
+      */}
+      {showDecisions ? (
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="approve"
+            onClick={onApprove}
+            aria-label={`Approve timesheet for ${name}`}
+          >
+            Approve
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onReject}
+            aria-label={`Reject timesheet for ${name}`}
+          >
+            Reject
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 })
