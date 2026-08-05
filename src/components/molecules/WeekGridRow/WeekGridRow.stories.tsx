@@ -110,3 +110,56 @@ export const EdgeContent: Story = {
     </>
   ),
 }
+
+/**
+ * BUG-DSR2-031. Three rows on one project, distinguished only by task —
+ * including a row with an **empty** task, which is legal and must still
+ * produce a unique, readable name with no dangling comma or doubled
+ * separator. Asserted by set size against count, not by inspection.
+ */
+export const UniqueCellNames: Story = {
+  render: (args) => (
+    <>
+      <WeekGridRow
+        {...args}
+        project="Northgate Rail"
+        task="Signal design review"
+        values={['7.5', '7.5', '7.5', '7.5', '4.0', '', '']}
+        total="34.00"
+      />
+      <WeekGridRow
+        {...args}
+        project="Northgate Rail"
+        task="Assurance"
+        values={['1.0', '1.0', '1.0', '1.0', '2.0', '', '']}
+        total="6.00"
+      />
+      <WeekGridRow
+        {...args}
+        project="Northgate Rail"
+        task=""
+        values={['', '', '', '', '', '4.0', '']}
+        total="4.00"
+      />
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const inputs = within(canvasElement).getAllByRole('textbox')
+    // Three rows x seven day cells.
+    await expect(inputs).toHaveLength(21)
+
+    const names = inputs.map((input) => input.getAttribute('aria-label'))
+    await expect(new Set(names).size).toBe(names.length)
+
+    // The empty-task row's names must not leave a dangling comma or doubled
+    // separator — e.g. "Northgate Rail, , Monday hours" is wrong.
+    const emptyTaskNames = names.filter(
+      (n) => !n?.includes('Signal design review') && !n?.includes('Assurance'),
+    )
+    await expect(emptyTaskNames.length).toBe(7)
+    for (const name of emptyTaskNames) {
+      await expect(name).not.toContain(', ,')
+      await expect(name).toBe(`Northgate Rail, ${name?.split(', ').pop()}`)
+    }
+  },
+}
