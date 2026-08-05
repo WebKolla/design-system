@@ -1,7 +1,8 @@
-import { Check, Clock, FileText, Plus, Send } from 'lucide-react'
+import { Clock, FileText, Plus, Send } from 'lucide-react'
 import { Button } from '@/components/atoms/Button/Button'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
 import { DayPickerItemMobile } from '@/components/atoms/DayPickerItemMobile/DayPickerItemMobile'
+import { ChecklistCard } from '@/components/molecules/ChecklistCard/ChecklistCard'
 import { WeekGridRow } from '@/components/molecules/WeekGridRow/WeekGridRow'
 import { WeekGrid } from '@/components/organisms/WeekGrid/WeekGrid'
 import { PortalShell } from '../_shells/PortalShell'
@@ -190,22 +191,12 @@ export function ConsultantTimesheet() {
           </SummaryCard>
 
           <SummaryCard heading="Before you submit">
-            <ul className="flex flex-col gap-1.5">
-              {[
-                'Every day has an entry or is deliberately blank',
-                'Non-billable time is tagged',
-              ].map((c) => (
-                <li
-                  key={c}
-                  className="text-body-caption text-muted-foreground flex items-start gap-2"
-                >
-                  <span className="flex h-[18px] shrink-0 items-center">
-                    <Check className="text-success size-3.5" strokeWidth={2} aria-hidden />
-                  </span>
-                  {c}
-                </li>
-              ))}
-            </ul>
+            <ChecklistCard
+              items={[
+                { label: 'Every day has an entry or is deliberately blank' },
+                { label: 'Non-billable time is tagged' },
+              ]}
+            />
           </SummaryCard>
         </div>
       </div>
