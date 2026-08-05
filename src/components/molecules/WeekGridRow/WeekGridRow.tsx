@@ -23,6 +23,17 @@ const DAY_KEYS = WEEK_COLUMNS.filter(
 const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 /**
+ * A row is project + task + billable, so the cell name disambiguates on all
+ * three that are available. `task` is optional — a row with no description
+ * is legal — so the task segment is omitted rather than left as a dangling
+ * `", , Monday hours"` when it is blank.
+ */
+function cellName(project: string, task: string, dayLabel: string) {
+  const subject = task ? `${project}, ${task}` : project
+  return `${subject}, ${dayLabel} hours`
+}
+
+/**
  * One project across one week.
  *
  * **No date field**: grid position is the date, and asking for a date inside a
@@ -30,6 +41,12 @@ const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Sat
  *
  * Seven nested `WeekGridCell`s, Monday to Sunday. Weekend columns keep the
  * recessed treatment from the header down.
+ *
+ * The row label is `<th scope="row">`, matching `WeekGridTotalRow` — a
+ * consultant routinely books two tasks on the same project, so a plain `<td>`
+ * here left every cell in both rows announcing the same name. `font-normal`
+ * and `text-left` cancel the browser's default `<th>` bold and centring, so
+ * the change is visually inert.
  */
 export const WeekGridRow = React.forwardRef<HTMLTableRowElement, WeekGridRowProps>(
   function WeekGridRow(
@@ -42,7 +59,7 @@ export const WeekGridRow = React.forwardRef<HTMLTableRowElement, WeekGridRowProp
         ref={ref}
         className={cn('bg-surface border-hairline h-[42px] border-b', className)}
       >
-        <td className="px-2.5 align-middle">
+        <th scope="row" className="px-2.5 text-left align-middle font-normal">
           <span className="flex items-center gap-2">
             <span className="min-w-0">
               <span className="text-body-cell text-foreground block truncate">
@@ -54,7 +71,7 @@ export const WeekGridRow = React.forwardRef<HTMLTableRowElement, WeekGridRowProp
             </span>
             {nonBillable ? <Chip tone="neutral">Non-billable</Chip> : null}
           </span>
-        </td>
+        </th>
 
         {DAY_KEYS.map((key, i) => {
           const weekend = (WEEKEND_KEYS as readonly string[]).includes(key)
@@ -63,7 +80,7 @@ export const WeekGridRow = React.forwardRef<HTMLTableRowElement, WeekGridRowProp
               <WeekGridCell
                 value={values[i] ?? ''}
                 {...(weekend ? { state: 'weekend' as const } : {})}
-                aria-label={`${project}, ${DAY_LABELS[i]} hours`}
+                aria-label={cellName(project, task, DAY_LABELS[i] ?? '')}
                 onChange={(e) => onValueChange?.(i, e.currentTarget.value)}
               />
             </td>
