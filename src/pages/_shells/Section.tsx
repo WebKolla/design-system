@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/cn'
-import { Container } from './MarketingShell'
+import { Container } from '@/components/atoms/Container/Container'
 
 export interface SectionProps {
   /** `raised` for the alternating band, `ink` for the dark ones. */

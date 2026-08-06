@@ -1799,3 +1799,55 @@ they are exercised through the twelve page compositions — and adding one for a
 prop whose correct render is *identical to the default* would be a story that
 looks like a duplicate. It is documented in `COMPONENTS.md` under Navigation
 instead.
+
+---
+
+## BUG-019 — the marketing chrome ignored the content column (2026-08-06)
+
+`SiteHeader` and `SiteFooter` laid their children directly on their full-width
+roots behind a fixed `px-10` gutter. `Section` puts its children on `Container`,
+the 1160 centred column. So at any viewport wider than 1160 the header logo sat
+40px from the window edge while the hero heading below it sat 140px in at 1440,
+and the footer's first column did the same. Reported against the consuming app,
+but visible on any page built from `MarketingShell` — including this repo's own
+page compositions.
+
+**The bars stay full-bleed; only their contents are constrained.** Constraining
+the roots was the other reading and was rejected with the reporter: it would
+stop the header's bottom border at 1160 and turn the footer's ink block into a
+centred panel rather than the base of the page. So each root keeps its
+background and border and loses `px-10`, and an inner `Container` carries the
+column and the gutter. The gutter moved rather than being added, so it is not
+applied twice.
+
+**`Container` moved to `src/components/atoms/Container/Container.tsx`.** It
+lived in `MarketingShell.tsx`, which composes `SiteHeader` and `SiteFooter`; an
+organism importing it from there is a cycle. `MarketingShell` re-exports it, so
+`@timesubmit/design-system/shells` offers it exactly as before, and the atoms
+barrel now exports it from the root entry too — the consuming app hand-builds a
+mobile header below `lg` because this one cannot wrap seven destinations, and
+that header needs the same column.
+
+**`wide` is forwarded.** `SiteHeader`, `SiteFooter` and `MarketingShell` all
+take it now. Without that, a pricing page of `wide` sections would sit at 1280
+under chrome at 1160 — the same misalignment one breakpoint further out.
+
+**The gutter is overridable through `className`.** `Container` puts `px-10`
+before `className` in `cn`, so a caller passing `px-5` wins. That is what the
+app's mobile header needs: it is 20px today and moving it to 40px would be a
+visible change at 390 in a fix that is meant to change nothing below 1160.
+
+**Measured, not eyeballed.** Four story files assert with
+`getBoundingClientRect`: the bar is as wide as its parent, the inner column is
+`min(parent, cap)` and evenly inset, and in `MarketingShell.stories.tsx` the
+header logo, the page heading and the footer's first column report the same
+`left`. They render inside a fixed 1440 stage — Storybook's canvas is ~1152,
+below both caps, so a story measured in it proves the column is full-width and
+nothing else. `MarketingShell` had no story file before this; its props stay
+proved in jsdom, where no CSS applies and every rect is zero-width, which is
+exactly why the alignment could not be asserted there.
+
+`vitest --project=unit` 88/88. `vitest --project=storybook` 355/356, the one
+failure being the pre-existing `TableHeaderInvoices > Aligns With Rows`, which
+fails on `main` independent of this change and is noted in the two commits
+before it. `tsc --noEmit` and `eslint .` clean, `npm run build` clean.

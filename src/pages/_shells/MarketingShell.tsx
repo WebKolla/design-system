@@ -49,6 +49,14 @@ export interface MarketingShellProps
   signIn?: NavLink
   /** Defaults to the library's own CTA. See `signIn`. */
   cta?: NavLink
+  /**
+   * Widens the whole page, chrome included, to 1280.
+   *
+   * Forwarded to `SiteHeader` and `SiteFooter` as well as being the caller's
+   * cue for its `Section`s, because a page of `wide` sections under 1160-wide
+   * chrome is the same misalignment this prop exists to avoid.
+   */
+  wide?: boolean
   children: React.ReactNode
 }
 
@@ -70,6 +78,7 @@ export function MarketingShell({
   footer = FOOTER,
   signIn = DEFAULT_SIGN_IN,
   cta = DEFAULT_CTA,
+  wide = false,
   children,
   className,
   ...rest
@@ -80,33 +89,20 @@ export function MarketingShell({
         nav={nav.map((n) => ({ ...n, current: n.href === current }))}
         signIn={signIn}
         cta={cta}
+        wide={wide}
       />
       <main className="flex-1">{children}</main>
-      <SiteFooter {...footer} />
+      <SiteFooter {...footer} wide={wide} />
     </div>
   )
 }
 
-/** The 1160 centred content column. Max-width, never fixed. */
-export function Container({
-  wide = false,
-  className,
-  children,
-}: {
-  /** Pricing widens to 1280. */
-  wide?: boolean
-  className?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div
-      className={cn(
-        'mx-auto w-full px-10',
-        wide ? 'max-w-[1280px]' : 'max-w-[1160px]',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  )
-}
+/**
+ * The 1160 centred content column.
+ *
+ * It moved to `@/components/atoms/Container/Container` so that `SiteHeader` and
+ * `SiteFooter` can use it without importing this module, which composes them —
+ * that would have been a cycle. Re-exported here so `./shells` keeps offering
+ * it exactly as before.
+ */
+export { Container, type ContainerProps } from '@/components/atoms/Container/Container'
