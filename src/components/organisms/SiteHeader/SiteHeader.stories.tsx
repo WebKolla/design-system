@@ -1,6 +1,20 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { Decorator, Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within } from 'storybook/test'
 import { SiteHeader } from './SiteHeader'
+
+/**
+ * A fixed 1440 stage for the measurement stories.
+ *
+ * Storybook's canvas is ~1152 wide, below both caps, so a story measured in it
+ * proves the column is full-width and nothing more. The stage is wider than the
+ * cap, which is the only width at which the alignment can be wrong.
+ */
+const at1440: Decorator = (Story) => (
+  <div style={{ width: 1440 }}>
+    <Story />
+  </div>
+)
+
 
 const NAV = [
   { label: 'Home', href: '/', current: true },
@@ -53,6 +67,47 @@ export const LandmarksAreCorrect: Story = {
     await expect(canvas.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
     const current = canvas.getByRole('link', { name: 'Home' })
     await expect(current).toHaveAttribute('aria-current', 'page')
+  },
+}
+
+/**
+ * The bar is full-bleed and its contents are on the centred column.
+ *
+ * Measured, not eyeballed: the `<header>` is exactly as wide as the viewport it
+ * is in, so its background and bottom border still reach both edges, while the
+ * wrapper inside it is capped at 1160 and evenly inset. Before this the logo
+ * sat on a fixed 40px gutter, far to the left of the hero heading beneath it.
+ */
+export const ContentsSitOnTheCentredColumn: Story = {
+  decorators: [at1440],
+  play: async ({ canvasElement }) => {
+    const header = within(canvasElement).getByRole('banner')
+    const column = header.firstElementChild as HTMLElement
+
+    const bar = header.getBoundingClientRect()
+    const inner = column.getBoundingClientRect()
+
+    // Full-bleed bar. Measured against the header's own parent, not the canvas:
+    // Storybook's theme decorator wraps every story in a `p-6` pane.
+    await expect(Math.round(bar.width)).toBe(
+      Math.round(header.parentElement!.getBoundingClientRect().width),
+    )
+    // Capped, centred contents.
+    await expect(Math.round(inner.width)).toBe(Math.min(Math.round(bar.width), 1160))
+    await expect(Math.round(inner.left - bar.left)).toBe(Math.round(bar.right - inner.right))
+  },
+}
+
+/** `wide` moves the chrome's column to 1280 so it agrees with a `wide` Section. */
+export const WideMatchesAWideSection: Story = {
+  args: { wide: true },
+  decorators: [at1440],
+  play: async ({ canvasElement }) => {
+    const header = within(canvasElement).getByRole('banner')
+    const inner = (header.firstElementChild as HTMLElement).getBoundingClientRect()
+    const bar = header.getBoundingClientRect()
+
+    await expect(Math.round(inner.width)).toBe(Math.min(Math.round(bar.width), 1280))
   },
 }
 

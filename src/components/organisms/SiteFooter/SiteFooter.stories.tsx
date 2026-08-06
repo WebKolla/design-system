@@ -1,6 +1,20 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { Decorator, Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within } from 'storybook/test'
 import { SiteFooter } from './SiteFooter'
+
+/**
+ * A fixed 1440 stage for the measurement stories.
+ *
+ * Storybook's canvas is ~1152 wide, below both caps, so a story measured in it
+ * proves the column is full-width and nothing more. The stage is wider than the
+ * cap, which is the only width at which the alignment can be wrong.
+ */
+const at1440: Decorator = (Story) => (
+  <div style={{ width: 1440 }}>
+    <Story />
+  </div>
+)
+
 
 const meta = {
   title: 'Organisms/SiteFooter',
@@ -80,6 +94,47 @@ export const NavsAreNamed: Story = {
     for (const name of ['Product', 'Resources', 'Legal']) {
       await expect(canvas.getByRole('navigation', { name })).toBeInTheDocument()
     }
+  },
+}
+
+/**
+ * The ink block is full-bleed and its columns are on the centred column.
+ *
+ * Same measurement as `SiteHeader`: the dark surface still reaches both edges,
+ * while the first column lines up with the page above it instead of sitting on
+ * a fixed 40px gutter.
+ */
+export const ContentsSitOnTheCentredColumn: Story = {
+  decorators: [at1440],
+  play: async ({ canvasElement }) => {
+    const footer = within(canvasElement).getByRole('contentinfo')
+    const column = footer.firstElementChild as HTMLElement
+
+    const block = footer.getBoundingClientRect()
+    const inner = column.getBoundingClientRect()
+
+    // Measured against the footer's own parent, not the canvas: Storybook's
+    // theme decorator wraps every story in a `p-6` pane.
+    await expect(Math.round(block.width)).toBe(
+      Math.round(footer.parentElement!.getBoundingClientRect().width),
+    )
+    await expect(Math.round(inner.width)).toBe(Math.min(Math.round(block.width), 1160))
+    await expect(Math.round(inner.left - block.left)).toBe(
+      Math.round(block.right - inner.right),
+    )
+  },
+}
+
+/** `wide` moves the chrome's column to 1280 so it agrees with a `wide` Section. */
+export const WideMatchesAWideSection: Story = {
+  args: { wide: true },
+  decorators: [at1440],
+  play: async ({ canvasElement }) => {
+    const footer = within(canvasElement).getByRole('contentinfo')
+    const inner = (footer.firstElementChild as HTMLElement).getBoundingClientRect()
+    const block = footer.getBoundingClientRect()
+
+    await expect(Math.round(inner.width)).toBe(Math.min(Math.round(block.width), 1280))
   },
 }
 

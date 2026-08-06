@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Button } from '@/components/atoms/Button/Button'
+import { Container } from '@/components/atoms/Container/Container'
 import { Logo } from '@/components/atoms/Logo/Logo'
 import { NavAnchor } from './NavAnchor'
 import { navKey, type NavTarget } from '@/lib/nav-slot'
@@ -35,6 +36,8 @@ export interface SiteHeaderProps
   signIn: NavLink
   /** Widened to `NavLink` so an analytics-instrumented CTA can be passed. */
   cta: NavLink
+  /** Widens the content column to 1280, matching a `wide` `Section`. */
+  wide?: boolean
 }
 
 /**
@@ -43,12 +46,18 @@ export interface SiteHeaderProps
  * A real `<header>` landmark with a `<nav>` inside it — this one *is* the page
  * banner, unlike `SectionHeader`, which is only a heading block.
  *
+ * The bar is full-bleed and its contents sit on `Container`, the same centred
+ * column `Section` uses, so the background and the bottom border reach the
+ * viewport edge while the logo lines up with the page beneath it. Laying the
+ * children straight on the root with a fixed `px-10` gutter, which is what this
+ * did before, put them outside that column at any viewport wider than 1160.
+ *
  * The mobile form is a separate concern: below 834 the caller swaps the nav
  * for a menu trigger.
  */
 export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
   function SiteHeader(
-    { brand = 'TimeSubmit', nav, signIn, cta, className, ...rest },
+    { brand = 'TimeSubmit', nav, signIn, cta, wide = false, className, ...rest },
     ref,
   ) {
     return (
@@ -56,45 +65,47 @@ export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
         {...rest}
         ref={ref}
         className={cn(
-          'bg-surface border-hairline flex h-15 w-full items-center justify-between border-b px-10',
+          'bg-surface border-hairline flex h-15 w-full items-center border-b',
           className,
         )}
       >
-        <div className="flex items-center gap-8">
-          <Logo href="/" brand={brand} />
+        <Container wide={wide} className="flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Logo href="/" brand={brand} />
 
-          <nav aria-label="Main">
-            <ul className="flex items-center gap-6">
-              {nav.map((item) => (
-                <li key={navKey(item)}>
-                  <NavAnchor
-                    link={item}
-                    className={cn(
-                      'text-ui-md transition-colors',
-                      item.current
-                        ? 'text-foreground'
-                        : 'text-muted-foreground hover:text-foreground',
-                    )}
-                  />
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
+            <nav aria-label="Main">
+              <ul className="flex items-center gap-6">
+                {nav.map((item) => (
+                  <li key={navKey(item)}>
+                    <NavAnchor
+                      link={item}
+                      className={cn(
+                        'text-ui-md transition-colors',
+                        item.current
+                          ? 'text-foreground'
+                          : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <NavAnchor
-            link={signIn}
-            className="text-ui-md text-muted-foreground hover:text-foreground transition-colors"
-          />
-          <Button size="md" asChild>
-            {cta.element ? (
-              React.cloneElement(cta.element, undefined, cta.label)
-            ) : (
-              <a href={cta.href}>{cta.label}</a>
-            )}
-          </Button>
-        </div>
+          <div className="flex items-center gap-3">
+            <NavAnchor
+              link={signIn}
+              className="text-ui-md text-muted-foreground hover:text-foreground transition-colors"
+            />
+            <Button size="md" asChild>
+              {cta.element ? (
+                React.cloneElement(cta.element, undefined, cta.label)
+              ) : (
+                <a href={cta.href}>{cta.label}</a>
+              )}
+            </Button>
+          </div>
+        </Container>
       </header>
     )
   },
