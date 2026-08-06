@@ -1,20 +1,7 @@
-import type { Decorator, Meta, StoryObj } from '@storybook/react-vite'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within } from 'storybook/test'
+import { at1440 } from '@/test/story-decorators'
 import { SiteHeader } from './SiteHeader'
-
-/**
- * A fixed 1440 stage for the measurement stories.
- *
- * Storybook's canvas is ~1152 wide, below both caps, so a story measured in it
- * proves the column is full-width and nothing more. The stage is wider than the
- * cap, which is the only width at which the alignment can be wrong.
- */
-const at1440: Decorator = (Story) => (
-  <div style={{ width: 1440 }}>
-    <Story />
-  </div>
-)
-
 
 const NAV = [
   { label: 'Home', href: '/', current: true },
@@ -98,8 +85,12 @@ export const ContentsSitOnTheCentredColumn: Story = {
   },
 }
 
-/** `wide` moves the chrome's column to 1280 so it agrees with a `wide` Section. */
-export const WideMatchesAWideSection: Story = {
+/**
+ * `wide` moves the chrome's column to 1280, which is what lets it agree with a
+ * `wide` `Section`. The agreement itself is asserted in `MarketingShell`'s
+ * stories, where both are on the page.
+ */
+export const WideCapsAt1280: Story = {
   args: { wide: true },
   decorators: [at1440],
   play: async ({ canvasElement }) => {

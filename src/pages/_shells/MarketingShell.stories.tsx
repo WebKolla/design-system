@@ -1,22 +1,9 @@
-import type { Decorator, Meta, StoryObj } from '@storybook/react-vite'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within } from 'storybook/test'
+import { at1440 } from '@/test/story-decorators'
 import { MarketingShell } from './MarketingShell'
 import { Section } from './Section'
 import { FOOTER } from './marketing-data'
-
-/**
- * A fixed 1440 stage for the measurement stories.
- *
- * Storybook's canvas is ~1152 wide, below both caps, so a story measured in it
- * proves the column is full-width and nothing more. The stage is wider than the
- * cap, which is the only width at which the alignment can be wrong.
- */
-const at1440: Decorator = (Story) => (
-  <div style={{ width: 1440 }}>
-    <Story />
-  </div>
-)
-
 
 /**
  * `MarketingShell`'s props are proved in `marketing-shell.test.tsx`, in jsdom.

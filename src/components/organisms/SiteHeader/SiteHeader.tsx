@@ -52,6 +52,12 @@ export interface SiteHeaderProps
  * children straight on the root with a fixed `px-10` gutter, which is what this
  * did before, put them outside that column at any viewport wider than 1160.
  *
+ * The root's `flex items-center` is what centres the column inside the fixed
+ * `h-15`; the horizontal centring is `mx-auto` and does not depend on it. A
+ * `className` that replaces `display` at every width therefore loses the
+ * vertical centring — `hidden lg:flex`, which is what a caller swapping in its
+ * own mobile banner passes, keeps it at the widths the bar is visible.
+ *
  * The mobile form is a separate concern: below 834 the caller swaps the nav
  * for a menu trigger.
  */

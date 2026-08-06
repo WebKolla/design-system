@@ -1807,7 +1807,7 @@ instead.
 `SiteHeader` and `SiteFooter` laid their children directly on their full-width
 roots behind a fixed `px-10` gutter. `Section` puts its children on `Container`,
 the 1160 centred column. So at any viewport wider than 1160 the header logo sat
-40px from the window edge while the hero heading below it sat 140px in at 1440,
+40px from the window edge while the hero heading below it sat 180px in at 1440,
 and the footer's first column did the same. Reported against the consuming app,
 but visible on any page built from `MarketingShell` — including this repo's own
 page compositions.
@@ -1819,6 +1819,12 @@ centred panel rather than the base of the page. So each root keeps its
 background and border and loses `px-10`, and an inner `Container` carries the
 column and the gutter. The gutter moved rather than being added, so it is not
 applied twice.
+
+**`SiteFooter`'s root also lost `flex flex-col gap-9`, which moved on to the
+column with the gutter.** Worth stating because it is more than the `px-10` the
+summary above describes: a consumer whose `className` assumed a flex-column root
+now gets block layout. Nothing does today, and `SiteFooterProps` extends
+`HTMLAttributes`, so it is a supported surface and a real change.
 
 **`Container` moved to `src/components/atoms/Container/Container.tsx`.** It
 lived in `MarketingShell.tsx`, which composes `SiteHeader` and `SiteFooter`; an
@@ -1836,6 +1842,13 @@ under chrome at 1160 — the same misalignment one breakpoint further out.
 before `className` in `cn`, so a caller passing `px-5` wins. That is what the
 app's mobile header needs: it is 20px today and moving it to 40px would be a
 visible change at 390 in a fix that is meant to change nothing below 1160.
+
+**`Container` takes the full `div` prop surface and a ref**, added on review
+before the second pin. It was a private helper inside `MarketingShell` with
+`{wide, className, children}` and nothing else; as a root export that is too
+thin, because a caller wanting an `id` on the column — a scroll anchor, an
+`aria-describedby` target — has to wrap it in another div, which is the wrapper
+this change exists to remove.
 
 **Measured, not eyeballed.** Four story files assert with
 `getBoundingClientRect`: the bar is as wide as its parent, the inner column is
