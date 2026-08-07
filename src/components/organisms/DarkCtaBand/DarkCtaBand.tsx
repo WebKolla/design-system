@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { ButtonInk } from '@/components/atoms/ButtonInk/ButtonInk'
+import { Container } from '@/components/atoms/Container/Container'
 import { cn } from '@/lib/cn'
 
 export interface DarkCtaBandProps
@@ -13,6 +14,8 @@ export interface DarkCtaBandProps
   primary: { label: string; href?: string }
   /** Doubles as the next-page link on pillar pages. */
   secondary?: { label: string; href?: string } | undefined
+  /** Widens the content column to 1280, matching a `wide` `Section`. */
+  wide?: boolean
 }
 
 /**
@@ -21,8 +24,16 @@ export interface DarkCtaBandProps
  * Uses `ButtonInk`, not `Button` — the ink surface needs the ink-bound
  * variants.
  *
+ * The ink block is full-bleed and its contents sit on `Container`, the same
+ * centred column `Section`, `SiteHeader` and `SiteFooter` use. The band used to
+ * lay its children straight on to its full-width root with a fixed `px-10`
+ * gutter, so above 1160 the heading started at the window edge while the footer
+ * directly beneath it was on the column.
+ *
  * Both text blocks are `max-width`, not fixed width: heading 600, sub 540, on
- * `width: 100%`. A fixed width here overflows at 390, which is exactly what
+ * `width: 100%`. Those caps set line length, which is a different concern from
+ * where the block starts — without them the heading would take the column's
+ * full 1160 measure. A fixed width here overflows at 390, which is exactly what
  * broke this band during the Figma build.
  *
  * Everything on this surface uses `ink-*` colours. `muted-foreground` on ink
@@ -30,45 +41,46 @@ export interface DarkCtaBandProps
  */
 export const DarkCtaBand = React.forwardRef<HTMLElement, DarkCtaBandProps>(
   function DarkCtaBand(
-    { heading, sub, primary, secondary, className, ...rest },
+    { heading, sub, primary, secondary, wide = false, className, ...rest },
     ref,
   ) {
     return (
       <section
         {...rest}
         ref={ref}
-        className={cn(
-          'bg-ink flex w-full flex-col items-start gap-4.5 px-10 py-16',
-          className,
-        )}
+        className={cn('bg-ink w-full py-16', className)}
       >
-        <h2 className="text-heading-section text-ink-foreground w-full max-w-[600px]">
-          {heading}
-        </h2>
+        <Container wide={wide} className="flex flex-col items-start gap-4.5">
+          <h2 className="text-heading-section text-ink-foreground w-full max-w-[600px]">
+            {heading}
+          </h2>
 
-        {sub ? (
-          <p className="text-body-lg text-ink-muted w-full max-w-[540px]">{sub}</p>
-        ) : null}
+          {sub ? (
+            <p className="text-body-lg text-ink-muted w-full max-w-[540px]">
+              {sub}
+            </p>
+          ) : null}
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {primary.href ? (
-            <ButtonInk asChild>
-              <a href={primary.href}>{primary.label}</a>
-            </ButtonInk>
-          ) : (
-            <ButtonInk>{primary.label}</ButtonInk>
-          )}
-
-          {secondary ? (
-            secondary.href ? (
-              <ButtonInk variant="secondary" asChild>
-                <a href={secondary.href}>{secondary.label}</a>
+          <div className="flex flex-wrap items-center gap-2.5">
+            {primary.href ? (
+              <ButtonInk asChild>
+                <a href={primary.href}>{primary.label}</a>
               </ButtonInk>
             ) : (
-              <ButtonInk variant="secondary">{secondary.label}</ButtonInk>
-            )
-          ) : null}
-        </div>
+              <ButtonInk>{primary.label}</ButtonInk>
+            )}
+
+            {secondary ? (
+              secondary.href ? (
+                <ButtonInk variant="secondary" asChild>
+                  <a href={secondary.href}>{secondary.label}</a>
+                </ButtonInk>
+              ) : (
+                <ButtonInk variant="secondary">{secondary.label}</ButtonInk>
+              )
+            ) : null}
+          </div>
+        </Container>
       </section>
     )
   },

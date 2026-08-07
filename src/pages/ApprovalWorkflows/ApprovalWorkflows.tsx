@@ -1,4 +1,5 @@
 import { Button } from '@/components/atoms/Button/Button'
+import { Container } from '@/components/atoms/Container/Container'
 import { SectionHeader } from '@/components/molecules/SectionHeader/SectionHeader'
 import { StepCard } from '@/components/molecules/StepCard/StepCard'
 import { FeatureCardPhoto } from '@/components/molecules/FeatureCardPhoto/FeatureCardPhoto'
@@ -66,25 +67,27 @@ export function ApprovalWorkflows() {
     <MarketingShell current="/approvals">
       {/* Feature sub-nav */}
       <div className="border-hairline bg-surface w-full border-b">
-        <nav aria-label="Features" className="mx-auto max-w-[1160px] px-10">
-          <ul className="flex items-center gap-6 overflow-x-auto py-3.5">
-            {SUB_NAV.map((l) => (
-              <li key={l.href}>
-                <a
-                  href={l.href}
-                  aria-current={l.current ? 'page' : undefined}
-                  className={
-                    l.current
-                      ? 'text-ui-md text-primary whitespace-nowrap'
-                      : 'text-ui-md text-muted-foreground hover:text-foreground whitespace-nowrap'
-                  }
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <Container>
+          <nav aria-label="Features">
+            <ul className="flex items-center gap-6 overflow-x-auto py-3.5">
+              {SUB_NAV.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    aria-current={l.current ? 'page' : undefined}
+                    className={
+                      l.current
+                        ? 'text-ui-md text-primary whitespace-nowrap'
+                        : 'text-ui-md text-muted-foreground hover:text-foreground whitespace-nowrap'
+                    }
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </Container>
       </div>
 
       <Section>

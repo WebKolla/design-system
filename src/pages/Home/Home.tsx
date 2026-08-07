@@ -1,4 +1,5 @@
 import { Button } from '@/components/atoms/Button/Button'
+import { Container } from '@/components/atoms/Container/Container'
 import { Chip } from '@/components/atoms/Chip/Chip'
 import { SectionHeader } from '@/components/molecules/SectionHeader/SectionHeader'
 import { StepCard } from '@/components/molecules/StepCard/StepCard'
@@ -168,7 +169,7 @@ export function Home() {
 
       {/* Rate-blind band — ink surface, ink/* only */}
       <section className="bg-ink w-full py-16 md:py-20">
-        <div className="mx-auto w-full max-w-[1160px] px-10">
+        <Container>
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div className="flex w-full max-w-[600px] flex-col gap-5">
               <span className="text-ui-overline text-ink-accent uppercase">
@@ -204,7 +205,7 @@ export function Home() {
               />
             </div>
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* How it works */}

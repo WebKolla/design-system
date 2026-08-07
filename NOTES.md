@@ -1864,3 +1864,55 @@ exactly why the alignment could not be asserted there.
 failure being the pre-existing `TableHeaderInvoices > Aligns With Rows`, which
 fails on `main` independent of this change and is noted in the two commits
 before it. `tsc --noEmit` and `eslint .` clean, `npm run build` clean.
+
+## BUG-022 — `DarkCtaBand` ignored the content column too (2026-08-07)
+
+The third component with the shape BUG-019 fixed, found from a screenshot of the
+consuming app's homepage rather than by anyone checking. The CTA heading started
+at x=48 while the footer's logo directly beneath it started at x=358.
+
+`DarkCtaBand`'s root was `bg-ink flex w-full flex-col items-start gap-4.5 px-10
+py-16` — `w-full` plus a fixed gutter and no inner container, exactly as
+`SiteHeader` and `SiteFooter` were before PR #17. Fixed the same way: the root
+keeps `bg-ink` and full width, the existing `px-10` **moves** on to an inner
+`Container` rather than being added alongside it, and `wide` is forwarded so a
+`wide` page closes on the width it was laid out on.
+
+**The `max-w-[600px]` and `max-w-[540px]` caps stay.** They set line length,
+which is a different concern from where the block starts. Removing them once the
+column exists would give the heading the column's full 1160 measure, which is
+roughly twice a readable one. `ContentsSitOnTheCentredColumn` asserts the
+heading is still exactly 600 wide, so this cannot be quietly dropped later.
+
+**The agreement is asserted in `MarketingShell`, not in the band's own story.**
+`DarkCtaBand` is the page's last child rather than part of the shell, so its own
+story can only prove its column is centred and evenly inset. Whether it lines up
+with the footer needs both blocks stacked, which only the shell story has.
+`CtaBandAgreesWithTheFooter` measures CTA heading `left`, footer blurb `left` and
+the hero `left` as one number.
+
+### The audit, which was the actual ask
+
+Every organism, shell and page root was read for the signature — `w-full` (or
+`fixed inset-x-0`) plus a fixed `px-*` and no inner `Container`. **Nothing else
+has it.** `SiteHeader`, `SiteFooter` and `Section` already carry `Container`.
+`MobileTabBar` is edge-anchored on purpose and is `md:hidden`, so it never
+renders above 1160. `SignIn` is a deliberate full-viewport split with no shared
+column. `AppShell`, `PortalShell` and `SidebarExpanded` are fluid dashboard
+chrome with no 1160 column anywhere in the portal — putting `Container` there
+would narrow the dashboard to the marketing measure. Everything else that is
+`w-full` with padding (`Pagination`, `KpiCard`, `EmptyState`, `Input`,
+`DataTable`, `WeekGrid`, `PricingTierCard`, `Dialog`, …) is `w-full` meaning
+"fill my parent", inside something already on the column.
+
+Two near-misses were tidied in the same commit. `Home`'s rate-blind ink band and
+`ApprovalWorkflows`' feature sub-nav each hand-rolled `mx-auto max-w-[1160px]
+px-10` inline. Both rendered correctly, so neither was a defect; they were copies
+of `Container` that would not have followed it if the measure or the gutter ever
+moved, which makes `Container`'s "one definition of the column" docstring untrue.
+They now use it.
+
+`vitest --project=unit` 88/88. `vitest --project=storybook` 358/359, the one
+failure being the same pre-existing `TableHeaderInvoices > Aligns With Rows` that
+BUG-019 recorded. `tsc --noEmit` and `eslint .` clean, `npm run build` clean and
+package verified.
