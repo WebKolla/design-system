@@ -1916,3 +1916,25 @@ They now use it.
 failure being the same pre-existing `TableHeaderInvoices > Aligns With Rows` that
 BUG-019 recorded. `tsc --noEmit` and `eslint .` clean, `npm run build` clean and
 package verified.
+
+**Two follow-ups from the consuming repo's code review, before the pin moved.**
+`ContentsSitOnTheCentredColumn` asserted the heading's left as `inner.left + 40`,
+which writes `Container`'s gutter down as a literal in a third place — the exact
+thing this change removed from `Home` and `ApprovalWorkflows`. It now reads the
+gutter off the column's computed `paddingLeft`, so if the gutter ever moves the
+test follows it instead of failing while nothing is wrong.
+
+The same story now also asserts the column is `flex`, `column`, `flex-start`
+with a non-zero row gap. `flex flex-col items-start gap-4.5` moved from the root
+on to the `Container` in this change and nothing guarded it: deleting that
+`className` left the band centred, the column capped and the heading 600 wide,
+so every other assertion still passed while the heading, sub and actions
+collapsed together. Verified by deleting it — `expected 'block' to be 'flex'`.
+
+Not changed, and deliberately: both band-level stories still reach the column
+with `band.firstElementChild`, which is what `SiteFooter.stories.tsx` does. It
+is positional and would silently retarget if a wrapper were inserted between the
+`section` and the `Container`. `CtaBandAgreesWithTheFooter` finds its elements by
+role and text and is the structural backstop; changing the pair here for
+robustness would leave them inconsistent with the precedent they were written to
+match, which is the worse trade until both are changed together.

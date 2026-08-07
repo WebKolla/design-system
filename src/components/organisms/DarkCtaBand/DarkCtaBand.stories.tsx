@@ -91,11 +91,23 @@ export const ContentsSitOnTheCentredColumn: Story = {
       Math.round(block.right - inner.right),
     )
 
-    // The heading starts on the column, not on the band.
+    // The heading starts on the column's content edge, not on the band. The
+    // gutter is read off the column rather than written down as 40: `Container`
+    // owns that number, and this fix exists partly to stop it being copied.
+    const gutter = parseFloat(getComputedStyle(column).paddingLeft)
     const h2 = heading.getBoundingClientRect()
-    await expect(Math.round(h2.left)).toBe(Math.round(inner.left) + 40)
+    await expect(Math.round(h2.left)).toBe(Math.round(inner.left + gutter))
     // ...and keeps its 600 measure rather than taking the column's full width.
     await expect(Math.round(h2.width)).toBe(600)
+
+    // The vertical rhythm moved from the root on to the column with the
+    // gutter. Without this the band still centres and still measures 600 while
+    // its heading, sub and actions collapse together.
+    const columnStyle = getComputedStyle(column)
+    await expect(columnStyle.display).toBe('flex')
+    await expect(columnStyle.flexDirection).toBe('column')
+    await expect(columnStyle.alignItems).toBe('flex-start')
+    await expect(parseFloat(columnStyle.rowGap)).toBeGreaterThan(0)
   },
 }
 
