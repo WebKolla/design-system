@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within } from 'storybook/test'
+import { DarkCtaBand } from '@/components/organisms/DarkCtaBand/DarkCtaBand'
 import { at1440 } from '@/test/story-decorators'
 import { MarketingShell } from './MarketingShell'
 import { Section } from './Section'
@@ -71,6 +72,50 @@ export const ChromeAndPageShareOneColumn: Story = {
     const page = Math.round(header.parentElement!.getBoundingClientRect().width)
     await expect(Math.round(header.getBoundingClientRect().width)).toBe(page)
     await expect(Math.round(footer.getBoundingClientRect().width)).toBe(page)
+  },
+}
+
+/**
+ * The closing CTA band and the footer directly beneath it start at the same x.
+ *
+ * This is BUG-022 measured. `DarkCtaBand` is the page's last child rather than
+ * part of the shell, so it is the one place the two ink blocks are stacked and
+ * comparable — the band's own story can only prove its column is centred, not
+ * that it agrees with the footer.
+ */
+export const CtaBandAgreesWithTheFooter: Story = {
+  decorators: [at1440],
+  args: {
+    children: (
+      <>
+        <Section>
+          <h1 data-testid="hero">Timesheets, approvals and invoicing</h1>
+        </Section>
+        <DarkCtaBand
+          heading="Ready to take control of your timesheets?"
+          sub="Practice starts with two months at no cost."
+          primary={{ label: 'Get started', href: '#signup' }}
+        />
+      </>
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const footer = canvas.getByRole('contentinfo')
+
+    const left = (el: Element) => Math.round(el.getBoundingClientRect().left)
+    const ctaHeading = canvas.getByRole('heading', {
+      name: /Ready to take control/,
+    })
+
+    await expect(left(ctaHeading)).toBe(left(within(footer).getByText(FOOTER.blurb)))
+    await expect(left(ctaHeading)).toBe(left(canvas.getByTestId('hero')))
+
+    // The ink block itself is untouched: still edge to edge.
+    const band = ctaHeading.closest('section')!
+    await expect(Math.round(band.getBoundingClientRect().width)).toBe(
+      Math.round(footer.getBoundingClientRect().width),
+    )
   },
 }
 

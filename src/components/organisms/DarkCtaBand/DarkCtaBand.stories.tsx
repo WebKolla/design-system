@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within } from 'storybook/test'
+import { at1440 } from '@/test/story-decorators'
 import { DarkCtaBand } from './DarkCtaBand'
 
 const meta = {
@@ -14,7 +15,9 @@ const meta = {
           'link on pillar pages.\n\nUses `ButtonInk`, not `Button` — the ink surface needs the ink-bound ' +
           'variants.\n\nBoth text blocks are **max-width, not fixed**: heading 600, sub 540, on ' +
           '`width: 100%`. A fixed width overflows at 390, which is exactly what broke this band during ' +
-          'the Figma build.\n\nEverything here uses `ink-*` colours. `muted-foreground` on ink measures ' +
+          'the Figma build.\n\nThe ink block is full-bleed and its contents sit on `Container`, the same ' +
+          'centred column `Section` and the chrome use, so the band agrees with the footer beneath it ' +
+          'above 1160.\n\nEverything here uses `ink-*` colours. `muted-foreground` on ink measures ' +
           'about 2:1 and shipped once as an invisible arrow — see the Foundations colour story.',
       },
     },
@@ -57,6 +60,62 @@ export const AtMobileWidth: Story = {
 /** Ink is mode-invariant, so the band is identical in light and dark. */
 export const BothModes: Story = {
   globals: { theme: 'both' },
+}
+
+/**
+ * The ink block is full-bleed and its contents are on the centred column.
+ *
+ * Same measurement as `SiteHeader` and `SiteFooter`: the dark surface still
+ * reaches both edges, while the heading lines up with the footer beneath it
+ * instead of sitting on a fixed 40px gutter.
+ */
+export const ContentsSitOnTheCentredColumn: Story = {
+  decorators: [at1440],
+  play: async ({ canvasElement }) => {
+    const band = canvasElement.querySelector('section') as HTMLElement
+    const column = band.firstElementChild as HTMLElement
+    const heading = within(canvasElement).getByRole('heading', { level: 2 })
+
+    const block = band.getBoundingClientRect()
+    const inner = column.getBoundingClientRect()
+
+    // Measured against the band's own parent, not the canvas: Storybook's theme
+    // decorator wraps every story in a `p-6` pane.
+    await expect(Math.round(block.width)).toBe(
+      Math.round(band.parentElement!.getBoundingClientRect().width),
+    )
+    await expect(Math.round(inner.width)).toBe(
+      Math.min(Math.round(block.width), 1160),
+    )
+    await expect(Math.round(inner.left - block.left)).toBe(
+      Math.round(block.right - inner.right),
+    )
+
+    // The heading starts on the column, not on the band.
+    const h2 = heading.getBoundingClientRect()
+    await expect(Math.round(h2.left)).toBe(Math.round(inner.left) + 40)
+    // ...and keeps its 600 measure rather than taking the column's full width.
+    await expect(Math.round(h2.width)).toBe(600)
+  },
+}
+
+/**
+ * `wide` moves the band's column to 1280, so a `wide` page closes on the same
+ * width it was laid out on. The agreement with a `wide` `Section` is asserted
+ * in `MarketingShell`'s stories, where both are on the page.
+ */
+export const WideCapsAt1280: Story = {
+  args: { wide: true },
+  decorators: [at1440],
+  play: async ({ canvasElement }) => {
+    const band = canvasElement.querySelector('section') as HTMLElement
+    const inner = (band.firstElementChild as HTMLElement).getBoundingClientRect()
+    const block = band.getBoundingClientRect()
+
+    await expect(Math.round(inner.width)).toBe(
+      Math.min(Math.round(block.width), 1280),
+    )
+  },
 }
 
 export const EdgeContent: Story = {
