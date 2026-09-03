@@ -73,8 +73,46 @@ const wordmarkVariants = cva('text-heading-block', {
 export type LogoSize = 'sm' | 'md'
 export type LogoTone = 'default' | 'ink'
 
+/**
+ * Real brand artwork, in place of the built-in `TS` tile.
+ *
+ * **A content slot, not a destination slot.** `NavElement` and `navTarget`
+ * exist to answer "where does this go", and they carry the childless-element
+ * contract because the atom composes children into the element they name.
+ * Nothing is composed into these: they *are* the content, so they are a plain
+ * `ReactNode` and an element with children is not a mistake here. Passing one
+ * of these does not change where the lockup points; `href` and `asChild` still
+ * do that, and still compose around the artwork.
+ *
+ * Two fields because artwork comes drawn one of two ways, and the difference
+ * is not something the library can infer from a node:
+ *
+ * - `mark` is the tile's replacement, with the text wordmark still beside it.
+ * - `lockup` is the mark and the wordmark drawn as one piece, so it stands in
+ *   for both. The `brand` text is then kept `sr-only`, because artwork carries
+ *   no accessible name that a link home can use.
+ *
+ * Supply both and one object serves every surface: the 52px collapsed rail
+ * asks for `wordmark={false}` and takes `mark`, everything else takes
+ * `lockup`. That is why this is one type threaded through the shells rather
+ * than a prop per call site.
+ *
+ * **The artwork sizes itself.** No width, height or colour is imposed on it —
+ * `size` and `tone` continue to govern the gap and the text wordmark only, and
+ * a `tone="ink"` lockup is the consumer's to draw. The only thing added is a
+ * `shrink-0` flex wrapper, so the row cannot squash artwork wider than the
+ * tile it replaces.
+ */
+export interface LogoArtwork {
+  /** Replaces the built-in "TS" tile, keeping the text wordmark beside it. */
+  mark?: React.ReactNode
+  /** Replaces the tile and the wordmark together, for artwork drawn as a single lockup. */
+  lockup?: React.ReactNode
+}
+
 export interface LogoProps
-  extends Omit<React.ComponentPropsWithoutRef<'span'>, 'children' | 'ref'> {
+  extends Omit<React.ComponentPropsWithoutRef<'span'>, 'children' | 'ref'>,
+    LogoArtwork {
   /**
    * `md` is the 24px lockup used by the site header, site footer, portal header
    * and sign-in panel. `sm` is the 20px lockup used by the expanded sidebar,
@@ -96,6 +134,10 @@ export interface LogoProps
   /**
    * Show the wordmark beside the tile. Set `false` for the 52px collapsed
    * rail, where there is no room for it.
+   *
+   * With artwork supplied this is also what picks between the two pieces: the
+   * rail takes `mark`, because a lockup drawn with its wordmark does not fit
+   * 52px, and falls back to `lockup` when only that was given.
    *
    * The wordmark is not removed from the document, only visually hidden. It
    * carries the lockup's accessible name — the tile is `aria-hidden`, because
@@ -135,6 +177,8 @@ export const Logo = React.forwardRef<HTMLElement, LogoProps>(function Logo(
     tone = 'default',
     brand = 'TimeSubmit',
   wordmark = true,
+    mark,
+    lockup,
     href,
     asChild = false,
     className,
@@ -150,6 +194,28 @@ export const Logo = React.forwardRef<HTMLElement, LogoProps>(function Logo(
    */
   const Comp = (asChild ? Slot.Root : href ? 'a' : 'span') as React.ElementType
 
+  /*
+   * Which piece of artwork wins, and whether the text wordmark survives it.
+   *
+   *   wordmark !== false, lockup given  -> lockup, text hidden (it is drawn in)
+   *   wordmark !== false, mark only     -> mark, text visible beside it
+   *   wordmark === false                -> mark, else lockup, else the tile
+   *
+   * `lockup` beats `mark` in the wordmark case and loses to it in the rail
+   * case, which is the whole point: one artwork object is passed everywhere
+   * and each surface takes the piece that fits it.
+   *
+   * Absent artwork leaves `artwork` null and `showWordmark` equal to
+   * `wordmark`, so the render below is character-for-character what it was
+   * before this prop existed. `logo-call-sites.test.tsx` holds that.
+   */
+  const hasMark = mark != null
+  const hasLockup = lockup != null
+  const artwork = wordmark
+    ? (hasLockup ? lockup : hasMark ? mark : null)
+    : (hasMark ? mark : hasLockup ? lockup : null)
+  const showWordmark = wordmark && !hasLockup
+
   return (
     <Comp
       {...rest}
@@ -160,10 +226,28 @@ export const Logo = React.forwardRef<HTMLElement, LogoProps>(function Logo(
       {/* Slottable is what lets the composed tile and wordmark become the
           consumer element's children rather than being discarded. */}
       {asChild ? <Slot.Slottable>{children}</Slot.Slottable> : null}
-      <span aria-hidden className={markVariants({ size })}>
-        TS
-      </span>
-      <span className={cn(wordmarkVariants({ tone }), wordmark ? '' : 'sr-only')}>
+      {artwork == null ? (
+        <span aria-hidden className={markVariants({ size })}>
+          TS
+        </span>
+      ) : (
+        /*
+         * `aria-hidden`, like the tile it replaces. The wordmark span below is
+         * the lockup's accessible name in every case — visible when the text
+         * is shown, `sr-only` when the artwork carries it — and artwork that
+         * announced itself as well would name the link twice.
+         *
+         * `shrink-0` and nothing else. The wrapper exists so a flex row cannot
+         * compress artwork wider than the 20/24px tile; it imposes no size, no
+         * colour and no aspect ratio, because the consumer drew those.
+         */
+        <span aria-hidden className="flex shrink-0 items-center">
+          {artwork}
+        </span>
+      )}
+      <span
+        className={cn(wordmarkVariants({ tone }), showWordmark ? '' : 'sr-only')}
+      >
         {brand}
       </span>
     </Comp>

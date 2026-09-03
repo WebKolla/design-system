@@ -1,14 +1,21 @@
 import * as React from 'react'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
-import { Logo } from '@/components/atoms/Logo/Logo'
+import { Logo, type LogoArtwork } from '@/components/atoms/Logo/Logo'
 import { MobileTabBar, type MobileTab } from './MobileTabBar'
 import { NavAnchor } from '@/components/organisms/SiteHeader/NavAnchor'
 import type { NavLink } from '@/components/organisms/SiteHeader/SiteHeader'
 import { navKey, warnIfNotChildless, type NavElement } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
 
-/** The lockup at the left of the portal header. */
-export interface PortalLogo {
+/**
+ * The lockup at the left of the portal header.
+ *
+ * Extends `LogoArtwork`, so the same object that says where the lockup points
+ * also says what it is drawn as. Both portals are inside the product, and
+ * until artwork could be passed here a consultant saw the library's `TS`
+ * placeholder on every screen they use.
+ */
+export interface PortalLogo extends LogoArtwork {
   /**
    * Where the lockup points.
    *
@@ -103,6 +110,16 @@ export function PortalShell({
 }: PortalShellProps) {
   if (logo?.element) warnIfNotChildless(logo.element, 'the PortalShell logo')
 
+  /*
+   * `href`, `element` and `brand` are this shell's own vocabulary and are
+   * consumed above; only the artwork is `Logo`'s. Spreading the whole `logo`
+   * object would put an `element` prop on `Logo`, which does not have one.
+   */
+  const artwork: LogoArtwork = {
+    ...(logo?.mark != null ? { mark: logo.mark } : {}),
+    ...(logo?.lockup != null ? { lockup: logo.lockup } : {}),
+  }
+
   return (
     <div
       {...rest}
@@ -115,6 +132,7 @@ export function PortalShell({
               asChild
               className="shrink-0"
               {...(logo.brand !== undefined ? { brand: logo.brand } : {})}
+              {...artwork}
             >
               {logo.element}
             </Logo>
@@ -123,6 +141,7 @@ export function PortalShell({
               href={logo?.href ?? '/'}
               className="shrink-0"
               {...(logo?.brand !== undefined ? { brand: logo.brand } : {})}
+              {...artwork}
             />
           )}
 
