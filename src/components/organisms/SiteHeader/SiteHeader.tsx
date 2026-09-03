@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Button } from '@/components/atoms/Button/Button'
 import { Container } from '@/components/atoms/Container/Container'
-import { Logo } from '@/components/atoms/Logo/Logo'
+import { Logo, type LogoArtwork } from '@/components/atoms/Logo/Logo'
 import { NavAnchor } from './NavAnchor'
 import { navKey, type NavTarget } from '@/lib/nav-slot'
 import { cn } from '@/lib/cn'
@@ -30,6 +30,15 @@ export interface SiteHeaderProps
   extends React.ComponentPropsWithoutRef<'header'> {
   /** @default 'TimeSubmit' */
   brand?: string
+  /**
+   * Real brand artwork for the lockup, in place of the built-in `TS` tile.
+   *
+   * The public header is the first place a visitor sees the product, and until
+   * this existed a consuming application could not reach the mark there at
+   * all: the shell composes `Logo` itself and offered no interception point.
+   * Pass `lockup` for artwork drawn as one piece; see `LogoArtwork`.
+   */
+  logo?: LogoArtwork
   /** Seven items on the marketing site. */
   nav: NavLink[]
   /** Widened to `NavLink` so it can carry an `element`. `{label, href}` still fits. */
@@ -63,7 +72,7 @@ export interface SiteHeaderProps
  */
 export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
   function SiteHeader(
-    { brand = 'TimeSubmit', nav, signIn, cta, wide = false, className, ...rest },
+    { brand = 'TimeSubmit', logo, nav, signIn, cta, wide = false, className, ...rest },
     ref,
   ) {
     return (
@@ -77,7 +86,7 @@ export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
       >
         <Container wide={wide} className="flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Logo href="/" brand={brand} />
+            <Logo href="/" brand={brand} {...logo} />
 
             <nav aria-label="Main">
               <ul className="flex items-center gap-6">

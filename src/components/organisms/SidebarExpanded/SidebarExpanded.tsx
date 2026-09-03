@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Search } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Avatar } from '@/components/atoms/Avatar/Avatar'
-import { Logo } from '@/components/atoms/Logo/Logo'
+import { Logo, type LogoArtwork } from '@/components/atoms/Logo/Logo'
 import { NavItem } from '@/components/atoms/NavItem/NavItem'
 import { CompletenessCard } from '@/components/molecules/CompletenessCard/CompletenessCard'
 import { navKey, navTarget, type NavTarget } from '@/lib/nav-slot'
@@ -41,6 +41,14 @@ export interface SidebarExpandedProps
   user: string
   role: string
   userInitials: string
+  /**
+   * Real brand artwork for the lockup at the top of the sidebar.
+   *
+   * Here so `AppShell` has somewhere to forward its own `logo` to. The rail
+   * and the expanded sidebar are the same mark at two widths, and artwork that
+   * reached one and not the other would be the more confusing outcome.
+   */
+  logo?: LogoArtwork
   /** Ungrouped destination pinned above the groups. */
   overview: SidebarDestination
   /** Four groups: a flat list of thirteen is unscannable. */
@@ -103,6 +111,7 @@ export const SidebarExpanded = React.forwardRef<
     overview,
     groups,
     plan,
+    logo,
     orgSlot,
     accountSlot,
     className,
@@ -121,7 +130,7 @@ export const SidebarExpanded = React.forwardRef<
     >
       <div className="flex flex-col gap-2.5">
         {/* `sm` is the 20px lockup, and it is not the 24px one scaled — see Logo. */}
-        <Logo size="sm" />
+        <Logo size="sm" {...logo} />
 
         {orgSlot ?? (
           <button

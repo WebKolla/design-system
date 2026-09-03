@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Container } from '@/components/atoms/Container/Container'
-import { Logo } from '@/components/atoms/Logo/Logo'
+import { Logo, type LogoArtwork } from '@/components/atoms/Logo/Logo'
 import { cn } from '@/lib/cn'
 import type { NavLink } from '../SiteHeader/SiteHeader'
 import { NavAnchor, navKey } from '../SiteHeader/NavAnchor'
@@ -14,6 +14,14 @@ export interface SiteFooterProps
   extends React.ComponentPropsWithoutRef<'footer'> {
   /** @default 'TimeSubmit' */
   brand?: string
+  /**
+   * Real brand artwork for the lockup, in place of the built-in `TS` tile.
+   *
+   * This footer is an ink surface, and `tone` governs the text wordmark only —
+   * artwork that needs to change on ink is the consumer's to draw. See
+   * `LogoArtwork`.
+   */
+  logo?: LogoArtwork
   blurb: string
   /** Three columns on the marketing site. */
   columns: FooterColumn[]
@@ -40,6 +48,7 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
   function SiteFooter(
     {
       brand = 'TimeSubmit',
+      logo,
       blurb,
       columns,
       social,
@@ -62,7 +71,7 @@ export const SiteFooter = React.forwardRef<HTMLElement, SiteFooterProps>(
             <div className="flex min-w-[260px] flex-1 flex-col gap-3">
               {/* `tone="ink"`: the wordmark sits on the ink surface, so it takes
                   the mode-invariant `ink-foreground` rather than `foreground`. */}
-              <Logo brand={brand} tone="ink" />
+              <Logo brand={brand} tone="ink" {...logo} />
               <p className="text-body-cell text-ink-subtle max-w-[36ch]">{blurb}</p>
               <ul className="flex items-center gap-4">
                 {social.map((s) => (

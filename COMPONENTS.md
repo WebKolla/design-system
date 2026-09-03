@@ -215,6 +215,11 @@ document load on every click.
 | `NavLink.element` | `SiteHeader`, `SiteFooter`, `PortalShell.links` | `NavAnchor` |
 | `PortalLogo.element` | `PortalShell.logo` | `Logo` `asChild` |
 
+`PortalLogo` also extends `LogoArtwork`, so `element` (where it points) and
+`mark` / `lockup` (what it is drawn as) are set on the same object. They are
+different questions: a destination slot routes through `asChild` and must be
+childless, while artwork is content and has no such contract.
+
 ```tsx
 <AppShell
   sidebar={{
@@ -377,6 +382,41 @@ tile keeps `bg-primary` in both.
 **`href`** renders the lockup as one link home. **`asChild`** renders it into an
 element you supply, for a router link or a positioned wrapper. **`brand`**
 defaults to `TimeSubmit` and drives the wordmark only — the tile stays `TS`.
+
+### Your own artwork
+
+The `TS` tile is a placeholder for a product that has no artwork yet. An
+application with real artwork passes it in, as a `LogoArtwork`:
+
+| Field | Replaces | Wordmark |
+|---|---|---|
+| `mark` | the tile | still set in text beside it |
+| `lockup` | the tile *and* the wordmark | drawn into the artwork, kept `sr-only` |
+
+```tsx
+<SiteHeader logo={{ lockup: <BrandLockup /> }} … />
+<AppShell logo={{ mark: <BrandMark />, lockup: <BrandLockup /> }} … />
+```
+
+Supply both and one object serves every surface: `wordmark={false}` — the 52px
+rail — takes `mark`, and everything else takes `lockup`. Each falls back to the
+other, and to the tile, so a partial object is never a blank space.
+
+**The wordmark text is never deleted, only hidden.** Artwork carries no
+accessible name, so a lockup that removed the `brand` span would leave the link
+home named nothing at all.
+
+**You size and colour the artwork.** Nothing is imposed on it but `shrink-0`,
+so a flex row cannot squash artwork wider than the tile. `size` still sets the
+gap and `tone` still governs the text wordmark; artwork that has to change on
+the ink footer is yours to draw.
+
+The four shells forward it: `SiteHeader.logo`, `SiteFooter.logo`,
+`AppShell.logo` (reaching both the rail and the expanded sidebar, and composing
+with `logoHref` / `logoElement` rather than replacing them), and
+`PortalLogo`, which extends `LogoArtwork` so one object carries the
+destination and the artwork together. Without them the mark was unreachable:
+every shell composes `Logo` internally and offered no interception point.
 
 Built on 3 August 2026 by deriving all five inline lockups it replaces, with a
 test per call site asserting the rendered output is unchanged. No new token, no

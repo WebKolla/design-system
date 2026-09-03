@@ -10,7 +10,7 @@ import {
   SidebarExpanded,
   type SidebarExpandedProps,
 } from '@/components/organisms/SidebarExpanded/SidebarExpanded'
-import { Logo } from '@/components/atoms/Logo/Logo'
+import { Logo, type LogoArtwork } from '@/components/atoms/Logo/Logo'
 import { NavRailItem } from '@/components/atoms/NavRailItem/NavRailItem'
 import { MobileTabBar, type MobileTab } from './MobileTabBar'
 import { navKey, navTarget, type NavElement } from '@/lib/nav-slot'
@@ -113,6 +113,18 @@ export interface AppShellProps extends React.ComponentPropsWithoutRef<'div'> {
    * used.
    */
   logoElement?: NavElement | undefined
+  /**
+   * Real brand artwork for the mark, in place of the built-in `TS` tile.
+   *
+   * **Orthogonal to `logoHref` and `logoElement`, and composes with both.**
+   * Those two say where the mark points; this says what it looks like. A
+   * consuming application had no way to say the second thing at all.
+   *
+   * Pass one object holding both pieces and each width takes what fits: the
+   * 52px rail renders with `wordmark={false}` and so picks up `mark`, while
+   * the 236px sidebar takes `lockup`. See `LogoArtwork`.
+   */
+  logo?: LogoArtwork
   children: React.ReactNode
 }
 
@@ -139,6 +151,7 @@ export function AppShell({
   onCollapsedChange,
   logoHref,
   logoElement,
+  logo,
   children,
   className,
   ...rest
@@ -153,7 +166,7 @@ export function AppShell({
       {/* ≥1280, unless the page asks for the rail throughout */}
       {collapsed ? null : (
         <div className="hidden xl:block">
-          <SidebarExpanded {...sidebar} />
+          <SidebarExpanded {...sidebar} {...(logo ? { logo } : {})} />
         </div>
       )}
 
@@ -175,6 +188,7 @@ export function AppShell({
         <Logo
           size="sm"
           wordmark={false}
+          {...logo}
           className="mb-2"
           // `navTarget` returns either `{ asChild, children }` or `{ href }`,
           // and `Logo` accepts both, so the one chokepoint every other

@@ -190,3 +190,103 @@ export const AsChild: Story = {
 export const CustomBrand: Story = {
   args: { brand: 'Meridian' },
 }
+
+/*
+ * Stand-in artwork for the stories below.
+ *
+ * Deliberately not the real TimeSubmit files: the library ships no brand
+ * assets, and a story that imported one would make the artwork slot look like
+ * something the design system supplies rather than something the application
+ * hands in. A clock mark and a mark-plus-wordmark lockup, sized by the
+ * artwork itself, is exactly the shape a consumer passes.
+ */
+const ClockMark = () => (
+  <svg data-testid="mark" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden focusable="false">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+)
+
+/*
+ * The wordmark half is drawn as bars rather than an SVG `<text>` node on
+ * purpose. Real artwork sets the name in outlines, and a live text node here
+ * would put a second readable "TimeSubmit" in the tree — which is both untrue
+ * to the artwork and enough to make `getByText` ambiguous in the play
+ * functions below.
+ */
+const ClockLockup = () => (
+  <svg
+    data-testid="lockup"
+    width="120"
+    height="24"
+    viewBox="0 0 120 24"
+    fill="none"
+    aria-hidden
+    focusable="false"
+  >
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <rect x="30" y="7" width="76" height="5" rx="2.5" fill="currentColor" />
+    <rect x="30" y="15" width="52" height="4" rx="2" fill="currentColor" />
+  </svg>
+)
+
+/**
+ * `mark` replaces the tile and keeps the text wordmark beside it — for a brand
+ * whose mark is artwork but whose name is still set in the product's type.
+ */
+export const ArtworkMark: Story = {
+  args: { mark: <ClockMark /> },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // The built-in tile is gone, the text wordmark is still visible.
+    await expect(canvas.queryByText('TS')).not.toBeInTheDocument()
+    await expect(canvas.getByTestId('mark')).toBeInTheDocument()
+    await expect(canvas.getByText('TimeSubmit')).toBeVisible()
+  },
+}
+
+/**
+ * `lockup` stands in for the tile *and* the wordmark, for artwork drawn as one
+ * piece. The `brand` text stays in the document as `sr-only`, because the
+ * artwork carries no accessible name of its own.
+ */
+export const ArtworkLockup: Story = {
+  args: { lockup: <ClockLockup />, href: '/' },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await expect(canvas.queryByText('TS')).not.toBeInTheDocument()
+    await expect(canvas.getByTestId('lockup')).toBeInTheDocument()
+    // Still named, and still named the same thing: the wordmark is hidden
+    // from sight, not removed, so the link home is not left nameless.
+    await expect(canvas.getByRole('link', { name: 'TimeSubmit' })).toBeInTheDocument()
+    // `sr-only` clips rather than hiding, so this is a class assertion:
+    // `toBeVisible` reads a clipped element as visible, correctly.
+    await expect(canvas.getByText('TimeSubmit')).toHaveClass('sr-only')
+  },
+}
+
+/**
+ * The 52px collapsed rail. One artwork object is passed to every surface and
+ * `wordmark={false}` picks the piece that fits: `mark`, never the lockup.
+ */
+export const ArtworkOnTheRail: Story = {
+  args: {
+    size: 'sm',
+    wordmark: false,
+    mark: <ClockMark />,
+    lockup: <ClockLockup />,
+    href: '/dashboard',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // The mark, not the 120px lockup, so the 52px rail is not overrun.
+    await expect(canvas.getByTestId('mark').getBoundingClientRect().width).toBe(24)
+    await expect(canvas.queryByTestId('lockup')).not.toBeInTheDocument()
+    // Named all the same, from the hidden wordmark.
+    await expect(canvas.getByRole('link', { name: 'TimeSubmit' })).toBeInTheDocument()
+  },
+}
