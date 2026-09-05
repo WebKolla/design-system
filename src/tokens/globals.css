@@ -640,6 +640,32 @@
     outline-offset: var(--focus-ring-offset);
   }
 
+  /* Ink surfaces re-point the ring, because ink is the one surface the per-mode
+     ring cannot see.
+
+     --color-focus-ring is declared once per mode and measured against that
+     mode's background: 6.72:1 Light, 6.21:1 Dark. Ink is mode-invariant and is
+     neither of those backgrounds. In Dark the two coincide, since the dark
+     background IS ink/950 and the reading holds. In Light the ring stays
+     accent/600 while the surface underneath it is ink/950, and that pair
+     measures 2.53:1 — under the 3:1 WCAG 2.4.11 and 1.4.11 require of a focus
+     indicator. A keyboard user on a light page could not see where they were
+     anywhere inside a footer, CTA band, sign-in panel or ink dialog.
+
+     --color-ink-accent is the token that exists precisely so an accent can sit
+     on ink, and it measures 7.61:1 there. Scoped to the ink surface classes
+     rather than raised globally, because the ring is correct on both mode
+     backgrounds already and lifting it far enough for ink would spoil it on
+     Light.
+
+     Declared on the surface, inherited by its descendants: a custom property is
+     substituted on the element that declares it, so every focusable child of an
+     ink surface resolves the ring against ink without knowing it is on one. */
+  .bg-ink,
+  .bg-ink-raised {
+    --color-focus-ring: var(--color-ink-accent);
+  }
+
   /* [code] prefers-reduced-motion reset. */
   @media (prefers-reduced-motion: reduce) {
     *,
